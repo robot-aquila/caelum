@@ -14,7 +14,7 @@ public class LBTradeSerializerTest {
 	}
 	
 	@Test
-	public void testSerialize_StandardTypeRecord_VolumeLimit() {
+	public void testSerialize_LongCompact_VolumeLimit() {
 		byte expected[] = {
 			0x01 | (byte)(0x3F << 2),
 			0b00010011,
@@ -25,7 +25,7 @@ public class LBTradeSerializerTest {
 	}
 	
 	@Test
-	public void testSerialize_StandardTypeRecord_PriceLimit() {
+	public void testSerialize_LongCompact_PriceLimit() {
 		byte expected[] = {
 			0x01 | (byte)(0x19 << 2),
 			0b00001111,
@@ -36,20 +36,19 @@ public class LBTradeSerializerTest {
 	}
 	
 	@Test
-	public void testSerialize_SmallExtendedTypeRecord_NegativePrice() {
+	public void testSerialize_LongRegular_NegativePrice() {
 		byte expected[] = {
-			0b00011110, // type 2 | price bytes 8-1 | volume bytes 1-1 -> 000 111 10
+			0b00011010, // type 2 | price bytes 7-1 | volume bytes 1-1 -> 000 110 10
 			0b00001111,
-			(byte)0xFF,(byte)0xE4,(byte)0x53,(byte)0xD5,(byte)0x5F,(byte)0x4B,(byte)0x44,(byte)0x03,
+			(byte)0xE4,(byte)0x53,(byte)0xD5,(byte)0x5F,(byte)0x4B,(byte)0x44,(byte)0x03,
 			(byte)0x01
 		};
-		
 		
 		assertArrayEquals(expected, service.serialize(null, new LBTrade(-7789123455990781L, 15, 1, 0)));
 	}
 
 	@Test
-	public void testSerialize_SmallExtendedTypeRecord() {
+	public void testSerialize_LongRegular() {
 		byte expected[] = {
 			0b01010010, // type 2, price length 5 bytes, volume length 3 bytes
 			(byte)0b11110101,

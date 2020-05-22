@@ -12,9 +12,23 @@ public class ByteUtilsTest {
 	public void setUp() throws Exception {
 		service = new ByteUtils();
 	}
+	
+	@Test
+	public void testIsLongCompactTrade() {
+		assertFalse(service.isLongCompactTrade(-251,  13));
+		assertFalse(service.isLongCompactTrade( 251, -13));
+		assertFalse(service.isLongCompactTrade(-251, -13));
+		assertFalse(service.isLongCompactTrade(655788712L, 13));
+		assertFalse(service.isLongCompactTrade(251, 9127778992L));
+		assertFalse(service.isLongCompactTrade(65536, 13));
+		assertFalse(service.isLongCompactTrade(1238, 64));
+		assertTrue(service.isLongCompactTrade(251, 13));
+		assertTrue(service.isLongCompactTrade(0, 0));
+		assertTrue(service.isLongCompactTrade(65535, 63));
+	}
 
 	@Test
-	public void testLongToBytes() {
+	public void testLongToBytes_PositiveValues() {
 		byte bytes[] = new byte[8];
 		
 		byte expected1[] = { (byte)0x00,(byte)0x00,(byte)0x00,(byte)0x08,(byte)0x26,(byte)0x71,(byte)0xFB,(byte)0x8C };
@@ -35,7 +49,28 @@ public class ByteUtilsTest {
 	}
 	
 	@Test
-	public void testBytesToLong() {
+	public void testLongToBytes_NegativeValues() {
+		byte bytes[] = new byte[8];
+		
+		byte expected1[] = { (byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0x8F };
+		assertEquals(1, service.longToBytes(0xFFFFFFFFFFFFFF8FL, bytes)); // -113
+		assertArrayEquals(expected1, bytes);
+		
+		byte expected2[] = { (byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xD4,(byte)0x1A,(byte)0xAC };
+		assertEquals(3, service.longToBytes(0xFFFFFFFFFFD41AACL, bytes)); // -2876756
+		assertArrayEquals(expected2, bytes);
+		
+		byte expected3[] = { (byte)0xFF,(byte)0xFC,(byte)0x73,(byte)0xA0,(byte)0xA4,(byte)0x00,(byte)0xA0,(byte)0x82 };
+		assertEquals(7, service.longToBytes(0xFFFC73A0A400A082L, bytes)); // -998766123376510
+		assertArrayEquals(expected3, bytes);
+		
+		byte expected4[] = { (byte)0xF2,(byte)0x1E,(byte)0xEE,(byte)0xFF,(byte)0x03,(byte)0xE8,(byte)0xF7,(byte)0xD5 };
+		assertEquals(8, service.longToBytes(0xF21EEEFF03E8F7D5L, bytes)); // -1000099288180000811
+		assertArrayEquals(expected4, bytes);
+	}
+	
+	@Test
+	public void testBytesToLong_PositiveValues() {
 		byte source1[] = { (byte)0x00,(byte)0x00,(byte)0x00,(byte)0x08,(byte)0x26,(byte)0x71,(byte)0xFB,(byte)0x8C };
 		assertEquals(0x000000082671FB8CL, service.bytesToLong(source1, 3, 5));
 		
@@ -47,6 +82,21 @@ public class ByteUtilsTest {
 		
 		byte source4[] = { (byte)0x00,(byte)0x00,(byte)0x00,(byte)0x00,(byte)0x27,(byte)0x00,(byte)0x00,(byte)0x00 };
 		assertEquals(0x0000000027000000L, service.bytesToLong(source4, 4, 4));
+	}
+	
+	@Test
+	public void testBytesToLong_NegativeValues() {
+		byte source1[] = { (byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0x8F };
+		assertEquals(0xFFFFFFFFFFFFFF8FL, service.bytesToLong(source1, 7, 1));
+		
+		byte source2[] = { (byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xD4,(byte)0x1A,(byte)0xAC };
+		assertEquals(0xFFFFFFFFFFD41AACL, service.bytesToLong(source2, 5, 3));
+		
+		byte source3[] = { (byte)0xFF,(byte)0xFC,(byte)0x73,(byte)0xA0,(byte)0xA4,(byte)0x00,(byte)0xA0,(byte)0x82 };
+		assertEquals(0xFFFC73A0A400A082L, service.bytesToLong(source3, 1, 7));
+		
+		byte source4[] = { (byte)0xF2,(byte)0x1E,(byte)0xEE,(byte)0xFF,(byte)0x03,(byte)0xE8,(byte)0xF7,(byte)0xD5 };
+		assertEquals(0xF21EEEFF03E8F7D5L, service.bytesToLong(source4, 0, 8));
 	}
 
 }

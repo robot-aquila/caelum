@@ -11,27 +11,30 @@ import org.apache.commons.lang3.builder.ToStringStyle;
  * Symbol and time are stored outside in appropriate Kafka record properties.
  * Number of decimals are limited to 4 bits. In case of oversize an exception will be thrown.
  */
-public class LBTrade {
+public class LBTrade implements ITrade {
+	private final TradeRecordType type;
 	private final long price;
 	private final byte priceDecimals;
 	private final long volume;
 	private final byte volumeDecimals;
-	/**
-	 * A header byte. Used for encoding/decoding to/from binary format. Reserved for future usage.
-	 */
-	private final Byte header;
 	
 	/**
-	 * This is unsafe constructor - no additional checks performed.
-	 * Should be used to restore trade only for valid number of decimals.
+	 * Service constructor when restored from binary form.
 	 * <p>
 	 * @param price - price value
 	 * @param price_decimals - number of decimals in price value
 	 * @param volume - volume value
 	 * @param volume_decimals - number of decimals in volume value
+	 * @param type - type of source record
 	 */
-	public LBTrade(long price, byte price_decimals, long volume, byte volume_decimals, Byte header) {
-		this.header = header;
+	public LBTrade(long price, byte price_decimals, long volume, byte volume_decimals, TradeRecordType type) {
+		if ( (price_decimals & 0xF0) != 0 ) {
+			throw new IllegalArgumentException("Price decimals expected to be in range 0-15 but: " + price_decimals);
+		}
+		if ( (volume_decimals & 0xF0) != 0 ) {
+			throw new IllegalArgumentException("Volume decimals expected to be in range 0-15 but: " + volume_decimals);
+		}
+		this.type = type;
 		this.price = price;
 		this.volume = volume;
 		this.priceDecimals = price_decimals;
@@ -39,17 +42,12 @@ public class LBTrade {
 	}
 	
 	public LBTrade(long price, int price_decimals, long volume, int volume_decimals) {
-		this(price, (byte) price_decimals, volume, (byte) volume_decimals, null);
-		if ( price_decimals < 0 || price_decimals > 15 ) {
-			throw new IllegalArgumentException("Price decimals expected to be in range 0-15 but: " + price_decimals);
-		}
-		if ( volume_decimals < 0 || volume_decimals > 15 ) {
-			throw new IllegalArgumentException("Volume decimals expected to be in range 0-15 but: " + volume_decimals);
-		}
+		this(price, (byte)price_decimals, volume, (byte)volume_decimals, TradeRecordType.LONG_UNKNOWN);
 	}
-	
-	public Byte getHeader() {
-		return header;
+
+	@Override
+	public TradeRecordType getType() {
+		return type;
 	}
 	
 	public long getPrice() {
@@ -80,7 +78,7 @@ public class LBTrade {
 				.append(priceDecimals)
 				.append(volume)
 				.append(volumeDecimals)
-				.append(header)
+				.append(type)
 				.build();
 	}
 	
@@ -98,7 +96,7 @@ public class LBTrade {
 				.append(o.volume, volume)
 				.append(o.priceDecimals, priceDecimals)
 				.append(o.volumeDecimals, volumeDecimals)
-				.append(o.header, header)
+				.append(o.type, type)
 				.build();
 	}
 	

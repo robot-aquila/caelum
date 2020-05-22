@@ -10,13 +10,13 @@ public class LBTradeSerializer implements Serializer<LBTrade> {
 	}
 	
 	public LBTradeSerializer() {
-		this(new ByteUtils());
+		this(ByteUtils.getInstance());
 	}
 	
 	@Override
 	public byte[] serialize(String topic, LBTrade trade) {
 		long price = trade.getPrice(), volume = trade.getVolume();
-		if ( (0xFFFFFFFFFFFFFFC0L & volume) == 0L && (0xFFFFFFFFFFFF0000L & price) == 0L ) {
+		if ( utils.isLongCompactTrade(price, volume) ) {
 			// price in range of two bytes and volume in range of 6 bits
 			byte buffer[] = new byte[4];
 			buffer[0] = (byte)(0x01 | (volume & 0x3F) << 2);
