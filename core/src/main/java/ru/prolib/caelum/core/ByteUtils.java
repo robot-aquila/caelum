@@ -29,7 +29,25 @@ public class ByteUtils {
 			}
 			value >>= 8;
 		}
-		return num > 0 ? num : 1;
+		if ( num == 0 ) {
+			return 1;
+		}
+		if ( num == 8 ) {
+			return 8;
+		}
+		int high_byte_index = 8 - num;
+		if ( empty == 0 ) {
+			// compact positive value shouldn't contain higher bit on
+			if ( (result[high_byte_index] & 0x80) != 0 ) {
+				num ++;
+			}
+		} else {
+			// compact negative value shouldn't contain higher bit off
+			if ( (result[high_byte_index] & 0x80) == 0 ) {
+				num ++;
+			}
+		}
+		return num;
 	}
 
 	/**

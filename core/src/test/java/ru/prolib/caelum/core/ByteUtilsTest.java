@@ -68,6 +68,48 @@ public class ByteUtilsTest {
 		assertEquals(8, service.longToBytes(0xF21EEEFF03E8F7D5L, bytes)); // -1000099288180000811
 		assertArrayEquals(expected4, bytes);
 	}
+
+	@Test
+	public void testLongToBytes_PositiveValue_WhenHighestBitIsBusy() {
+		byte bytes[] = new byte[8];
+		
+		byte expected1[] = { (byte)0x00,(byte)0x00,(byte)0x00,(byte)0x00,(byte)0x00,(byte)0x00,(byte)0xFF,(byte)0x8F };
+		assertEquals(3, service.longToBytes(0x000000000000FF8FL, bytes));
+		assertArrayEquals(expected1, bytes);
+		
+		byte expected2[] = { (byte)0x00,(byte)0x00,(byte)0x00,(byte)0x00,(byte)0x00,(byte)0xE0,(byte)0x00,(byte)0x00 };
+		assertEquals(4, service.longToBytes(0x0000000000E00000L, bytes));
+		assertArrayEquals(expected2, bytes);
+		
+		byte expected3[] = { (byte)0x00,(byte)0x00,(byte)0x00,(byte)0x00,(byte)0x80,(byte)0x00,(byte)0x00,(byte)0x00 };
+		assertEquals(5, service.longToBytes(0x0000000080000000L, bytes));
+		assertArrayEquals(expected3, bytes);
+		
+		byte expected4[] = { (byte)0x00,(byte)0x80,(byte)0x00,(byte)0x00,(byte)0x00,(byte)0x00,(byte)0x00,(byte)0x00 };
+		assertEquals(8, service.longToBytes(0x0080000000000000L, bytes));
+		assertArrayEquals(expected4, bytes);
+	}
+	
+	@Test
+	public void testLongToBytes_NegativeValues_WhenHighestBitIsBusy() {
+		byte bytes[] = new byte[8];
+		
+		byte expected1[] = { (byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0x00,(byte)0x70 };
+		assertEquals(3, service.longToBytes(0xFFFFFFFFFFFF0070L, bytes));
+		assertArrayEquals(expected1, bytes);
+		
+		byte expected2[] = { (byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0x1F,(byte)0xFF,(byte)0xFF };
+		assertEquals(4, service.longToBytes(0xFFFFFFFFFF1FFFFFL, bytes));
+		assertArrayEquals(expected2, bytes);
+		
+		byte expected3[] = { (byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0x7F,(byte)0xFF,(byte)0xFF,(byte)0xFF };
+		assertEquals(5, service.longToBytes(0xFFFFFFFF7FFFFFFFL, bytes));
+		assertArrayEquals(expected3, bytes);
+		
+		byte expected4[] = { (byte)0xFF,(byte)0x7F,(byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF };
+		assertEquals(8, service.longToBytes(0xFF7FFFFFFFFFFFFFL, bytes));
+		assertArrayEquals(expected4, bytes);
+	}
 	
 	@Test
 	public void testBytesToLong_PositiveValues() {

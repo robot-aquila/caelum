@@ -50,9 +50,9 @@ public class LBTradeSerializerTest {
 	@Test
 	public void testSerialize_LongRegular() {
 		byte expected[] = {
-			0b01010010, // type 2, price length 5 bytes, volume length 3 bytes
+			0b01010110, // type 2, price length 6 bytes, volume length 3 bytes
 			(byte)0b11110101,
-			(byte)0xBE, (byte)0xDB, (byte)0x93, (byte)0xE5, (byte)0xA3, // price
+			(byte)0x00,(byte)0xBE, (byte)0xDB, (byte)0x93, (byte)0xE5, (byte)0xA3, // price
 			(byte)0x6E, (byte)0xF8, (byte)0xF0 // volume
 		};
 		
