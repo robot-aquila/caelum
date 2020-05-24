@@ -10,7 +10,7 @@ public class LBTradeDeserializer implements Deserializer<LBTrade> {
 	}
 	
 	public LBTradeDeserializer() {
-		this(new ByteUtils());
+		this(ByteUtils.getInstance());
 	}
 
 	@Override

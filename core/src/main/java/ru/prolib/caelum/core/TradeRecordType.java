@@ -7,6 +7,5 @@ public enum TradeRecordType {
 	 */
 	LONG_UNKNOWN,
 	LONG_COMPACT,
-	LONG_REGULAR,
-	RESERVED_1
+	LONG_REGULAR
 }

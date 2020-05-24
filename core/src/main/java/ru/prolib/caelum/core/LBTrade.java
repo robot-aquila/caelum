@@ -11,7 +11,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
  * Symbol and time are stored outside in appropriate Kafka record properties.
  * Number of decimals are limited to 4 bits. In case of oversize an exception will be thrown.
  */
-public class LBTrade implements ITrade {
+public class LBTrade implements ILBTrade {
 	private final TradeRecordType type;
 	private final long price;
 	private final byte priceDecimals;
@@ -50,18 +50,22 @@ public class LBTrade implements ITrade {
 		return type;
 	}
 	
+	@Override
 	public long getPrice() {
 		return price;
 	}
 	
+	@Override
 	public long getVolume() {
 		return volume;
 	}
 	
+	@Override
 	public byte getPriceDecimals() {
 		return priceDecimals;
 	}
 	
+	@Override
 	public byte getVolumeDecimals() {
 		return volumeDecimals;
 	}
