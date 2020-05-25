@@ -2,7 +2,7 @@ package ru.prolib.caelum.core;
 
 import org.apache.kafka.common.serialization.Serializer;
 
-public class LBTradeSerializer implements Serializer<LBTrade> {
+public class LBTradeSerializer implements Serializer<ILBTrade> {
 	private final ByteUtils utils;
 	
 	public LBTradeSerializer(ByteUtils utils) {
@@ -14,7 +14,7 @@ public class LBTradeSerializer implements Serializer<LBTrade> {
 	}
 	
 	@Override
-	public byte[] serialize(String topic, LBTrade trade) {
+	public byte[] serialize(String topic, ILBTrade trade) {
 		long price = trade.getPrice(), volume = trade.getVolume();
 		if ( utils.isLongCompactTrade(price, volume) ) {
 			// price in range of two bytes and volume in range of 6 bits

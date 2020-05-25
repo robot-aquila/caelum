@@ -2,7 +2,7 @@ package ru.prolib.caelum.core;
 
 import org.apache.kafka.common.serialization.Deserializer;
 
-public class LBTradeDeserializer implements Deserializer<LBTrade> {
+public class LBTradeDeserializer implements Deserializer<ILBTrade> {
 	private final ByteUtils utils;
 	
 	public LBTradeDeserializer(ByteUtils utils) {
@@ -14,7 +14,7 @@ public class LBTradeDeserializer implements Deserializer<LBTrade> {
 	}
 
 	@Override
-	public LBTrade deserialize(String topic, byte[] bytes) {
+	public ILBTrade deserialize(String topic, byte[] bytes) {
 		byte header = bytes[0];
 		switch ( 0b00000011 & header ) {
 		case 0:
