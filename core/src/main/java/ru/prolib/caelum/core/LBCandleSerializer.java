@@ -4,7 +4,7 @@ import java.math.BigInteger;
 
 import org.apache.kafka.common.serialization.Serializer;
 
-public class LBCandleSerializer implements Serializer<ILBCandle> {
+public class LBCandleSerializer<T extends ILBCandle> implements Serializer<T> {
 	private final ByteUtils utils;
 	
 	public LBCandleSerializer(ByteUtils utils) {
@@ -16,7 +16,7 @@ public class LBCandleSerializer implements Serializer<ILBCandle> {
 	}
 	
 	@Override
-	public byte[] serialize(String topic, ILBCandle candle) {
+	public byte[] serialize(String topic, T candle) {
 		BigInteger big_volume = candle.getBigVolume();
 		byte volume_bytes[] = null;
 		if ( big_volume != null ) {

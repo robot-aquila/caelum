@@ -20,11 +20,23 @@ import ru.prolib.caelum.core.ILBTrade;
 import ru.prolib.caelum.core.LBTrade;
 
 public class TradeGenerator {
+	static final double MAX_VOLATILITY = 0.30d, MIN_VOLATILITY = 0.01d, AVG_VOLATILITY = 0.15d;
+	static final long VOLATILITY_RECALC_TRIGGER = 20L;
+	static final long MIN_PRICE = 100L, MAX_PRICE = Long.MAX_VALUE;
 	
-	static class SymbolDesc {
+	public static void main(String[] args) throws Exception {
+		new TradeGenerator().run(args);
+	}
+	
+	static void print(Object msg) {
+		System.out.println(msg);
+	}
+	
+	public static class SymbolDesc {
 		final String symbol;
 		final byte priceDecimals, volumeDecimals;
 		long lastPrice, totalCount;
+		double volatility = AVG_VOLATILITY;
 		
 		public SymbolDesc(String symbol, byte price_decimals, byte volume_decimals, long last_price) {
 			this.symbol = symbol;
@@ -37,48 +49,92 @@ public class TradeGenerator {
 		public String toString() {
 			return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
 		}
+		
+		public double getVolatility() {
+			return volatility;
+		}
+		
+		public double recalcVolatility(double gaussian) {
+			double old_volat = volatility;
+			volatility = Math.abs(Math.min(Math.abs(gaussian / 3.0d), 1.0d))
+					* (MAX_VOLATILITY - MIN_VOLATILITY) + MIN_VOLATILITY;
+			return old_volat;
+		}
 
 	}
+	
+	public static class RandomUtils {
+		private static final String CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
+		final Random rand;
+		
+		public RandomUtils(Random rand) {
+			this.rand = rand;
+		}
+		
+		public String randomString(int length) {
+			StringBuilder sb = new StringBuilder();
+			while ( length-- != 0 ) {
+				sb.append(CHARS.charAt(rand.nextInt(CHARS.length())));
+			}
+			return sb.toString();
+		}
+		
+		public SymbolDesc randomSymbol(int chars, String prefix, String suffix) {
+			String symbol = prefix + randomString(chars) + suffix;
+			SymbolDesc desc = new SymbolDesc(symbol, (byte)rand.nextInt(16),
+					(byte)rand.nextInt(16), rand.nextLong());
+			desc.lastPrice = (long) Math.pow(10, 2 + rand.nextInt(16));
+			return desc;
+		}
 
-	public static void main(String[] args) throws Exception {
-		new TradeGenerator().run(args);
+		public Map<String, SymbolDesc> randomSymbols(int num, int chars, String prefix, String suffix) {
+			Map<String, SymbolDesc> result = new HashMap<>();
+			for ( int i = 0; i < num * 2; i ++ ) {
+				SymbolDesc desc = randomSymbol(chars, prefix, suffix);
+				if ( ! result.containsKey(desc.symbol) ) {
+					result.put(desc.symbol, desc);
+				}
+				if ( result.size() >= num ) {
+					break;
+				}
+			}
+			return result;
+		}
+
+		ILBTrade randomTrade(SymbolDesc desc) {
+			desc.totalCount ++;
+			if ( desc.totalCount % VOLATILITY_RECALC_TRIGGER == 0 ) {
+				double old_volatility = desc.recalcVolatility(rand.nextGaussian());
+				print(">>> Volatility change: symbol=" + desc.symbol +
+						" old=" + old_volatility + " new=" + desc.volatility);
+			}
+			long old_price = desc.lastPrice;
+			double deviation = Math.min(rand.nextGaussian() / 3.0d, 1.0d);
+			double delta = deviation * desc.volatility * old_price;
+			long delta_l = Math.round(delta);
+			boolean overflow = false;
+			try {
+				desc.lastPrice = Math.addExact(desc.lastPrice, delta_l);
+			} catch ( ArithmeticException e ) {
+				overflow = true;
+				desc.lastPrice = delta_l > 0 ? MAX_PRICE : MIN_PRICE;
+			}
+			desc.lastPrice = Math.max(desc.lastPrice, MIN_PRICE);
+			desc.lastPrice = Math.min(desc.lastPrice, MAX_PRICE);
+			print(">>>  New price: " + desc.lastPrice);
+			print(">>>  Old price: " + old_price);
+			print(">>>  Deviation: " + deviation);
+			print(">>> Volatility: " + desc.volatility);
+			print(">>>      Delta: " + delta);
+			print(">>>   Delta(L): " + delta_l);
+			print(">>>   Overflow: " + overflow);
+			return new LBTrade(desc.lastPrice, desc.priceDecimals, rand.nextLong(), desc.volumeDecimals);
+		}
+		
 	}
 	
 	private Random rand;
-	
-	String randomString(int length) {
-		final String alpha = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
-		StringBuilder sb = new StringBuilder();
-		while ( length-- != 0 ) {
-			sb.append(alpha.charAt(rand.nextInt(alpha.length())));
-		}
-		return sb.toString();
-	}
-	
-	void print(Object msg) {
-		System.out.println(msg);
-	}
-	
-	Map<String, SymbolDesc> randomSymbols(int num, int chars, String prefix, String suffix) {
-		Map<String, SymbolDesc> result = new HashMap<>();
-		for ( int i = 0; i < num * 2; i ++ ) {
-			String symbol = prefix + randomString(chars) + suffix;
-			if ( ! result.containsKey(symbol) ) {
-				result.put(symbol, new SymbolDesc(symbol,
-						(byte)rand.nextInt(16), (byte)rand.nextInt(16), rand.nextLong()));
-			}
-			if ( result.size() >= num ) {
-				break;
-			}
-		}
-		return result;
-	}
-	
-	ILBTrade randomTrade(SymbolDesc desc) {
-		desc.lastPrice = rand.nextLong(); 
-		desc.totalCount ++;
-		return new LBTrade(desc.lastPrice, desc.priceDecimals, rand.nextLong(), desc.volumeDecimals);
-	}
+	private RandomUtils utils;
 	
 	public void run(String[] args) throws Exception {
 		BasicConfigurator.configure();
@@ -94,11 +150,14 @@ public class TradeGenerator {
 		print("- Configuration --------------------------");
 		conf.print(System.out);
 		
-		rand = new Random(conf.getInt(TradeGeneratorConfig.SEED));
-		Map<String, SymbolDesc> symbols = randomSymbols(conf.getInt(TradeGeneratorConfig.SYMBOL_NUM, 1, 255),
+		utils = new RandomUtils(rand = new Random(conf.getInt(TradeGeneratorConfig.SEED)));
+		
+		Map<String, SymbolDesc> symbols = utils.randomSymbols(
+				conf.getInt(TradeGeneratorConfig.SYMBOL_NUM, 1, 255),
 				conf.getInt(TradeGeneratorConfig.SYMBOL_CHARS, 3, 10),
 				conf.getString(TradeGeneratorConfig.SYMBOL_PREFIX),
-				conf.getString(TradeGeneratorConfig.SYMBOL_SUFFIX));
+				conf.getString(TradeGeneratorConfig.SYMBOL_SUFFIX)
+			);
 		List<String> symbol_list = new ArrayList<>(symbols.keySet());
 		Collections.sort(symbol_list);
 		print("- Symbol List ----------------------------");
@@ -116,28 +175,30 @@ public class TradeGenerator {
 			@Override public void run() {
 				print("  Total time: " + (System.currentTimeMillis() - start_time.get()) + "ms");
 				print("Total trades: " + total_trades.get());
-				producer.close();
 				finished.countDown();
 			}
 		});
-
+		
 		try {
 			while ( finished.getCount() > 0 ) {
 				long wait = freq_half + rand.nextInt(freq);
 				print("   Wait for: " + wait + "ms");
 				Thread.sleep(wait);
 				SymbolDesc symbol = symbols.get(symbol_list.get(rand.nextInt(symbol_list.size())));
-				ILBTrade trade = randomTrade(symbol);
+				ILBTrade trade = utils.randomTrade(symbol);
 				long time = System.currentTimeMillis();
-				total_trades.incrementAndGet();
 				print("Symbol Desc: " + symbol);
 				print("      Trade: " + trade);
 				print("       Time: " + time);
+				total_trades.incrementAndGet();
 				producer.send(new ProducerRecord<>(topic, null, time, symbol.symbol, trade));
 			}
 		} catch ( InterruptedException e ) {
 			print("Interrupted...");
+		} finally {
+			producer.close();
 		}
+		print("Exiting"); // TODO: This does not work. Move all to separate thread.
 	}
 
 }

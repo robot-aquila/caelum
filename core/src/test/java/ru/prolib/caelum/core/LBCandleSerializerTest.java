@@ -8,12 +8,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class LBCandleSerializerTest {
-	LBCandleSerializer service;
+	LBCandleSerializer<ILBCandle> service;
 	ILBCandle candle;
 
 	@Before
 	public void setUp() throws Exception {
-		service = new LBCandleSerializer();
+		service = new LBCandleSerializer<>();
 	}
 	
 	@Test

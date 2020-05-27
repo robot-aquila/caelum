@@ -1,0 +1,990 @@
+- Configuration --------------------------
+caelum.tradegenerator.application.id=my-test
+caelum.tradegenerator.bootstrap.servers=192.168.99.100:32768
+caelum.tradegenerator.seed=419811
+caelum.tradegenerator.symbol.chars=4
+caelum.tradegenerator.symbol.num=1
+caelum.tradegenerator.symbol.prefix=S:
+caelum.tradegenerator.symbol.suffix=@MOEX:RUB
+caelum.tradegenerator.target.topic=caelum-trades
+caelum.tradegenerator.trades.per.minute=240
+- Symbol List ----------------------------
+TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=100000000000000,totalCount=0,volatility=0.15]
+0 [main] INFO org.apache.kafka.clients.producer.ProducerConfig  - ProducerConfig values: 
+	acks = 1
+	batch.size = 16384
+	bootstrap.servers = [192.168.99.100:32768]
+	buffer.memory = 33554432
+	client.dns.lookup = default
+	client.id = producer-1
+	compression.type = none
+	connections.max.idle.ms = 540000
+	delivery.timeout.ms = 120000
+	enable.idempotence = false
+	interceptor.classes = []
+	key.serializer = class org.apache.kafka.common.serialization.StringSerializer
+	linger.ms = 0
+	max.block.ms = 60000
+	max.in.flight.requests.per.connection = 5
+	max.request.size = 1048576
+	metadata.max.age.ms = 300000
+	metadata.max.idle.ms = 300000
+	metric.reporters = []
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partitioner.class = class org.apache.kafka.clients.producer.internals.DefaultPartitioner
+	receive.buffer.bytes = 32768
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retries = 2147483647
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.mechanism = GSSAPI
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2]
+	ssl.endpoint.identification.algorithm = https
+	ssl.key.password = null
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.location = null
+	ssl.keystore.password = null
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.2
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.location = null
+	ssl.truststore.password = null
+	ssl.truststore.type = JKS
+	transaction.timeout.ms = 60000
+	transactional.id = null
+	value.serializer = class ru.prolib.caelum.core.LBTradeSerializer
+
+225 [kafka-producer-network-thread | producer-1] DEBUG org.apache.kafka.clients.producer.internals.Sender  - [Producer clientId=producer-1] Starting Kafka producer I/O thread.
+226 [main] WARN org.apache.kafka.clients.producer.ProducerConfig  - The configuration 'application.id' was supplied but isn't a known config.
+226 [kafka-producer-network-thread | producer-1] DEBUG org.apache.kafka.clients.NetworkClient  - [Producer clientId=producer-1] Initialize connection to node 192.168.99.100:32768 (id: -1 rack: null) for sending metadata request
+227 [kafka-producer-network-thread | producer-1] DEBUG org.apache.kafka.clients.NetworkClient  - [Producer clientId=producer-1] Initiating connection to node 192.168.99.100:32768 (id: -1 rack: null) using address /192.168.99.100
+227 [main] INFO org.apache.kafka.common.utils.AppInfoParser  - Kafka version: 2.5.0
+227 [main] INFO org.apache.kafka.common.utils.AppInfoParser  - Kafka commitId: 66563e712b0b9f84
+227 [main] INFO org.apache.kafka.common.utils.AppInfoParser  - Kafka startTimeMs: 1590537638234
+228 [main] DEBUG org.apache.kafka.clients.producer.KafkaProducer  - [Producer clientId=producer-1] Kafka producer started
+   Wait for: 320ms
+232 [kafka-producer-network-thread | producer-1] DEBUG org.apache.kafka.common.network.Selector  - [Producer clientId=producer-1] Created socket with SO_RCVBUF = 32768, SO_SNDBUF = 131072, SO_TIMEOUT = 0 to node -1
+345 [kafka-producer-network-thread | producer-1] DEBUG org.apache.kafka.clients.NetworkClient  - [Producer clientId=producer-1] Completed connection to node -1. Fetching API versions.
+345 [kafka-producer-network-thread | producer-1] DEBUG org.apache.kafka.clients.NetworkClient  - [Producer clientId=producer-1] Initiating API versions fetch from node -1.
+416 [kafka-producer-network-thread | producer-1] DEBUG org.apache.kafka.clients.NetworkClient  - [Producer clientId=producer-1] Recorded API versions for node -1: (Produce(0): 0 to 8 [usable: 8], Fetch(1): 0 to 11 [usable: 11], ListOffsets(2): 0 to 5 [usable: 5], Metadata(3): 0 to 9 [usable: 9], LeaderAndIsr(4): 0 to 4 [usable: 4], StopReplica(5): 0 to 2 [usable: 2], UpdateMetadata(6): 0 to 6 [usable: 6], ControlledShutdown(7): 0 to 3 [usable: 3], OffsetCommit(8): 0 to 8 [usable: 8], OffsetFetch(9): 0 to 7 [usable: 7], FindCoordinator(10): 0 to 3 [usable: 3], JoinGroup(11): 0 to 7 [usable: 7], Heartbeat(12): 0 to 4 [usable: 4], LeaveGroup(13): 0 to 4 [usable: 4], SyncGroup(14): 0 to 5 [usable: 5], DescribeGroups(15): 0 to 5 [usable: 5], ListGroups(16): 0 to 3 [usable: 3], SaslHandshake(17): 0 to 1 [usable: 1], ApiVersions(18): 0 to 3 [usable: 3], CreateTopics(19): 0 to 5 [usable: 5], DeleteTopics(20): 0 to 4 [usable: 4], DeleteRecords(21): 0 to 1 [usable: 1], InitProducerId(22): 0 to 3 [usable: 3], OffsetForLeaderEpoch(23): 0 to 3 [usable: 3], AddPartitionsToTxn(24): 0 to 1 [usable: 1], AddOffsetsToTxn(25): 0 to 1 [usable: 1], EndTxn(26): 0 to 1 [usable: 1], WriteTxnMarkers(27): 0 [usable: 0], TxnOffsetCommit(28): 0 to 3 [usable: 3], DescribeAcls(29): 0 to 2 [usable: 2], CreateAcls(30): 0 to 2 [usable: 2], DeleteAcls(31): 0 to 2 [usable: 2], DescribeConfigs(32): 0 to 2 [usable: 2], AlterConfigs(33): 0 to 1 [usable: 1], AlterReplicaLogDirs(34): 0 to 1 [usable: 1], DescribeLogDirs(35): 0 to 1 [usable: 1], SaslAuthenticate(36): 0 to 2 [usable: 2], CreatePartitions(37): 0 to 2 [usable: 2], CreateDelegationToken(38): 0 to 2 [usable: 2], RenewDelegationToken(39): 0 to 2 [usable: 2], ExpireDelegationToken(40): 0 to 2 [usable: 2], DescribeDelegationToken(41): 0 to 2 [usable: 2], DeleteGroups(42): 0 to 2 [usable: 2], ElectLeaders(43): 0 to 2 [usable: 2], IncrementalAlterConfigs(44): 0 to 1 [usable: 1], AlterPartitionReassignments(45): 0 [usable: 0], ListPartitionReassignments(46): 0 [usable: 0], OffsetDelete(47): 0 [usable: 0])
+417 [kafka-producer-network-thread | producer-1] DEBUG org.apache.kafka.clients.NetworkClient  - [Producer clientId=producer-1] Sending metadata request MetadataRequestData(topics=[], allowAutoTopicCreation=true, includeClusterAuthorizedOperations=false, includeTopicAuthorizedOperations=false) to node 192.168.99.100:32768 (id: -1 rack: null)
+427 [kafka-producer-network-thread | producer-1] INFO org.apache.kafka.clients.Metadata  - [Producer clientId=producer-1] Cluster ID: EI_9KjQ4TWickZo11_09ZQ
+427 [kafka-producer-network-thread | producer-1] DEBUG org.apache.kafka.clients.Metadata  - [Producer clientId=producer-1] Updated cluster metadata updateVersion 2 to MetadataCache{clusterId='EI_9KjQ4TWickZo11_09ZQ', nodes={1001=192.168.99.100:32768 (id: 1001 rack: null)}, partitions=[], controller=192.168.99.100:32768 (id: 1001 rack: null)}
+>>>  New price: 98408483938928
+>>>  Old price: 100000000000000
+>>>  Deviation: -0.10610107073816412
+>>> Volatility: 0.15
+>>>      Delta: -1.5915160610724617E12
+>>>   Delta(L): -1591516061072
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=98408483938928,totalCount=1,volatility=0.15]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=98408483938928,priceDecimals=7,volume=-5714306074306259770,volumeDecimals=15]
+       Time: 1590537638560
+561 [kafka-producer-network-thread | producer-1] DEBUG org.apache.kafka.clients.NetworkClient  - [Producer clientId=producer-1] Initialize connection to node 192.168.99.100:32768 (id: 1001 rack: null) for sending metadata request
+561 [kafka-producer-network-thread | producer-1] DEBUG org.apache.kafka.clients.NetworkClient  - [Producer clientId=producer-1] Initiating connection to node 192.168.99.100:32768 (id: 1001 rack: null) using address /192.168.99.100
+565 [kafka-producer-network-thread | producer-1] DEBUG org.apache.kafka.common.network.Selector  - [Producer clientId=producer-1] Created socket with SO_RCVBUF = 32768, SO_SNDBUF = 131072, SO_TIMEOUT = 0 to node 1001
+565 [kafka-producer-network-thread | producer-1] DEBUG org.apache.kafka.clients.NetworkClient  - [Producer clientId=producer-1] Completed connection to node 1001. Fetching API versions.
+565 [kafka-producer-network-thread | producer-1] DEBUG org.apache.kafka.clients.NetworkClient  - [Producer clientId=producer-1] Initiating API versions fetch from node 1001.
+567 [kafka-producer-network-thread | producer-1] DEBUG org.apache.kafka.clients.NetworkClient  - [Producer clientId=producer-1] Recorded API versions for node 1001: (Produce(0): 0 to 8 [usable: 8], Fetch(1): 0 to 11 [usable: 11], ListOffsets(2): 0 to 5 [usable: 5], Metadata(3): 0 to 9 [usable: 9], LeaderAndIsr(4): 0 to 4 [usable: 4], StopReplica(5): 0 to 2 [usable: 2], UpdateMetadata(6): 0 to 6 [usable: 6], ControlledShutdown(7): 0 to 3 [usable: 3], OffsetCommit(8): 0 to 8 [usable: 8], OffsetFetch(9): 0 to 7 [usable: 7], FindCoordinator(10): 0 to 3 [usable: 3], JoinGroup(11): 0 to 7 [usable: 7], Heartbeat(12): 0 to 4 [usable: 4], LeaveGroup(13): 0 to 4 [usable: 4], SyncGroup(14): 0 to 5 [usable: 5], DescribeGroups(15): 0 to 5 [usable: 5], ListGroups(16): 0 to 3 [usable: 3], SaslHandshake(17): 0 to 1 [usable: 1], ApiVersions(18): 0 to 3 [usable: 3], CreateTopics(19): 0 to 5 [usable: 5], DeleteTopics(20): 0 to 4 [usable: 4], DeleteRecords(21): 0 to 1 [usable: 1], InitProducerId(22): 0 to 3 [usable: 3], OffsetForLeaderEpoch(23): 0 to 3 [usable: 3], AddPartitionsToTxn(24): 0 to 1 [usable: 1], AddOffsetsToTxn(25): 0 to 1 [usable: 1], EndTxn(26): 0 to 1 [usable: 1], WriteTxnMarkers(27): 0 [usable: 0], TxnOffsetCommit(28): 0 to 3 [usable: 3], DescribeAcls(29): 0 to 2 [usable: 2], CreateAcls(30): 0 to 2 [usable: 2], DeleteAcls(31): 0 to 2 [usable: 2], DescribeConfigs(32): 0 to 2 [usable: 2], AlterConfigs(33): 0 to 1 [usable: 1], AlterReplicaLogDirs(34): 0 to 1 [usable: 1], DescribeLogDirs(35): 0 to 1 [usable: 1], SaslAuthenticate(36): 0 to 2 [usable: 2], CreatePartitions(37): 0 to 2 [usable: 2], CreateDelegationToken(38): 0 to 2 [usable: 2], RenewDelegationToken(39): 0 to 2 [usable: 2], ExpireDelegationToken(40): 0 to 2 [usable: 2], DescribeDelegationToken(41): 0 to 2 [usable: 2], DeleteGroups(42): 0 to 2 [usable: 2], ElectLeaders(43): 0 to 2 [usable: 2], IncrementalAlterConfigs(44): 0 to 1 [usable: 1], AlterPartitionReassignments(45): 0 [usable: 0], ListPartitionReassignments(46): 0 [usable: 0], OffsetDelete(47): 0 [usable: 0])
+568 [kafka-producer-network-thread | producer-1] DEBUG org.apache.kafka.clients.NetworkClient  - [Producer clientId=producer-1] Sending metadata request MetadataRequestData(topics=[MetadataRequestTopic(name='caelum-trades')], allowAutoTopicCreation=true, includeClusterAuthorizedOperations=false, includeTopicAuthorizedOperations=false) to node 192.168.99.100:32768 (id: 1001 rack: null)
+573 [kafka-producer-network-thread | producer-1] DEBUG org.apache.kafka.clients.Metadata  - [Producer clientId=producer-1] Updating last seen epoch from null to 0 for partition caelum-trades-0
+580 [kafka-producer-network-thread | producer-1] DEBUG org.apache.kafka.clients.Metadata  - [Producer clientId=producer-1] Updated cluster metadata updateVersion 3 to MetadataCache{clusterId='EI_9KjQ4TWickZo11_09ZQ', nodes={1001=192.168.99.100:32768 (id: 1001 rack: null)}, partitions=[PartitionMetadata(, error=NONE, partition=caelum-trades-0, leader=Optional[1001], leaderEpoch=Optional[0], replicas=1001, isr=1001, offlineReplicas=)], controller=192.168.99.100:32768 (id: 1001 rack: null)}
+   Wait for: 360ms
+>>>  New price: 87237727992276
+>>>  Old price: 98408483938928
+>>>  Deviation: -0.7567610365507457
+>>> Volatility: 0.15
+>>>      Delta: -1.1170755946651584E13
+>>>   Delta(L): -11170755946652
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=87237727992276,totalCount=2,volatility=0.15]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=87237727992276,priceDecimals=7,volume=-2409634205174060945,volumeDecimals=15]
+       Time: 1590537638959
+   Wait for: 340ms
+>>>  New price: 86841620748389
+>>>  Old price: 87237727992276
+>>>  Deviation: -0.030270331656056942
+>>> Volatility: 0.15
+>>>      Delta: -3.961072438870616E11
+>>>   Delta(L): -396107243887
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=86841620748389,totalCount=3,volatility=0.15]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=86841620748389,priceDecimals=7,volume=6634889227751169639,volumeDecimals=15]
+       Time: 1590537639302
+   Wait for: 128ms
+>>>  New price: 88517812783045
+>>>  Old price: 86841620748389
+>>>  Deviation: 0.12867808624564744
+>>> Volatility: 0.15
+>>>      Delta: 1.676192034655951E12
+>>>   Delta(L): 1676192034656
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=88517812783045,totalCount=4,volatility=0.15]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=88517812783045,priceDecimals=7,volume=-2318246664719413775,volumeDecimals=15]
+       Time: 1590537639432
+   Wait for: 225ms
+>>>  New price: 85896042315589
+>>>  Old price: 88517812783045
+>>>  Deviation: -0.1974570906522156
+>>> Volatility: 0.15
+>>>      Delta: -2.6217704674556343E12
+>>>   Delta(L): -2621770467456
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=85896042315589,totalCount=5,volatility=0.15]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=85896042315589,priceDecimals=7,volume=-1254087365881657717,volumeDecimals=15]
+       Time: 1590537639660
+   Wait for: 354ms
+>>>  New price: 83327349132742
+>>>  Old price: 85896042315589
+>>>  Deviation: -0.19936449639977283
+>>> Volatility: 0.15
+>>>      Delta: -2.5686931828471465E12
+>>>   Delta(L): -2568693182847
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=83327349132742,totalCount=6,volatility=0.15]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=83327349132742,priceDecimals=7,volume=-4373421949075403704,volumeDecimals=15]
+       Time: 1590537640016
+   Wait for: 341ms
+>>>  New price: 80011151904704
+>>>  Old price: 83327349132742
+>>>  Deviation: -0.26531483060903455
+>>> Volatility: 0.15
+>>>      Delta: -3.3161972280379985E12
+>>>   Delta(L): -3316197228038
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=80011151904704,totalCount=7,volatility=0.15]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=80011151904704,priceDecimals=7,volume=6148154466777051152,volumeDecimals=15]
+       Time: 1590537640360
+   Wait for: 261ms
+>>>  New price: 77242495848868
+>>>  Old price: 80011151904704
+>>>  Deviation: -0.2306891801893777
+>>> Volatility: 0.15
+>>>      Delta: -2.76865605583559E12
+>>>   Delta(L): -2768656055836
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=77242495848868,totalCount=8,volatility=0.15]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=77242495848868,priceDecimals=7,volume=5439162383926786020,volumeDecimals=15]
+       Time: 1590537640624
+   Wait for: 157ms
+>>>  New price: 67983736463192
+>>>  Old price: 77242495848868
+>>>  Deviation: -0.7991075623960026
+>>> Volatility: 0.15
+>>>      Delta: -9.258759385675838E12
+>>>   Delta(L): -9258759385676
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=67983736463192,totalCount=9,volatility=0.15]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=67983736463192,priceDecimals=7,volume=-1753850847709660578,volumeDecimals=15]
+       Time: 1590537640782
+   Wait for: 264ms
+>>>  New price: 70986350068574
+>>>  Old price: 67983736463192
+>>>  Deviation: 0.29444430502459923
+>>> Volatility: 0.15
+>>>      Delta: 3.002613605382011E12
+>>>   Delta(L): 3002613605382
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=70986350068574,totalCount=10,volatility=0.15]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=70986350068574,priceDecimals=7,volume=-3514327927584220910,volumeDecimals=15]
+       Time: 1590537641049
+   Wait for: 278ms
+>>>  New price: 70449963065332
+>>>  Old price: 70986350068574
+>>>  Deviation: -0.05037466148761066
+>>> Volatility: 0.15
+>>>      Delta: -5.363870032418164E11
+>>>   Delta(L): -536387003242
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=70449963065332,totalCount=11,volatility=0.15]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=70449963065332,priceDecimals=7,volume=-990587965353828572,volumeDecimals=15]
+       Time: 1590537641330
+   Wait for: 347ms
+>>>  New price: 69126168231846
+>>>  Old price: 70449963065332
+>>>  Deviation: -0.12527045446032106
+>>> Volatility: 0.15
+>>>      Delta: -1.323794833486046E12
+>>>   Delta(L): -1323794833486
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=69126168231846,totalCount=12,volatility=0.15]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=69126168231846,priceDecimals=7,volume=4903370964871899514,volumeDecimals=15]
+       Time: 1590537641679
+   Wait for: 261ms
+>>>  New price: 70967593148798
+>>>  Old price: 69126168231846
+>>>  Deviation: 0.1775907218210142
+>>> Volatility: 0.15
+>>>      Delta: 1.841424916952159E12
+>>>   Delta(L): 1841424916952
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=70967593148798,totalCount=13,volatility=0.15]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=70967593148798,priceDecimals=7,volume=1832178106610590543,volumeDecimals=15]
+       Time: 1590537641943
+   Wait for: 299ms
+>>>  New price: 67781551453185
+>>>  Old price: 70967593148798
+>>>  Deviation: -0.299295453436307
+>>> Volatility: 0.15
+>>>      Delta: -3.1860416956129272E12
+>>>   Delta(L): -3186041695613
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=67781551453185,totalCount=14,volatility=0.15]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=67781551453185,priceDecimals=7,volume=3740049435792496857,volumeDecimals=15]
+       Time: 1590537642245
+   Wait for: 321ms
+>>>  New price: 68105066533640
+>>>  Old price: 67781551453185
+>>>  Deviation: 0.03181938384105649
+>>> Volatility: 0.15
+>>>      Delta: 3.2351508045468207E11
+>>>   Delta(L): 323515080455
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=68105066533640,totalCount=15,volatility=0.15]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=68105066533640,priceDecimals=7,volume=5078673006747842379,volumeDecimals=15]
+       Time: 1590537642568
+   Wait for: 277ms
+>>>  New price: 63284134277838
+>>>  Old price: 68105066533640
+>>>  Deviation: -0.4719112689822745
+>>> Volatility: 0.15
+>>>      Delta: -4.820932255801843E12
+>>>   Delta(L): -4820932255802
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=63284134277838,totalCount=16,volatility=0.15]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=63284134277838,priceDecimals=7,volume=8856656058247804155,volumeDecimals=15]
+       Time: 1590537642848
+   Wait for: 315ms
+>>>  New price: 64883973240717
+>>>  Old price: 63284134277838
+>>>  Deviation: 0.16853502394504707
+>>> Volatility: 0.15
+>>>      Delta: 1.59983896287855E12
+>>>   Delta(L): 1599838962879
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=64883973240717,totalCount=17,volatility=0.15]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=64883973240717,priceDecimals=7,volume=-8935718698025819522,volumeDecimals=15]
+       Time: 1590537643165
+   Wait for: 301ms
+>>>  New price: 63451532214405
+>>>  Old price: 64883973240717
+>>>  Deviation: -0.14717974817377488
+>>> Volatility: 0.15
+>>>      Delta: -1.4324410263124014E12
+>>>   Delta(L): -1432441026312
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=63451532214405,totalCount=18,volatility=0.15]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=63451532214405,priceDecimals=7,volume=7310052134072258812,volumeDecimals=15]
+       Time: 1590537643469
+   Wait for: 270ms
+>>>  New price: 59058827605310
+>>>  Old price: 63451532214405
+>>>  Deviation: -0.46152860887600017
+>>> Volatility: 0.15
+>>>      Delta: -4.392704609094757E12
+>>>   Delta(L): -4392704609095
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=59058827605310,totalCount=19,volatility=0.15]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=59058827605310,priceDecimals=7,volume=6562764456233342466,volumeDecimals=15]
+       Time: 1590537643742
+   Wait for: 306ms
+>>> Volatility change: symbol=S:6NQ1@MOEX:RUB old=0.15 new=0.07477777978044156
+>>>  New price: 57412531139874
+>>>  Old price: 59058827605310
+>>>  Deviation: -0.37277832959733687
+>>> Volatility: 0.07477777978044156
+>>>      Delta: -1.6462964654355366E12
+>>>   Delta(L): -1646296465436
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=57412531139874,totalCount=20,volatility=0.07477777978044156]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=57412531139874,priceDecimals=7,volume=8452718931264890572,volumeDecimals=15]
+       Time: 1590537644050
+   Wait for: 369ms
+>>>  New price: 55146458015824
+>>>  Old price: 57412531139874
+>>>  Deviation: -0.5278307161891063
+>>> Volatility: 0.07477777978044156
+>>>      Delta: -2.266073124049811E12
+>>>   Delta(L): -2266073124050
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=55146458015824,totalCount=21,volatility=0.07477777978044156]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=55146458015824,priceDecimals=7,volume=1909359161170199202,volumeDecimals=15]
+       Time: 1590537644421
+   Wait for: 208ms
+>>>  New price: 55633699438888
+>>>  Old price: 55146458015824
+>>>  Deviation: 0.11815551923047402
+>>> Volatility: 0.07477777978044156
+>>>      Delta: 4.872414230636471E11
+>>>   Delta(L): 487241423064
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=55633699438888,totalCount=22,volatility=0.07477777978044156]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=55633699438888,priceDecimals=7,volume=7807839888128088872,volumeDecimals=15]
+       Time: 1590537644632
+   Wait for: 175ms
+>>>  New price: 54613693282618
+>>>  Old price: 55633699438888
+>>>  Deviation: -0.24518409071009709
+>>> Volatility: 0.07477777978044156
+>>>      Delta: -1.0200061562695786E12
+>>>   Delta(L): -1020006156270
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=54613693282618,totalCount=23,volatility=0.07477777978044156]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=54613693282618,priceDecimals=7,volume=7556858828046192151,volumeDecimals=15]
+       Time: 1590537644809
+   Wait for: 226ms
+>>>  New price: 56531700395540
+>>>  Old price: 54613693282618
+>>>  Deviation: 0.4696519177578818
+>>> Volatility: 0.07477777978044156
+>>>      Delta: 1.9180071129219539E12
+>>>   Delta(L): 1918007112922
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=56531700395540,totalCount=24,volatility=0.07477777978044156]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=56531700395540,priceDecimals=7,volume=-5262262702541069568,volumeDecimals=15]
+       Time: 1590537645036
+   Wait for: 132ms
+>>>  New price: 57225807441465
+>>>  Old price: 56531700395540
+>>>  Deviation: 0.16419572208344616
+>>> Volatility: 0.07477777978044156
+>>>      Delta: 6.941070459253794E11
+>>>   Delta(L): 694107045925
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=57225807441465,totalCount=25,volatility=0.07477777978044156]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=57225807441465,priceDecimals=7,volume=-6825459096191892604,volumeDecimals=15]
+       Time: 1590537645169
+   Wait for: 140ms
+>>>  New price: 54640657479502
+>>>  Old price: 57225807441465
+>>>  Deviation: -0.6041172622171543
+>>> Volatility: 0.07477777978044156
+>>>      Delta: -2.5851499619632554E12
+>>>   Delta(L): -2585149961963
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=54640657479502,totalCount=26,volatility=0.07477777978044156]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=54640657479502,priceDecimals=7,volume=-745728345630037731,volumeDecimals=15]
+       Time: 1590537645311
+   Wait for: 130ms
+>>>  New price: 54132890850210
+>>>  Old price: 54640657479502
+>>>  Deviation: -0.12427268237445681
+>>> Volatility: 0.07477777978044156
+>>>      Delta: -5.0776662929229724E11
+>>>   Delta(L): -507766629292
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=54132890850210,totalCount=27,volatility=0.07477777978044156]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=54132890850210,priceDecimals=7,volume=-8249936832786326736,volumeDecimals=15]
+       Time: 1590537645443
+   Wait for: 296ms
+>>>  New price: 53395881685281
+>>>  Old price: 54132890850210
+>>>  Deviation: -0.18207029747788384
+>>> Volatility: 0.07477777978044156
+>>>      Delta: -7.370091649285846E11
+>>>   Delta(L): -737009164929
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=53395881685281,totalCount=28,volatility=0.07477777978044156]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=53395881685281,priceDecimals=7,volume=-620560995064466045,volumeDecimals=15]
+       Time: 1590537645740
+   Wait for: 235ms
+>>>  New price: 52808820282113
+>>>  Old price: 53395881685281
+>>>  Deviation: -0.14702906646874336
+>>> Volatility: 0.07477777978044156
+>>>      Delta: -5.870614031682007E11
+>>>   Delta(L): -587061403168
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=52808820282113,totalCount=29,volatility=0.07477777978044156]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=52808820282113,priceDecimals=7,volume=6892702090645611708,volumeDecimals=15]
+       Time: 1590537645976
+   Wait for: 232ms
+>>>  New price: 53858570113135
+>>>  Old price: 52808820282113
+>>>  Deviation: 0.2658317077507786
+>>> Volatility: 0.07477777978044156
+>>>      Delta: 1.0497498310218447E12
+>>>   Delta(L): 1049749831022
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=53858570113135,totalCount=30,volatility=0.07477777978044156]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=53858570113135,priceDecimals=7,volume=7714625711588615491,volumeDecimals=15]
+       Time: 1590537646209
+   Wait for: 320ms
+>>>  New price: 54854250016159
+>>>  Old price: 53858570113135
+>>>  Deviation: 0.24722498302645976
+>>> Volatility: 0.07477777978044156
+>>>      Delta: 9.956799030235156E11
+>>>   Delta(L): 995679903024
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=54854250016159,totalCount=31,volatility=0.07477777978044156]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=54854250016159,priceDecimals=7,volume=1696747358787696852,volumeDecimals=15]
+       Time: 1590537646531
+   Wait for: 197ms
+>>>  New price: 52609989622830
+>>>  Old price: 54854250016159
+>>>  Deviation: -0.5471298344387159
+>>> Volatility: 0.07477777978044156
+>>>      Delta: -2.244260393329348E12
+>>>   Delta(L): -2244260393329
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=52609989622830,totalCount=32,volatility=0.07477777978044156]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=52609989622830,priceDecimals=7,volume=6364887289979851804,volumeDecimals=15]
+       Time: 1590537646729
+   Wait for: 237ms
+>>>  New price: 52443342506569
+>>>  Old price: 52609989622830
+>>>  Deviation: -0.04236010425254013
+>>> Volatility: 0.07477777978044156
+>>>      Delta: -1.66647116261365E11
+>>>   Delta(L): -166647116261
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=52443342506569,totalCount=33,volatility=0.07477777978044156]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=52443342506569,priceDecimals=7,volume=-1815321547246952901,volumeDecimals=15]
+       Time: 1590537646968
+   Wait for: 186ms
+>>>  New price: 53963651870897
+>>>  Old price: 52443342506569
+>>>  Deviation: 0.3876761110528643
+>>> Volatility: 0.07477777978044156
+>>>      Delta: 1.5203093643279873E12
+>>>   Delta(L): 1520309364328
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=53963651870897,totalCount=34,volatility=0.07477777978044156]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=53963651870897,priceDecimals=7,volume=6787484519713297968,volumeDecimals=15]
+       Time: 1590537647156
+   Wait for: 221ms
+>>>  New price: 51725041119618
+>>>  Old price: 53963651870897
+>>>  Deviation: -0.5547594218336335
+>>> Volatility: 0.07477777978044156
+>>>      Delta: -2.2386107512788877E12
+>>>   Delta(L): -2238610751279
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=51725041119618,totalCount=35,volatility=0.07477777978044156]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=51725041119618,priceDecimals=7,volume=5042334510029784363,volumeDecimals=15]
+       Time: 1590537647378
+   Wait for: 367ms
+>>>  New price: 53326417957573
+>>>  Old price: 51725041119618
+>>>  Deviation: 0.41401886615367983
+>>> Volatility: 0.07477777978044156
+>>>      Delta: 1.6013768379554517E12
+>>>   Delta(L): 1601376837955
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=53326417957573,totalCount=36,volatility=0.07477777978044156]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=53326417957573,priceDecimals=7,volume=-7628812404428197155,volumeDecimals=15]
+       Time: 1590537647747
+   Wait for: 179ms
+>>>  New price: 54623734422850
+>>>  Old price: 53326417957573
+>>>  Deviation: 0.3253351225863242
+>>> Volatility: 0.07477777978044156
+>>>      Delta: 1.2973164652765776E12
+>>>   Delta(L): 1297316465277
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=54623734422850,totalCount=37,volatility=0.07477777978044156]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=54623734422850,priceDecimals=7,volume=-8681807284056983980,volumeDecimals=15]
+       Time: 1590537647930
+   Wait for: 338ms
+>>>  New price: 51912078584455
+>>>  Old price: 54623734422850
+>>>  Deviation: -0.6638662861822563
+>>> Volatility: 0.07477777978044156
+>>>      Delta: -2.7116558383953438E12
+>>>   Delta(L): -2711655838395
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=51912078584455,totalCount=38,volatility=0.07477777978044156]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=51912078584455,priceDecimals=7,volume=-8167862668631552001,volumeDecimals=15]
+       Time: 1590537648269
+   Wait for: 290ms
+>>>  New price: 53504678192792
+>>>  Old price: 51912078584455
+>>>  Deviation: 0.41026608732530473
+>>> Volatility: 0.07477777978044156
+>>>      Delta: 1.592599608336922E12
+>>>   Delta(L): 1592599608337
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=53504678192792,totalCount=39,volatility=0.07477777978044156]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=53504678192792,priceDecimals=7,volume=7975023918118695863,volumeDecimals=15]
+       Time: 1590537648561
+   Wait for: 136ms
+>>> Volatility change: symbol=S:6NQ1@MOEX:RUB old=0.07477777978044156 new=0.05863190122812071
+>>>  New price: 53140303896162
+>>>  Old price: 53504678192792
+>>>  Deviation: -0.11615074517097933
+>>> Volatility: 0.05863190122812071
+>>>      Delta: -3.643742966296737E11
+>>>   Delta(L): -364374296630
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=53140303896162,totalCount=40,volatility=0.05863190122812071]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=53140303896162,priceDecimals=7,volume=7217412978874164087,volumeDecimals=15]
+       Time: 1590537648698
+   Wait for: 374ms
+>>>  New price: 55226086557965
+>>>  Old price: 53140303896162
+>>>  Deviation: 0.6694390500863704
+>>> Volatility: 0.05863190122812071
+>>>      Delta: 2.0857826618026157E12
+>>>   Delta(L): 2085782661803
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=55226086557965,totalCount=41,volatility=0.05863190122812071]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=55226086557965,priceDecimals=7,volume=3428516487742954997,volumeDecimals=15]
+       Time: 1590537649074
+   Wait for: 349ms
+>>>  New price: 55107502481510
+>>>  Old price: 55226086557965
+>>>  Deviation: -0.03662251194150131
+>>> Volatility: 0.05863190122812071
+>>>      Delta: -1.1858407645541272E11
+>>>   Delta(L): -118584076455
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=55107502481510,totalCount=42,volatility=0.05863190122812071]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=55107502481510,priceDecimals=7,volume=-4645598714665338839,volumeDecimals=15]
+       Time: 1590537649425
+   Wait for: 184ms
+>>>  New price: 58338560123934
+>>>  Old price: 55107502481510
+>>>  Deviation: 1.0
+>>> Volatility: 0.05863190122812071
+>>>      Delta: 3.231057642424311E12
+>>>   Delta(L): 3231057642424
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=58338560123934,totalCount=43,volatility=0.05863190122812071]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=58338560123934,priceDecimals=7,volume=-2965403884415460036,volumeDecimals=15]
+       Time: 1590537649610
+   Wait for: 284ms
+>>>  New price: 57186912591427
+>>>  Old price: 58338560123934
+>>>  Deviation: -0.3366897525259518
+>>> Volatility: 0.05863190122812071
+>>>      Delta: -1.1516475325067466E12
+>>>   Delta(L): -1151647532507
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=57186912591427,totalCount=44,volatility=0.05863190122812071]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=57186912591427,priceDecimals=7,volume=-3579650072505818572,volumeDecimals=15]
+       Time: 1590537649896
+   Wait for: 243ms
+>>>  New price: 58454309869022
+>>>  Old price: 57186912591427
+>>>  Deviation: 0.37799159445192426
+>>> Volatility: 0.05863190122812071
+>>>      Delta: 1.2673972775946287E12
+>>>   Delta(L): 1267397277595
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=58454309869022,totalCount=45,volatility=0.05863190122812071]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=58454309869022,priceDecimals=7,volume=3193420140294104364,volumeDecimals=15]
+       Time: 1590537650141
+   Wait for: 167ms
+>>>  New price: 57001925300182
+>>>  Old price: 58454309869022
+>>>  Deviation: -0.4237708812049941
+>>> Volatility: 0.05863190122812071
+>>>      Delta: -1.4523845688402542E12
+>>>   Delta(L): -1452384568840
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=57001925300182,totalCount=46,volatility=0.05863190122812071]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=57001925300182,priceDecimals=7,volume=2159583257345015409,volumeDecimals=15]
+       Time: 1590537650309
+   Wait for: 156ms
+>>>  New price: 56915899176738
+>>>  Old price: 57001925300182
+>>>  Deviation: -0.025739899754218618
+>>> Volatility: 0.05863190122812071
+>>>      Delta: -8.602612344373521E10
+>>>   Delta(L): -86026123444
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=56915899176738,totalCount=47,volatility=0.05863190122812071]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=56915899176738,priceDecimals=7,volume=-752390604247363034,volumeDecimals=15]
+       Time: 1590537650466
+   Wait for: 246ms
+>>>  New price: 57618253737405
+>>>  Old price: 56915899176738
+>>>  Deviation: 0.21046933476180843
+>>> Volatility: 0.05863190122812071
+>>>      Delta: 7.023545606665195E11
+>>>   Delta(L): 702354560667
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=57618253737405,totalCount=48,volatility=0.05863190122812071]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=57618253737405,priceDecimals=7,volume=-6809456662501730001,volumeDecimals=15]
+       Time: 1590537650714
+   Wait for: 214ms
+>>>  New price: 56739801581672
+>>>  Old price: 57618253737405
+>>>  Deviation: -0.2600303521219165
+>>> Volatility: 0.05863190122812071
+>>>      Delta: -8.784521557327458E11
+>>>   Delta(L): -878452155733
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=56739801581672,totalCount=49,volatility=0.05863190122812071]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=56739801581672,priceDecimals=7,volume=-5539207960739761816,volumeDecimals=15]
+       Time: 1590537650930
+   Wait for: 126ms
+>>>  New price: 57614635800634
+>>>  Old price: 56739801581672
+>>>  Deviation: 0.2629686472069273
+>>> Volatility: 0.05863190122812071
+>>>      Delta: 8.748342189620096E11
+>>>   Delta(L): 874834218962
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=57614635800634,totalCount=50,volatility=0.05863190122812071]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=57614635800634,priceDecimals=7,volume=6144402519316961325,volumeDecimals=15]
+       Time: 1590537651058
+   Wait for: 269ms
+>>>  New price: 56631041445334
+>>>  Old price: 57614635800634
+>>>  Deviation: -0.29117174535150553
+>>> Volatility: 0.05863190122812071
+>>>      Delta: -9.835943552995977E11
+>>>   Delta(L): -983594355300
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=56631041445334,totalCount=51,volatility=0.05863190122812071]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=56631041445334,priceDecimals=7,volume=-6776834054264754551,volumeDecimals=15]
+       Time: 1590537651328
+   Wait for: 206ms
+>>>  New price: 56141965287358
+>>>  Old price: 56631041445334
+>>>  Deviation: -0.1472949869985771
+>>> Volatility: 0.05863190122812071
+>>>      Delta: -4.8907615797552014E11
+>>>   Delta(L): -489076157976
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=56141965287358,totalCount=52,volatility=0.05863190122812071]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=56141965287358,priceDecimals=7,volume=2682610110276453336,volumeDecimals=15]
+       Time: 1590537651536
+   Wait for: 306ms
+>>>  New price: 56995706966315
+>>>  Old price: 56141965287358
+>>>  Deviation: 0.25936113344013717
+>>> Volatility: 0.05863190122812071
+>>>      Delta: 8.5374167895684E11
+>>>   Delta(L): 853741678957
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=56995706966315,totalCount=53,volatility=0.05863190122812071]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=56995706966315,priceDecimals=7,volume=-3089990043442935755,volumeDecimals=15]
+       Time: 1590537651843
+   Wait for: 193ms
+>>>  New price: 54547713945718
+>>>  Old price: 56995706966315
+>>>  Deviation: -0.7325445696026613
+>>> Volatility: 0.05863190122812071
+>>>      Delta: -2.447993020596871E12
+>>>   Delta(L): -2447993020597
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=54547713945718,totalCount=54,volatility=0.05863190122812071]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=54547713945718,priceDecimals=7,volume=-5405150796565066810,volumeDecimals=15]
+       Time: 1590537652037
+   Wait for: 144ms
+>>>  New price: 55453292168008
+>>>  Old price: 54547713945718
+>>>  Deviation: 0.2831492648994364
+>>> Volatility: 0.05863190122812071
+>>>      Delta: 9.055782222899163E11
+>>>   Delta(L): 905578222290
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=55453292168008,totalCount=55,volatility=0.05863190122812071]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=55453292168008,priceDecimals=7,volume=-211267442138044374,volumeDecimals=15]
+       Time: 1590537652183
+   Wait for: 319ms
+>>>  New price: 54438865930761
+>>>  Old price: 55453292168008
+>>>  Deviation: -0.3120032814571283
+>>> Volatility: 0.05863190122812071
+>>>      Delta: -1.0144262372470557E12
+>>>   Delta(L): -1014426237247
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=54438865930761,totalCount=56,volatility=0.05863190122812071]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=54438865930761,priceDecimals=7,volume=-160699182075075981,volumeDecimals=15]
+       Time: 1590537652504
+   Wait for: 172ms
+>>>  New price: 53332484993831
+>>>  Old price: 54438865930761
+>>>  Deviation: -0.3466264008508422
+>>> Volatility: 0.05863190122812071
+>>>      Delta: -1.1063809369303044E12
+>>>   Delta(L): -1106380936930
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=53332484993831,totalCount=57,volatility=0.05863190122812071]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=53332484993831,priceDecimals=7,volume=-3570843450889274766,volumeDecimals=15]
+       Time: 1590537652677
+   Wait for: 238ms
+>>>  New price: 52770342051324
+>>>  Old price: 53332484993831
+>>>  Deviation: -0.1797715511497563
+>>> Volatility: 0.05863190122812071
+>>>      Delta: -5.621429425072903E11
+>>>   Delta(L): -562142942507
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=52770342051324,totalCount=58,volatility=0.05863190122812071]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=52770342051324,priceDecimals=7,volume=78868711426853946,volumeDecimals=15]
+       Time: 1590537652916
+   Wait for: 311ms
+>>>  New price: 51829011880273
+>>>  Old price: 52770342051324
+>>>  Deviation: -0.304241246959574
+>>> Volatility: 0.05863190122812071
+>>>      Delta: -9.413301710505223E11
+>>>   Delta(L): -941330171051
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=51829011880273,totalCount=59,volatility=0.05863190122812071]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=51829011880273,priceDecimals=7,volume=-543571520580977257,volumeDecimals=15]
+       Time: 1590537653228
+   Wait for: 367ms
+>>> Volatility change: symbol=S:6NQ1@MOEX:RUB old=0.05863190122812071 new=0.17304641739908144
+>>>  New price: 51223448463073
+>>>  Old price: 51829011880273
+>>>  Deviation: -0.06751870274386443
+>>> Volatility: 0.17304641739908144
+>>>      Delta: -6.055634172004915E11
+>>>   Delta(L): -605563417200
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=51223448463073,totalCount=60,volatility=0.17304641739908144]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=51223448463073,priceDecimals=7,volume=4723346290593880020,volumeDecimals=15]
+       Time: 1590537653596
+   Wait for: 203ms
+>>>  New price: 51260263386854
+>>>  Old price: 51223448463073
+>>>  Deviation: 0.004153292143329329
+>>> Volatility: 0.17304641739908144
+>>>      Delta: 3.681492378115448E10
+>>>   Delta(L): 36814923781
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=51260263386854,totalCount=61,volatility=0.17304641739908144]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=51260263386854,priceDecimals=7,volume=-1862217252120533860,volumeDecimals=15]
+       Time: 1590537653799
+   Wait for: 311ms
+>>>  New price: 53374980925074
+>>>  Old price: 51260263386854
+>>>  Deviation: 0.23840146576710552
+>>> Volatility: 0.17304641739908144
+>>>      Delta: 2.114717538220133E12
+>>>   Delta(L): 2114717538220
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=53374980925074,totalCount=62,volatility=0.17304641739908144]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=53374980925074,priceDecimals=7,volume=-2376059428994613983,volumeDecimals=15]
+       Time: 1590537654112
+   Wait for: 247ms
+>>>  New price: 54726182224214
+>>>  Old price: 53374980925074
+>>>  Deviation: 0.14629170744962103
+>>> Volatility: 0.17304641739908144
+>>>      Delta: 1.3512012991400002E12
+>>>   Delta(L): 1351201299140
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=54726182224214,totalCount=63,volatility=0.17304641739908144]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=54726182224214,priceDecimals=7,volume=8819269372684990897,volumeDecimals=15]
+       Time: 1590537654360
+   Wait for: 374ms
+>>>  New price: 55560665517028
+>>>  Old price: 54726182224214
+>>>  Deviation: 0.08811703622216806
+>>> Volatility: 0.17304641739908144
+>>>      Delta: 8.344832928143834E11
+>>>   Delta(L): 834483292814
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=55560665517028,totalCount=64,volatility=0.17304641739908144]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=55560665517028,priceDecimals=7,volume=3297396735157564304,volumeDecimals=15]
+       Time: 1590537654735
+   Wait for: 205ms
+>>>  New price: 58233758684916
+>>>  Old price: 55560665517028
+>>>  Deviation: 0.2780251247355194
+>>> Volatility: 0.17304641739908144
+>>>      Delta: 2.673093167888242E12
+>>>   Delta(L): 2673093167888
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=58233758684916,totalCount=65,volatility=0.17304641739908144]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=58233758684916,priceDecimals=7,volume=596805586626503742,volumeDecimals=15]
+       Time: 1590537654940
+   Wait for: 172ms
+>>>  New price: 50707568806923
+>>>  Old price: 58233758684916
+>>>  Deviation: -0.7468574818173545
+>>> Volatility: 0.17304641739908144
+>>>      Delta: -7.526189877993097E12
+>>>   Delta(L): -7526189877993
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=50707568806923,totalCount=66,volatility=0.17304641739908144]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=50707568806923,priceDecimals=7,volume=-2894117096879801727,volumeDecimals=15]
+       Time: 1590537655112
+   Wait for: 196ms
+>>>  New price: 49423260853336
+>>>  Old price: 50707568806923
+>>>  Deviation: -0.14636383187267576
+>>> Volatility: 0.17304641739908144
+>>>      Delta: -1.2843079535872588E12
+>>>   Delta(L): -1284307953587
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=49423260853336,totalCount=67,volatility=0.17304641739908144]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=49423260853336,priceDecimals=7,volume=3500981766588835791,volumeDecimals=15]
+       Time: 1590537655309
+   Wait for: 232ms
+>>>  New price: 47829301244427
+>>>  Old price: 49423260853336
+>>>  Deviation: -0.18637313205660366
+>>> Volatility: 0.17304641739908144
+>>>      Delta: -1.5939596089092366E12
+>>>   Delta(L): -1593959608909
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=47829301244427,totalCount=68,volatility=0.17304641739908144]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=47829301244427,priceDecimals=7,volume=-2017330204790737021,volumeDecimals=15]
+       Time: 1590537655542
+   Wait for: 228ms
+>>>  New price: 47847516134069
+>>>  Old price: 47829301244427
+>>>  Deviation: 0.0022007458709697248
+>>> Volatility: 0.17304641739908144
+>>>      Delta: 1.8214889641728836E10
+>>>   Delta(L): 18214889642
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=47847516134069,totalCount=69,volatility=0.17304641739908144]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=47847516134069,priceDecimals=7,volume=-5602096890860291126,volumeDecimals=15]
+       Time: 1590537655770
+   Wait for: 274ms
+>>>  New price: 47542908529254
+>>>  Old price: 47847516134069
+>>>  Deviation: -0.03678906342216351
+>>> Volatility: 0.17304641739908144
+>>>      Delta: -3.0460760481450287E11
+>>>   Delta(L): -304607604815
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=47542908529254,totalCount=70,volatility=0.17304641739908144]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=47542908529254,priceDecimals=7,volume=-1487000897121935384,volumeDecimals=15]
+       Time: 1590537656045
+   Wait for: 207ms
+>>>  New price: 47569010478992
+>>>  Old price: 47542908529254
+>>>  Deviation: 0.0031726677173910048
+>>> Volatility: 0.17304641739908144
+>>>      Delta: 2.6101949737853554E10
+>>>   Delta(L): 26101949738
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=47569010478992,totalCount=71,volatility=0.17304641739908144]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=47569010478992,priceDecimals=7,volume=3049247905633351621,volumeDecimals=15]
+       Time: 1590537656252
+   Wait for: 329ms
+>>>  New price: 50928288027685
+>>>  Old price: 47569010478992
+>>>  Deviation: 0.40809301138925597
+>>> Volatility: 0.17304641739908144
+>>>      Delta: 3.359277548693138E12
+>>>   Delta(L): 3359277548693
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=50928288027685,totalCount=72,volatility=0.17304641739908144]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=50928288027685,priceDecimals=7,volume=-5898952866951423260,volumeDecimals=15]
+       Time: 1590537656582
+   Wait for: 160ms
+>>>  New price: 56901177912651
+>>>  Old price: 50928288027685
+>>>  Deviation: 0.6777395318363331
+>>> Volatility: 0.17304641739908144
+>>>      Delta: 5.972889884966113E12
+>>>   Delta(L): 5972889884966
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=56901177912651,totalCount=73,volatility=0.17304641739908144]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=56901177912651,priceDecimals=7,volume=8753938045797369064,volumeDecimals=15]
+       Time: 1590537656742
+   Wait for: 327ms
+>>>  New price: 55532790491534
+>>>  Old price: 56901177912651
+>>>  Deviation: -0.13897132683596072
+>>> Volatility: 0.17304641739908144
+>>>      Delta: -1.3683874211169736E12
+>>>   Delta(L): -1368387421117
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=55532790491534,totalCount=74,volatility=0.17304641739908144]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=55532790491534,priceDecimals=7,volume=6870028511726985607,volumeDecimals=15]
+       Time: 1590537657070
+   Wait for: 241ms
+>>>  New price: 51026638073977
+>>>  Old price: 55532790491534
+>>>  Deviation: -0.4689146137988065
+>>> Volatility: 0.17304641739908144
+>>>      Delta: -4.506152417557398E12
+>>>   Delta(L): -4506152417557
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=51026638073977,totalCount=75,volatility=0.17304641739908144]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=51026638073977,priceDecimals=7,volume=-2603626516540104259,volumeDecimals=15]
+       Time: 1590537657312
+   Wait for: 263ms
+>>>  New price: 48545368626253
+>>>  Old price: 51026638073977
+>>>  Deviation: -0.28100520226046444
+>>> Volatility: 0.17304641739908144
+>>>      Delta: -2.481269447724365E12
+>>>   Delta(L): -2481269447724
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=48545368626253,totalCount=76,volatility=0.17304641739908144]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=48545368626253,priceDecimals=7,volume=-8152595935570567653,volumeDecimals=15]
+       Time: 1590537657575
+   Wait for: 128ms
+>>>  New price: 47686855950648
+>>>  Old price: 48545368626253
+>>>  Deviation: -0.10219656438052388
+>>> Volatility: 0.17304641739908144
+>>>      Delta: -8.58512675605423E11
+>>>   Delta(L): -858512675605
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=47686855950648,totalCount=77,volatility=0.17304641739908144]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=47686855950648,priceDecimals=7,volume=2171867330552631659,volumeDecimals=15]
+       Time: 1590537657703
+   Wait for: 228ms
+>>>  New price: 48219229430915
+>>>  Old price: 47686855950648
+>>>  Deviation: 0.06451416951548224
+>>> Volatility: 0.17304641739908144
+>>>      Delta: 5.323734802665066E11
+>>>   Delta(L): 532373480267
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=48219229430915,totalCount=78,volatility=0.17304641739908144]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=48219229430915,priceDecimals=7,volume=6137829083056514899,volumeDecimals=15]
+       Time: 1590537657932
+   Wait for: 172ms
+>>>  New price: 50496581779529
+>>>  Old price: 48219229430915
+>>>  Deviation: 0.27292753380987683
+>>> Volatility: 0.17304641739908144
+>>>      Delta: 2.277352348614361E12
+>>>   Delta(L): 2277352348614
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=50496581779529,totalCount=79,volatility=0.17304641739908144]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=50496581779529,priceDecimals=7,volume=8614057629123218629,volumeDecimals=15]
+       Time: 1590537658104
+   Wait for: 299ms
+>>> Volatility change: symbol=S:6NQ1@MOEX:RUB old=0.17304641739908144 new=0.12227578784954067
+>>>  New price: 48768155026211
+>>>  Old price: 50496581779529
+>>>  Deviation: -0.2799294103412702
+>>> Volatility: 0.12227578784954067
+>>>      Delta: -1.728426753318408E12
+>>>   Delta(L): -1728426753318
+>>>   Overflow: false
+Symbol Desc: TradeGenerator.SymbolDesc[symbol=S:6NQ1@MOEX:RUB,priceDecimals=7,volumeDecimals=15,lastPrice=48768155026211,totalCount=80,volatility=0.12227578784954067]
+      Trade: LBTrade[type=LONG_UNKNOWN,price=48768155026211,priceDecimals=7,volume=-1780416805426256817,volumeDecimals=15]
+       Time: 1590537658404
+   Wait for: 210ms
+  Total time: 20605ms
+Total trades: 80
+XXX: Finished
