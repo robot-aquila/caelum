@@ -10,6 +10,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import org.slf4j.Logger;
+
 public abstract class AbstractConfig {
 	protected Properties props = new Properties();
 	
@@ -48,6 +50,14 @@ public abstract class AbstractConfig {
 		}
 	}
 	
+	public void print(Logger logger) {
+		List<String> keys = new ArrayList<>(props.stringPropertyNames());
+		Collections.sort(keys);
+		for ( String key : keys ) {
+			logger.info("\t" + key + "=" + props.getProperty(key));
+		}
+	}
+	
 	public Properties getProperties() {
 		return props;
 	}
@@ -68,6 +78,14 @@ public abstract class AbstractConfig {
 		int val = getInt(key);
 		if ( val < min || val > max ) {
 			throw new NumberFormatException(key + "expected to be in range " + min + "-" + max + " but: " + val);
+		}
+		return val;
+	}
+	
+	public String getOneOfList(String key, List<String> list) {
+		String val = getString(key);
+		if ( ! list.contains(val) ) {
+			throw new IllegalStateException(key + " expected to be one of " + list + " but: " + val);
 		}
 		return val;
 	}

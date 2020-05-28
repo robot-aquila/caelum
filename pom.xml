@@ -12,6 +12,7 @@
 
 	<modules>
 		<module>core</module>
+		<module>aggregator</module>
 		<module>test</module>
 	</modules>
   
