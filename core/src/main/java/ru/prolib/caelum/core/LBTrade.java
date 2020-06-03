@@ -72,7 +72,13 @@ public class LBTrade implements ILBTrade {
 	
 	@Override
 	public String toString() {
-		return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+		return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+				.append("type", type)
+				.append("price", price)
+				.append("priceDecimals", priceDecimals)
+				.append("volume", volume)
+				.append("volumeDecimals", volumeDecimals)
+				.build();
 	}
 	
 	@Override

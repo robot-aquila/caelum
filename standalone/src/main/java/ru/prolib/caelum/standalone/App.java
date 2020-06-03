@@ -6,14 +6,14 @@ import org.slf4j.LoggerFactory;
 
 import ru.prolib.caelum.aggregator.TradeAggregator;
 import ru.prolib.caelum.aggregator.TradeAggregatorConfig;
-import ru.prolib.caelum.restapi.RestService;
+import ru.prolib.caelum.restapi.node.NodeServerFactory;
 
 public class App {
 	static final Logger logger = LoggerFactory.getLogger(App.class);
 
 	public static void main(String[] args) throws Exception {
 		HostInfo host_info = new HostInfo("192.168.1.22", 60606);
-		RestService rest = new RestService(host_info);
+		NodeServerFactory rest = new NodeServerFactory(host_info);
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			try {
 				rest.stop();

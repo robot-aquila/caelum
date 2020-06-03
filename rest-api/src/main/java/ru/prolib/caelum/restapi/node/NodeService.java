@@ -1,4 +1,4 @@
-package ru.prolib.caelum.restapi;
+package ru.prolib.caelum.restapi.node;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -6,8 +6,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
@@ -32,11 +31,14 @@ import com.fasterxml.jackson.core.JsonFactory;
 
 import ru.prolib.caelum.core.IKafkaStreamsRegistry;
 import ru.prolib.caelum.core.LBOHLCVMutable;
+import ru.prolib.caelum.restapi.JsonOHLCVStreamer;
+import ru.prolib.caelum.restapi.Result;
 
 @Path("/api/v1/")
 @Produces(MediaType.APPLICATION_JSON)
-public class RestEndpoints implements IKafkaStreamsRegistry {
-	static final Logger logger = LoggerFactory.getLogger(RestEndpoints.class);
+public class NodeService implements IKafkaStreamsRegistry {
+	static final Logger logger = LoggerFactory.getLogger(NodeService.class);
+	public static final long MAX_LIMIT = 5000L;
 	
 	static class StoreDesc {
 		final String period, storeName;
@@ -54,7 +56,7 @@ public class RestEndpoints implements IKafkaStreamsRegistry {
 	private final HostInfo hostInfo;
 	private final JsonFactory jsonFactory = new JsonFactory();
 	
-	public RestEndpoints(HostInfo host_info) {
+	public NodeService(HostInfo host_info) {
 		this.hostInfo = host_info;
 	}
 
@@ -124,13 +126,22 @@ public class RestEndpoints implements IKafkaStreamsRegistry {
 	{
 		if ( from == null ) {
 			from = 0L;
+		} else if ( from < 0 ) {
+			throw new BadRequestException("Time from expected to be >= 0 but: " + from);
 		}
 		if ( to == null ) {
 			to = Long.MAX_VALUE;
+		} else if ( to < 0 ) {
+			throw new BadRequestException("Time to expected to be >= 0 but: " + to);
 		}
 		if ( to <= from ) {
-			// TODO: handle error
-			to = Long.MAX_VALUE;
+			throw new BadRequestException("Time to expected to be > time from but: from=" + from + " to=" + to);
+		}
+		if ( limit <= 0 ) {
+			throw new BadRequestException("Limit expected to be > 0 but: " + limit);
+		}
+		if ( limit > MAX_LIMIT ) {
+			throw new BadRequestException("Limit expected to be <= " + MAX_LIMIT + " but: " + limit);
 		}
 
 		StoreDesc desc = periodToStoreDesc.get(period);
@@ -173,4 +184,9 @@ public class RestEndpoints implements IKafkaStreamsRegistry {
 			.collect(Collectors.toList());
 	}
 	
+	@GET
+	@Path("/test/error")
+	public void error() throws Exception {
+		throw new Exception("Test error");
+	}
 }

@@ -80,7 +80,17 @@ public class LBOHLCVMutable implements ILBOHLCV {
 	
 	@Override
 	public String toString() {
-		return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+		return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+				.append("type", type)
+				.append("open", open)
+				.append("high", high)
+				.append("low", low)
+				.append("close", close)
+				.append("priceDecimals", priceDecimals)
+				.append("volume", volume)
+				.append("bigVolume", bigVolume)
+				.append("volumeDecimals", volumeDecimals)
+				.build();
 	}
 	
 	@Override

@@ -1,4 +1,4 @@
-package ru.prolib.caelum.restapi;
+package ru.prolib.caelum.restapi.node;
 
 import org.apache.kafka.streams.state.HostInfo;
 import org.eclipse.jetty.server.Server;
@@ -11,16 +11,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ru.prolib.caelum.core.IKafkaStreamsRegistry;
+import ru.prolib.caelum.restapi.exception.ThrowableMapper;
+import ru.prolib.caelum.restapi.exception.WebApplicationExceptionMapper;
 
-public class RestService {
-	static final Logger logger = LoggerFactory.getLogger(RestService.class);
+public class NodeServerFactory {
+	static final Logger logger = LoggerFactory.getLogger(NodeServerFactory.class);
 	private final HostInfo hostInfo;
-	private final RestEndpoints endpoints;
+	private final NodeService endpoints;
 	private Server jettyServer;
 	
-	public RestService(HostInfo host_info) {
+	public NodeServerFactory(HostInfo host_info) {
 		this.hostInfo = host_info;
-		this.endpoints = new RestEndpoints(hostInfo);
+		this.endpoints = new NodeService(hostInfo);
 	}
 	
 	public IKafkaStreamsRegistry getKafkaStreamsRegistry() {
@@ -40,6 +42,8 @@ public class RestService {
 			
 			ResourceConfig rc = new ResourceConfig();
 			rc.register(endpoints);
+			rc.register(WebApplicationExceptionMapper.class);
+			rc.register(ThrowableMapper.class);
 			rc.register(JacksonFeature.class);
 			
 			context.addServlet(new ServletHolder(new ServletContainer(rc)), "/*");
