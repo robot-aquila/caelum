@@ -8,7 +8,7 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsConfig;
 
 import ru.prolib.caelum.core.AbstractConfig;
-import ru.prolib.caelum.core.CaelumPeriods;
+import ru.prolib.caelum.core.Periods;
 import ru.prolib.caelum.core.CaelumSerdes;
 
 public class TradeAggregatorConfig extends AbstractConfig {
@@ -43,7 +43,7 @@ public class TradeAggregatorConfig extends AbstractConfig {
 	}
 	
 	public Duration getAggregationPeriod() {
-		return CaelumPeriods.getInstance().getIntradayPeriodByCode(getString(AGGREGATION_PERIOD));
+		return Periods.getInstance().getIntradayDurationByCode(getString(AGGREGATION_PERIOD));
 	}
 	
 	public String getTargetTopic() {

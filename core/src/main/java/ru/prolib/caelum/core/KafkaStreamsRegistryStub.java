@@ -5,7 +5,7 @@ import org.apache.kafka.streams.KafkaStreams;
 public class KafkaStreamsRegistryStub implements IKafkaStreamsRegistry {
 
 	@Override
-	public void registerOHLCVAggregator(String period, String store_name, KafkaStreams streams) {
+	public void registerOHLCVAggregator(Period period, String store_name, KafkaStreams streams) {
 		
 	}
 

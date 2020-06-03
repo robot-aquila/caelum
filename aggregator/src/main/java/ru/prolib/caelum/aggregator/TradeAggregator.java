@@ -22,6 +22,8 @@ import ru.prolib.caelum.core.ILBTrade;
 import ru.prolib.caelum.core.KafkaStreamsRegistryStub;
 import ru.prolib.caelum.core.LBOHLCVMutable;
 import ru.prolib.caelum.core.LBTradeAggregator;
+import ru.prolib.caelum.core.Period;
+import ru.prolib.caelum.core.Periods;
 
 public class TradeAggregator {
 	static final Logger logger = LoggerFactory.getLogger(TradeAggregator.class);
@@ -32,7 +34,8 @@ public class TradeAggregator {
 	}
 	
 	public void start(TradeAggregatorConfig conf, IKafkaStreamsRegistry registry) throws IOException {
-		final String period_code = conf.getString(TradeAggregatorConfig.AGGREGATION_PERIOD);
+		final String period_code = conf.getOneOfList(TradeAggregatorConfig.AGGREGATION_PERIOD,
+				Periods.getInstance().getIntradayPeriodCodes());
 		final String store_name = conf.getStoreName();
 		final String msg_subj = "trade to OHLCV aggregator for";
 		logger.info("Starting up {} {}", msg_subj, period_code);
@@ -61,7 +64,7 @@ public class TradeAggregator {
 		});
 		streams.setStateListener((new_state, old_state) -> {
 			if ( new_state == KafkaStreams.State.RUNNING ) {
-				registry.registerOHLCVAggregator(period_code, store_name, streams);
+				registry.registerOHLCVAggregator(Period.valueOf(period_code), store_name, streams);
 			}
 		});
 		streams.cleanUp();

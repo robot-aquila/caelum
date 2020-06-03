@@ -15,17 +15,19 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 
 import ru.prolib.caelum.core.LBOHLCVMutable;
+import ru.prolib.caelum.core.Period;
 
 public class JsonOHLCVStreamer implements StreamingOutput {
 	private final JsonFactory jsonFactory;
 	private final ReadOnlyWindowStore<String, LBOHLCVMutable> store;
-	private final String symbol, period;
+	private final String symbol;
+	private final Period period;
 	private final Long from, to, limit;
 	private final ValueFormatter formatter;
 	
 	public JsonOHLCVStreamer(JsonFactory factory,
 			ReadOnlyWindowStore<String, LBOHLCVMutable> store,
-			String symbol, String period, Long from, Long to, Long limit)
+			String symbol, Period period, Long from, Long to, Long limit)
 	{
 		this.jsonFactory = factory;
 		this.store = store;
@@ -53,7 +55,7 @@ public class JsonOHLCVStreamer implements StreamingOutput {
 				gen.writeFieldName("data");
 				gen.writeStartObject();
 				gen.writeFieldName("symbol");	gen.writeString(symbol);
-				gen.writeFieldName("period");	gen.writeString(period);
+				gen.writeFieldName("period");	gen.writeString(period.toString());
 				gen.writeFieldName("from");		gen.writeNumber(from);
 				gen.writeFieldName("to");		gen.writeNumber(to);
 				gen.writeFieldName("limit");	gen.writeNumber(limit);

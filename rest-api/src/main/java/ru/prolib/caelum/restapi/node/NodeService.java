@@ -1,11 +1,10 @@
 package ru.prolib.caelum.restapi.node;
 
-import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -31,6 +30,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 
 import ru.prolib.caelum.core.IKafkaStreamsRegistry;
 import ru.prolib.caelum.core.LBOHLCVMutable;
+import ru.prolib.caelum.core.Period;
 import ru.prolib.caelum.restapi.JsonOHLCVStreamer;
 import ru.prolib.caelum.restapi.Result;
 
@@ -41,10 +41,11 @@ public class NodeService implements IKafkaStreamsRegistry {
 	public static final long MAX_LIMIT = 5000L;
 	
 	static class StoreDesc {
-		final String period, storeName;
+		final Period period;
+		final String storeName;
 		final KafkaStreams streams;
 		
-		public StoreDesc(String period, String store_name, KafkaStreams streams) {
+		public StoreDesc(Period period, String store_name, KafkaStreams streams) {
 			this.period = period;
 			this.storeName = store_name;
 			this.streams = streams;
@@ -52,7 +53,7 @@ public class NodeService implements IKafkaStreamsRegistry {
 		
 	}
 	
-	private final ConcurrentHashMap<String, StoreDesc> periodToStoreDesc = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<Period, StoreDesc> periodToStoreDesc = new ConcurrentHashMap<>();
 	private final HostInfo hostInfo;
 	private final JsonFactory jsonFactory = new JsonFactory();
 	
@@ -61,7 +62,7 @@ public class NodeService implements IKafkaStreamsRegistry {
 	}
 
 	@Override
-	public void registerOHLCVAggregator(String period, String store_name, KafkaStreams streams) {
+	public void registerOHLCVAggregator(Period period, String store_name, KafkaStreams streams) {
 		logger.info("Registered streams for store {} and period {}", store_name, period);
 		periodToStoreDesc.put(period, new StoreDesc(period, store_name, streams));
 	}
@@ -113,8 +114,10 @@ public class NodeService implements IKafkaStreamsRegistry {
 	@GET
 	@Path("/ohlcv/{period}/{symbol}")
 	public Response ohlcv(
-			@PathParam("period") final String period,
+			@NotNull
+			@PathParam("period") final Period period,
 			
+			@NotNull
 			@PathParam("symbol") final String symbol,
 			
 			@QueryParam("from") Long from,
@@ -167,12 +170,6 @@ public class NodeService implements IKafkaStreamsRegistry {
 		if ( desc == null ) {
 			throw new NotFoundException();
 		}
-		List<String> keys = new ArrayList<>();
-		Enumeration<String> keys_enum = periodToStoreDesc.keys();
-		while ( keys_enum.hasMoreElements() ) {
-			keys.add(keys_enum.nextElement());
-		}
-		logger.info("Keys: {}", keys);
 		for ( StreamsMetadata md : desc.streams.allMetadataForStore(desc.storeName) ) {
 			logger.info("Metadata: host={} port={}", md.host(), md.port());
 		}
