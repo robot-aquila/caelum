@@ -4,14 +4,14 @@ import java.math.BigInteger;
 
 import org.apache.kafka.streams.kstream.Aggregator;
 
-public class LBTradeAggregator implements Aggregator<String, ILBTrade, LBCandleMutable> {
+public class LBTradeAggregator implements Aggregator<String, ILBTrade, LBOHLCVMutable> {
 
 	@Override
-	public LBCandleMutable apply(String symbol, ILBTrade trade, LBCandleMutable candle) {
+	public LBOHLCVMutable apply(String symbol, ILBTrade trade, LBOHLCVMutable candle) {
 		long trade_price = trade.getPrice(), trade_volume = trade.getVolume();
 		byte trade_price_decimals = trade.getPriceDecimals(), trade_volume_decimals = trade.getVolumeDecimals();
 		if ( candle.volume == null ) {
-			candle.type = CandleRecordType.LONG_REGULAR;
+			candle.type = OHLCVRecordType.LONG_REGULAR;
 			candle.open = candle.high = candle.low = candle.close = trade_price;
 			candle.volume = trade_volume;
 			candle.priceDecimals = trade_price_decimals;
@@ -42,7 +42,7 @@ public class LBTradeAggregator implements Aggregator<String, ILBTrade, LBCandleM
 					candle.volume = Math.addExact(candle.volume, trade_volume);
 				} catch ( ArithmeticException e ) {
 					candle.bigVolume = BigInteger.valueOf(candle.volume).add(BigInteger.valueOf(trade_volume));
-					candle.type = CandleRecordType.LONG_WIDEVOL;
+					candle.type = OHLCVRecordType.LONG_WIDEVOL;
 					candle.volume = 0L;
 				}
 			} else {

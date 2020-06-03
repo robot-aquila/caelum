@@ -15,16 +15,18 @@ public class TradeAggregatorConfig extends AbstractConfig {
 	public static final String DEFAULT_CONFIG_FILE		= "app.tradeaggregator.properties";
 	public static final String APPLICATION_ID_PREFIX	= "caelum.tradeaggregator.pfx.application.id";
 	public static final String AGGREGATION_STORE_PREFIX	= "caelum.tradeaggregator.pfx.aggregation.store";
+	public static final String TARGET_TOPIC_PREFIX		= "caelum.tradeaggregator.pfx.target.topic";
 	public static final String BOOTSTRAP_SERVERS		= "caelum.tradeaggregator.bootstrap.servers";
-	public static final String TRADES_TOPIC				= "caelum.tradeaggregator.trades.topic";
+	public static final String SOURCE_TOPIC				= "caelum.tradeaggregator.source.topic";
 	public static final String AGGREGATION_PERIOD		= "caelum.tradeaggregator.aggregation.period";
-		
+	
 	@Override
 	public void setDefaults() {
-		props.put(APPLICATION_ID_PREFIX, "caelum-trade-aggregator-");
-		props.put(AGGREGATION_STORE_PREFIX, "caelum-candle-store-");
+		props.put(APPLICATION_ID_PREFIX, "caelum-trades-aggregator-");
+		props.put(AGGREGATION_STORE_PREFIX, "caelum-ohlcv-store-");
+		props.put(TARGET_TOPIC_PREFIX, "caelum-ohlcv-");
 		props.put(BOOTSTRAP_SERVERS, "localhost:8082");
-		props.put(TRADES_TOPIC, "caelum-trades");
+		props.put(SOURCE_TOPIC, "caelum-trades");
 		props.put(AGGREGATION_PERIOD, "M1");
 	}
 	
@@ -42,6 +44,10 @@ public class TradeAggregatorConfig extends AbstractConfig {
 	
 	public Duration getAggregationPeriod() {
 		return CaelumPeriods.getInstance().getIntradayPeriodByCode(getString(AGGREGATION_PERIOD));
+	}
+	
+	public String getTargetTopic() {
+		return getString(TARGET_TOPIC_PREFIX) + getString(AGGREGATION_PERIOD).toLowerCase();
 	}
 	
 	@Override

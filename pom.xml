@@ -14,6 +14,8 @@
 		<module>core</module>
 		<module>aggregator</module>
 		<module>test</module>
+		<module>rest-api</module>
+		<module>standalone</module>
 	</modules>
   
 	<dependencies>

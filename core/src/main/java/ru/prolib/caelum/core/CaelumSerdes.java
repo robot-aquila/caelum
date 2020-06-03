@@ -11,15 +11,15 @@ public class CaelumSerdes {
 		}
 	}
 	
-	public static class ILBCandleSerde extends Serdes.WrapperSerde<ILBCandle> {
-		public ILBCandleSerde() {
-			super(new LBCandleSerializer<>(), new LBCandleDeserializer());
+	public static class ILBOHLCVSerde extends Serdes.WrapperSerde<ILBOHLCV> {
+		public ILBOHLCVSerde() {
+			super(new LBOHLCVSerializer<>(), new LBOHLCVDeserializer());
 		}
 	}
 	
-	public static class LBCandleMutableSerde extends Serdes.WrapperSerde<LBCandleMutable> {
-		public LBCandleMutableSerde() {
-			super(new LBCandleSerializer<>(), new LBCandleMutableDeserializer());
+	public static class LBOHLCVMutableSerde extends Serdes.WrapperSerde<LBOHLCVMutable> {
+		public LBOHLCVMutableSerde() {
+			super(new LBOHLCVSerializer<>(), new LBOHLCVMutableDeserializer());
 		}
 	}
 
@@ -27,12 +27,12 @@ public class CaelumSerdes {
 		return new ILBTradeSerde();
 	}
 	
-	public static Serde<ILBCandle> ILBCandle() {
-		return new ILBCandleSerde();
+	public static Serde<ILBOHLCV> ILBOHLCV() {
+		return new ILBOHLCVSerde();
 	}
 	
-	public static Serde<LBCandleMutable> LBCandleMutable() {
-		return new LBCandleMutableSerde();
+	public static Serde<LBOHLCVMutable> LBOHLCVMutable() {
+		return new LBOHLCVMutableSerde();
 	}
 
 }

@@ -22,7 +22,7 @@ public abstract class AbstractConfig {
 	public abstract void setDefaults();
 	public abstract Properties getKafkaProperties();
 	
-	public boolean loadFromResources(String path) throws IOException {
+	public boolean loadFromResources(String path, Properties props) throws IOException {
 		InputStream is = getClass().getClassLoader().getResourceAsStream(path);
 		if ( is == null ) return false;
 		try {
@@ -33,6 +33,10 @@ public abstract class AbstractConfig {
 		return true;
 	}
 	
+	public boolean loadFromResources(String path) throws IOException {
+		return loadFromResources(path, props);
+	}
+	
 	public boolean loadFromFile(String path) throws IOException {
 		File file = new File(path);
 		if ( ! file.exists() ) return false;
@@ -40,6 +44,44 @@ public abstract class AbstractConfig {
 			props.load(_is);
 		}
 		return true;
+	}
+	
+	public void loadFromSystemProperties() throws IOException {
+		Properties sys_props = System.getProperties();
+		for ( String key : props.stringPropertyNames() ) {
+			if ( sys_props.containsKey(key) ) {
+				props.put(key, sys_props.getProperty(key));
+			}
+		}
+	}
+	
+	/**
+	 * Load configuration from all available sources.
+	 * <p>
+	 * Loading priority:
+	 * <li>Define default properties in constructor</li>
+	 * <li>From properties file {@code default_config_file} in resources if exists</li>
+	 * <li>From properties file {@code default_config_file} in current directory
+	 * if {@code config_file} is not specified</li>
+	 * <li>From properties file {@code config_file}. If file is not exist the exception will be thrown</li>
+	 * <li>From system properties. That allows to override property using -Dproperty.name command line
+	 * option while running java</li>
+	 * <p>
+	 * @param default_config_file - default configuration file.
+	 * @param config_file - specific configuration properties file to load from (i.g. obtained from args).
+	 * If null then loading from specific file will be omited. 
+	 * @throws IOException - an error occurred
+	 */
+	public void load(String default_config_file, String config_file) throws IOException {
+		loadFromResources(default_config_file);
+		if ( config_file != null ) {
+			if ( ! loadFromFile(config_file) ) {
+				throw new IOException("Error loading config: " + config_file);
+			}
+		} else {
+			loadFromFile(default_config_file);
+		}
+		loadFromSystemProperties();
 	}
 	
 	public void print(PrintStream stream) {
