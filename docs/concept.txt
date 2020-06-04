@@ -267,8 +267,8 @@ LONG_WIDEVOL - для свечей с ценами в пределах от -2^6
 2 младшие бита кодируют тип записи:
 0x00 - RESERVED_0 - кодировщик выбрасывает исключение
 0x01 - LONG_COMPACT - кодировщик выбрасывает исключение
-0x02 - LONG_REGULAR - кодирует LBCandle где все значения в пределах типа long
-0x02 - LONG_WIDEVOL - кодирует LBCandle где для объема исп. BigInteger
+0x02 - LONG_REGULAR - кодирует свечку где все значения в пределах типа long
+0x02 - LONG_WIDEVOL - кодирует свечку где для объема исп. BigInteger
 
 LONG_COMPACT/LONG_REGULAR
   * - Для LONG_REGULAR 3 следующих бита определяют длину значения объема

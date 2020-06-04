@@ -16,8 +16,8 @@ public class LBOHLCVSerializer<T extends ILBOHLCV> implements Serializer<T> {
 	}
 	
 	@Override
-	public byte[] serialize(String topic, T candle) {
-		BigInteger big_volume = candle.getBigVolume();
+	public byte[] serialize(String topic, T ohlcv) {
+		BigInteger big_volume = ohlcv.getBigVolume();
 		byte volume_bytes[] = null;
 		if ( big_volume != null ) {
 			volume_bytes = big_volume.toByteArray();
@@ -25,11 +25,11 @@ public class LBOHLCVSerializer<T extends ILBOHLCV> implements Serializer<T> {
 			volume_bytes = new byte[8];
 		}
 		int buffer_used_length = 4;
-		long open = candle.getOpenPrice(), high = candle.getHighPrice(), low = candle.getLowPrice(),
-				close = candle.getClosePrice(), volume = candle.getVolume();
+		long open = ohlcv.getOpenPrice(), high = ohlcv.getHighPrice(), low = ohlcv.getLowPrice(),
+				close = ohlcv.getClosePrice(), volume = ohlcv.getVolume();
 		// Detect max buffer size: 4 bytes for header + max 4 x 8 for OHLC + length of volume_bytes
 		byte buffer[] = new byte[36 + volume_bytes.length], abs_bytes[] = new byte[8], rel_bytes[] = new byte[8];
-		buffer[1] = (byte)(candle.getPriceDecimals() | (candle.getVolumeDecimals() << 4));
+		buffer[1] = (byte)(ohlcv.getPriceDecimals() | (ohlcv.getVolumeDecimals() << 4));
 		// 1) pack open price "as is"
 		int abs_num_bytes = utils.longToBytes(open, abs_bytes), rel_num_bytes;
 		byte byte2 = (byte)((abs_num_bytes - 1) << 1), byte3;

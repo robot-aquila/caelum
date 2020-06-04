@@ -9,7 +9,7 @@ import org.junit.Test;
 
 public class LBOHLCVSerializerTest {
 	LBOHLCVSerializer<ILBOHLCV> service;
-	ILBOHLCV candle;
+	ILBOHLCV ohlcv;
 
 	@Before
 	public void setUp() throws Exception {
@@ -18,7 +18,7 @@ public class LBOHLCVSerializerTest {
 	
 	@Test
 	public void testSerialize_SimpleCase_AllAbsoluteAndSmallVolume() {
-		candle = new LBOHLCVMutable(1600245L, 48640001L, 10L, 430L, (byte)3,
+		ohlcv = new LBOHLCVMutable(1600245L, 48640001L, 10L, 430L, (byte)3,
 				100000L, null, (byte)5, OHLCVRecordType.LONG_UNKNOWN);
 		
 		byte expected[] = {
@@ -33,14 +33,14 @@ public class LBOHLCVSerializerTest {
 			(byte)0x01, (byte)0x86, (byte)0xA0 // volume
 		};
 		
-		byte actual[] = service.serialize(null, candle);
+		byte actual[] = service.serialize(null, ohlcv);
 		
 		assertArrayEquals(expected, actual);
 	}
 	
 	@Test
 	public void testSerialize_AllRelativeAndBigVolume() {
-		candle = new LBOHLCVMutable(17726618283001L, 17726618285555L, 17726618283021L, 17726618212071L, (byte)10,
+		ohlcv = new LBOHLCVMutable(17726618283001L, 17726618285555L, 17726618283021L, 17726618212071L, (byte)10,
 				0L, new BigInteger("1000778800000001886620000012222"), (byte)5, OHLCVRecordType.LONG_UNKNOWN);
 		
 		byte expected[] = {
@@ -56,14 +56,14 @@ public class LBOHLCVSerializerTest {
 			(byte)0x76, (byte)0x4C, (byte)0x30, (byte)0xED, (byte)0x47, (byte)0xBE 
 		};
 		
-		byte actual[] = service.serialize(null, candle);
+		byte actual[] = service.serialize(null, ohlcv);
 		
 		assertArrayEquals(expected, actual);
 	}
 	
 	@Test
 	public void testSerialize_HalfRelativeAndSmallVolume() {
-		candle = new LBOHLCV(17726618283001L, 17726618201021L, -94522L, -586L, (byte)14,
+		ohlcv = new LBOHLCV(17726618283001L, 17726618201021L, -94522L, -586L, (byte)14,
 				1L, null, (byte)2, OHLCVRecordType.LONG_UNKNOWN);
 		
 		byte expected[] = {
@@ -78,7 +78,7 @@ public class LBOHLCVSerializerTest {
 			(byte)0x01,
 		};
 		
-		byte actual[] = service.serialize(null,  candle);
+		byte actual[] = service.serialize(null,  ohlcv);
 		
 		assertArrayEquals(expected, actual);
 	}

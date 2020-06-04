@@ -8,7 +8,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 /**
- * Long type based japanese candlestick definition.
+ * Long type based OHLCV definition.
  * Used to store a regular OHLCV data record for long time for fast further aggregation.
  * Symbol and time are stored outside in appropriate Kafka record properties.
  * Number of decimals are limited to 4 bits. In case of oversize an exception will be thrown.

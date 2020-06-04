@@ -21,7 +21,6 @@ import ru.prolib.caelum.core.IKafkaStreamsRegistry;
 import ru.prolib.caelum.core.ILBTrade;
 import ru.prolib.caelum.core.KafkaStreamsRegistryStub;
 import ru.prolib.caelum.core.LBOHLCVMutable;
-import ru.prolib.caelum.core.LBTradeAggregator;
 import ru.prolib.caelum.core.Period;
 import ru.prolib.caelum.core.Periods;
 

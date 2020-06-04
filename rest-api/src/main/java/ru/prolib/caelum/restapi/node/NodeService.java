@@ -92,19 +92,6 @@ public class NodeService implements IKafkaStreamsRegistry {
 		
 	}
 	
-//	ReadOnlyWindowStore<String, LBCandleMutable> store = streams
-//			.store(StoreQueryParameters.fromNameAndType(conf.getStoreName(), QueryableStoreTypes.windowStore()));
-//	try ( KeyValueIterator<Windowed<String>, LBCandleMutable> it = store.all() ) {
-//		while ( it.hasNext() ) {
-//			KeyValue<Windowed<String>, LBCandleMutable> item = it.next();
-//			Map<String, Object> map = new LinkedHashMap<>();
-//			map.put("key", item.key.key());
-//			map.put("time", item.key.window().startTime());
-//			map.put("val", item.value);
-//			System.out.println(map);
-//		}
-//	}
-	
 	@GET
 	@Path("/ping")
 	public Result<Void> ping() {

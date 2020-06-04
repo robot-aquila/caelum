@@ -8,12 +8,12 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 public class LBOHLCVMutable implements ILBOHLCV {
-	OHLCVRecordType type = OHLCVRecordType.LONG_UNKNOWN;
-	long open, high, low, close;
-	byte priceDecimals;
-	Long volume;
-	BigInteger bigVolume;
-	byte volumeDecimals;
+	public OHLCVRecordType type = OHLCVRecordType.LONG_UNKNOWN;
+	public long open, high, low, close;
+	public byte priceDecimals;
+	public Long volume;
+	public BigInteger bigVolume;
+	public byte volumeDecimals;
 	
 	public LBOHLCVMutable() {
 		
