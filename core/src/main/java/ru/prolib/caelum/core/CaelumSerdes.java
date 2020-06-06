@@ -5,34 +5,24 @@ import org.apache.kafka.common.serialization.Serdes;
 
 public class CaelumSerdes {
 	
-	public static class ILBTradeSerde extends Serdes.WrapperSerde<ILBTrade> {
-		public ILBTradeSerde() {
-			super(new LBTradeSerializer(), new LBTradeDeserializer());
+	public static class ItemSerde extends Serdes.WrapperSerde<Item> {
+		public ItemSerde() {
+			super(new ItemSerializer(), new ItemDeserializer());
 		}
 	}
 	
-	public static class ILBOHLCVSerde extends Serdes.WrapperSerde<ILBOHLCV> {
-		public ILBOHLCVSerde() {
-			super(new LBOHLCVSerializer<>(), new LBOHLCVDeserializer());
-		}
-	}
-	
-	public static class LBOHLCVMutableSerde extends Serdes.WrapperSerde<LBOHLCVMutable> {
-		public LBOHLCVMutableSerde() {
-			super(new LBOHLCVSerializer<>(), new LBOHLCVMutableDeserializer());
+	public static class TupleSerde extends Serdes.WrapperSerde<Tuple> {
+		public TupleSerde() {
+			super(new TupleSerializer(), new TupleDeserializer());
 		}
 	}
 
-	public static Serde<ILBTrade> ILBTrade() {
-		return new ILBTradeSerde();
+	public static Serde<Item> itemSerde() {
+		return new ItemSerde();
 	}
 	
-	public static Serde<ILBOHLCV> ILBOHLCV() {
-		return new ILBOHLCVSerde();
-	}
-	
-	public static Serde<LBOHLCVMutable> LBOHLCVMutable() {
-		return new LBOHLCVMutableSerde();
+	public static Serde<Tuple> tupleSerde() {
+		return new TupleSerde();
 	}
 
 }

@@ -10,7 +10,7 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ru.prolib.caelum.core.IKafkaStreamsRegistry;
+import ru.prolib.caelum.aggregator.IKafkaStreamsRegistry;
 import ru.prolib.caelum.restapi.exception.ThrowableMapper;
 import ru.prolib.caelum.restapi.exception.WebApplicationExceptionMapper;
 

@@ -14,17 +14,17 @@ public class ByteUtilsTest {
 	}
 	
 	@Test
-	public void testIsLongCompactTrade() {
-		assertFalse(service.isLongCompactTrade(-251,  13));
-		assertFalse(service.isLongCompactTrade( 251, -13));
-		assertFalse(service.isLongCompactTrade(-251, -13));
-		assertFalse(service.isLongCompactTrade(655788712L, 13));
-		assertFalse(service.isLongCompactTrade(251, 9127778992L));
-		assertFalse(service.isLongCompactTrade(65536, 13));
-		assertFalse(service.isLongCompactTrade(1238, 64));
-		assertTrue(service.isLongCompactTrade(251, 13));
-		assertTrue(service.isLongCompactTrade(0, 0));
-		assertTrue(service.isLongCompactTrade(65535, 63));
+	public void testIsLongCompact() {
+		assertFalse(service.isLongCompact(-251,  13));
+		assertFalse(service.isLongCompact( 251, -13));
+		assertFalse(service.isLongCompact(-251, -13));
+		assertFalse(service.isLongCompact(655788712L, 13));
+		assertFalse(service.isLongCompact(251, 9127778992L));
+		assertFalse(service.isLongCompact(65536, 13));
+		assertFalse(service.isLongCompact(1238, 64));
+		assertTrue(service.isLongCompact(251, 13));
+		assertTrue(service.isLongCompact(0, 0));
+		assertTrue(service.isLongCompact(65535, 63));
 	}
 
 	@Test

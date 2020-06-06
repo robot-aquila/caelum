@@ -13,9 +13,10 @@
 	<modules>
 		<module>core</module>
 		<module>aggregator</module>
+		<module>service</module>
 		<module>test</module>
 		<module>rest-api</module>
-		<module>standalone</module>
+		<module>backnode</module>
 	</modules>
   
 	<dependencies>

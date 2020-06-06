@@ -18,7 +18,7 @@ public class TradeGeneratorConfigTest {
 	void verifyDefaultProperties(Properties props) {
 		assertEquals(8, props.size());
 		assertEquals("localhost:8082",	props.get("caelum.tradegenerator.bootstrap.servers"));
-		assertEquals("caelum-trades",	props.get("caelum.tradegenerator.target.topic"));
+		assertEquals("caelum-item",		props.get("caelum.tradegenerator.target.topic"));
 		assertEquals("459811",			props.get("caelum.tradegenerator.seed"));
 		assertEquals("16",				props.get("caelum.tradegenerator.symbol.num"));
 		assertEquals("4",				props.get("caelum.tradegenerator.symbol.chars"));

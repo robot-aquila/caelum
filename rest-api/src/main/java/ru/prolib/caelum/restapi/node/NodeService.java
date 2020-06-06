@@ -15,6 +15,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
 
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.streams.KafkaStreams;
@@ -28,10 +29,13 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonFactory;
 
-import ru.prolib.caelum.core.IKafkaStreamsRegistry;
-import ru.prolib.caelum.core.LBOHLCVMutable;
+import ru.prolib.caelum.aggregator.IKafkaStreamsRegistry;
+import ru.prolib.caelum.aggregator.TupleAggregateIterator;
+import ru.prolib.caelum.aggregator.AggregatedDataRequest;
+import ru.prolib.caelum.core.Tuple;
 import ru.prolib.caelum.core.Period;
-import ru.prolib.caelum.restapi.JsonOHLCVStreamer;
+import ru.prolib.caelum.core.Periods;
+import ru.prolib.caelum.restapi.TupleStreamerJson;
 import ru.prolib.caelum.restapi.Result;
 
 @Path("/api/v1/")
@@ -62,7 +66,7 @@ public class NodeService implements IKafkaStreamsRegistry {
 	}
 
 	@Override
-	public void registerOHLCVAggregator(Period period, String store_name, KafkaStreams streams) {
+	public void registerAggregator(Period period, String store_name, KafkaStreams streams) {
 		logger.info("Registered streams for store {} and period {}", store_name, period);
 		periodToStoreDesc.put(period, new StoreDesc(period, store_name, streams));
 	}
@@ -99,8 +103,8 @@ public class NodeService implements IKafkaStreamsRegistry {
 	}
 	
 	@GET
-	@Path("/ohlcv/{period}/{symbol}")
-	public Response ohlcv(
+	@Path("/tuples/{period}/{symbol}")
+	public Response tuples(
 			@NotNull
 			@PathParam("period") final Period period,
 			
@@ -133,25 +137,42 @@ public class NodeService implements IKafkaStreamsRegistry {
 		if ( limit > MAX_LIMIT ) {
 			throw new BadRequestException("Limit expected to be <= " + MAX_LIMIT + " but: " + limit);
 		}
-
+		final AggregatedDataRequest request = new AggregatedDataRequest(symbol, period, from, to, limit);
+		ReadOnlyWindowStore<String, Tuple> store = null;
+		StreamingOutput streaming_output = null;
 		StoreDesc desc = periodToStoreDesc.get(period);
 		if ( desc == null ) {
-			// TODO: try to rebuild sequence from lower periods
-			throw new NotFoundException();
+			desc = periodToStoreDesc.get(Period.M1);
+			if ( desc == null ) {
+				throw new NotFoundException();
+			}
+			store = desc.streams.store(StoreQueryParameters.fromNameAndType(desc.storeName,
+					QueryableStoreTypes.windowStore()));
+			if ( store == null ) {
+				throw new NotFoundException();
+			}
+			// TODO: Надо пропустить неполный период. Иначе в выборку попадет неполная свечка.
+			streaming_output = new TupleStreamerJson(jsonFactory,
+				new TupleAggregateIterator(store.fetch(symbol, request.getTimeFrom(), request.getTimeTo()),
+						Periods.getInstance().getIntradayDuration(period)),
+				request);
+		} else {
+			store = desc.streams.store(StoreQueryParameters.fromNameAndType(desc.storeName,
+					QueryableStoreTypes.windowStore()));
+			if ( store == null ) {
+				throw new NotFoundException();
+			}
+			streaming_output = new TupleStreamerJson(jsonFactory,
+					store.fetch(symbol, request.getTimeFrom(), request.getTimeTo()),
+					request);
 		}
-		final ReadOnlyWindowStore<String, LBOHLCVMutable> store = desc.streams
-				.store(StoreQueryParameters.fromNameAndType(desc.storeName, QueryableStoreTypes.windowStore()));
-		if ( store == null ) {
-			throw new NotFoundException();
-		}
-
 		return Response.status(200)
-				.entity(new JsonOHLCVStreamer(jsonFactory, store, symbol, period, from, to, limit))
+				.entity(streaming_output)
 				.build();
 	}
 	
 	@GET
-	@Path("/ohlcv/processors/{period}")
+	@Path("/tuples/processors/{period}")
 	public List<ProcessorMetadata> processors(@PathParam("period") final String period) {
 		StoreDesc desc = periodToStoreDesc.get(period);
 		if ( desc == null ) {

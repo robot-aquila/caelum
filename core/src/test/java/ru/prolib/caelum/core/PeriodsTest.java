@@ -5,6 +5,9 @@ import static ru.prolib.caelum.core.Period.*;
 
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -22,6 +25,13 @@ public class PeriodsTest {
 		assertEquals(Arrays.asList("M1", "M2", "M3", "M5", "M6", "M10", "M12", "M15",
 				"M20", "M30", "H1", "H2", "H3", "H4", "H6", "H8", "H12", "D1"),
 				service.getIntradayPeriodCodes());
+	}
+	
+	@Test
+	public void testGetIntradayPeriods() {
+		assertEquals(Arrays.asList(M1, M2, M3, M5, M6, M10, M12, M15,
+				M20, M30, H1, H2, H3, H4, H6, H8, H12, D1),
+				service.getIntradayPeriods());
 	}
 	
 	@Test
@@ -68,6 +78,34 @@ public class PeriodsTest {
 		assertEquals(Duration.ofHours(12), service.getIntradayDurationByCode("H12"));
 		assertEquals(Duration.ofDays(1), service.getIntradayDurationByCode("D1"));
 		assertEquals(18, service.getIntradayPeriodCodes().size());
+	}
+	
+	@Test
+	public void testGetSmallerPeriodsThatCanFill() {
+		Map<Period, List<Period>> expected = new HashMap<>();
+		expected.put( M1, Arrays.asList());
+		expected.put( M2, Arrays.asList( M1));
+		expected.put( M3, Arrays.asList( M1));
+		expected.put( M5, Arrays.asList( M1));
+		expected.put( M6, Arrays.asList( M3,  M2,  M1));
+		expected.put(M10, Arrays.asList( M5,  M2,  M1));
+		expected.put(M12, Arrays.asList( M6,  M3,  M2,  M1));
+		expected.put(M15, Arrays.asList( M5,  M3,  M1));
+		expected.put(M20, Arrays.asList(M10,  M5,  M2,  M1));
+		expected.put(M30, Arrays.asList(M15, M10,  M6,  M5,  M3,  M2,  M1));
+		expected.put( H1, Arrays.asList(M30, M20, M15, M12, M10,  M6,  M5,  M3,  M2,  M1));
+		expected.put( H2, Arrays.asList( H1, M30, M20, M15, M12, M10,  M6,  M5,  M3,  M2,  M1));
+		expected.put( H3, Arrays.asList( H1, M30, M20, M15, M12, M10,  M6,  M5,  M3,  M2,  M1));
+		expected.put( H4, Arrays.asList( H2,  H1, M30, M20, M15, M12, M10,  M6,  M5,  M3,  M2,  M1));
+		expected.put( H6, Arrays.asList( H3,  H2,  H1, M30, M20, M15, M12, M10,  M6,  M5,  M3,  M2,  M1));
+		expected.put( H8, Arrays.asList( H4,  H2,  H1, M30, M20, M15, M12, M10,  M6,  M5,  M3,  M2,  M1));
+		expected.put(H12, Arrays.asList( H6,  H4,  H3,  H2,  H1, M30, M20, M15, M12, M10,  M6,  M5,  M3,  M2,  M1));
+		expected.put( D1, Arrays.asList(H12,  H8,  H6,  H4,  H3,  H2,  H1, M30, M20, M15, M12, M10,  M6,  M5,  M3,  M2,  M1));
+		for ( Period period : service.getIntradayPeriods() ) {
+			assertTrue("Period not defined: " + period, expected.containsKey(period));
+			assertEquals("Unexpected list for period: " + period,
+					expected.get(period), service.getSmallerPeriodsThatCanFill(period));
+		}
 	}
 
 }

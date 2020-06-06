@@ -7,8 +7,8 @@ public class ByteUtils {
 		return instance;
 	}
 	
-	public boolean isLongCompactTrade(long price, long volume) {
-		return (0xFFFFFFFFFFFFFFC0L & volume) == 0L && (0xFFFFFFFFFFFF0000L & price) == 0L;
+	public boolean isLongCompact(long value, long volume) {
+		return (0xFFFFFFFFFFFFFFC0L & volume) == 0L && (0xFFFFFFFFFFFF0000L & value) == 0L;
 	}
 
 	/**

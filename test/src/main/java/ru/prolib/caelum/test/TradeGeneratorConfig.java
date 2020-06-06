@@ -3,10 +3,10 @@ package ru.prolib.caelum.test;
 import java.util.Properties;
 
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.common.serialization.Serdes;
 
 import ru.prolib.caelum.core.AbstractConfig;
-import ru.prolib.caelum.core.LBTradeSerializer;
+import ru.prolib.caelum.core.CaelumSerdes;
 
 public class TradeGeneratorConfig extends AbstractConfig {
 	public static final String DEFAULT_CONFIG_FILE	= "app.tradegenerator.properties";
@@ -22,7 +22,7 @@ public class TradeGeneratorConfig extends AbstractConfig {
 	@Override
 	public void setDefaults() {
 		props.put(BOOTSTRAP_SERVERS, "localhost:8082");
-		props.put(TARGET_TOPIC, "caelum-trades");
+		props.put(TARGET_TOPIC, "caelum-item");
 		props.put(SEED, "459811");
 		props.put(SYMBOL_NUM, "16");
 		props.put(SYMBOL_CHARS, "4");
@@ -35,8 +35,8 @@ public class TradeGeneratorConfig extends AbstractConfig {
 	public Properties getKafkaProperties() {
 		Properties conf = new Properties();
 		conf.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, props.get(BOOTSTRAP_SERVERS));
-		conf.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-		conf.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, LBTradeSerializer.class);
+		conf.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, Serdes.String().serializer().getClass());
+		conf.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, CaelumSerdes.itemSerde().serializer().getClass());
 		return conf;
 	}
 	
