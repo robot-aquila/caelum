@@ -96,7 +96,7 @@ public abstract class AbstractConfig {
 		List<String> keys = new ArrayList<>(props.stringPropertyNames());
 		Collections.sort(keys);
 		for ( String key : keys ) {
-			logger.info("\t" + key + "=" + props.getProperty(key));
+			logger.debug("\t" + key + "=" + props.getProperty(key));
 		}
 	}
 	

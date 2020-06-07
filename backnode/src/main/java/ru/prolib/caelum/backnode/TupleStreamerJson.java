@@ -1,4 +1,4 @@
-package ru.prolib.caelum.restapi;
+package ru.prolib.caelum.backnode;
 
 import java.io.IOException;
 import java.io.OutputStream;

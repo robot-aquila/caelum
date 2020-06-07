@@ -1,4 +1,4 @@
-package ru.prolib.caelum.restapi;
+package ru.prolib.caelum.backnode;
 
 public class ResultCode {
 	public static final int OK = 0;

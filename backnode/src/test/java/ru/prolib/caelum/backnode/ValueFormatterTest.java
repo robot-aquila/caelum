@@ -1,4 +1,4 @@
-package ru.prolib.caelum.restapi;
+package ru.prolib.caelum.backnode;
 
 import static org.junit.Assert.*;
 
@@ -6,6 +6,8 @@ import java.math.BigInteger;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import ru.prolib.caelum.backnode.ValueFormatter;
 
 public class ValueFormatterTest {
 	ValueFormatter service;

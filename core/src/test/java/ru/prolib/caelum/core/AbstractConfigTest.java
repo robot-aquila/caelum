@@ -69,7 +69,7 @@ public class AbstractConfigTest {
 	}
 	
 	@Test
-	public void testLoad_OverrideBySpecificFIle() throws Exception {
+	public void testLoad_OverrideBySpecificFile() throws Exception {
 		service.load("testconfig2.properties", "testconfig2-overriden.properties");
 		
 		assertEquals("kobresia", service.getString(TestConfig.PROPERTY1));
@@ -87,6 +87,13 @@ public class AbstractConfigTest {
 		assertEquals("kobresia", service.getString(TestConfig.PROPERTY1));
 		assertEquals(146, service.getInt(TestConfig.PROPERTY2));
 		assertEquals("unknown", service.getString(TestConfig.PROPERTY3));
+	}
+	
+	@Test
+	public void testLoad_OverrideBySpecificFile_UndefinedProperty() throws Exception {
+		service.load("testconfig2.properties", "testconfig3.properties");
+		
+		assertEquals("", service.getString(TestConfig.PROPERTY1));
 	}
 
 }

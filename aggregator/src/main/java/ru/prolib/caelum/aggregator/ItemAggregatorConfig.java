@@ -20,6 +20,12 @@ public class ItemAggregatorConfig extends AbstractConfig {
 	public static final String SOURCE_TOPIC				= "caelum.itemaggregator.source.topic";
 	public static final String AGGREGATION_PERIOD		= "caelum.itemaggregator.aggregation.period";
 	
+	private final Periods periods;
+	
+	public ItemAggregatorConfig() {
+		periods = Periods.getInstance();
+	}
+	
 	@Override
 	public void setDefaults() {
 		props.put(APPLICATION_ID_PREFIX, "caelum-item-aggregator-");
@@ -46,12 +52,22 @@ public class ItemAggregatorConfig extends AbstractConfig {
 		return getString(AGGREGATION_STORE_PREFIX) + getSuffix();
 	}
 	
-	public Duration getAggregationPeriod() {
-		return Periods.getInstance().getIntradayDurationByCode(getString(AGGREGATION_PERIOD));
+	public String getAggregationPeriodCode() {
+		return getOneOfList(ItemAggregatorConfig.AGGREGATION_PERIOD, periods.getIntradayPeriodCodes());
 	}
 	
+	public Duration getAggregationPeriod() {
+		return periods.getIntradayDurationByCode(getAggregationPeriodCode());
+	}
+	
+	/**
+	 * Get topic to store aggregated data.
+	 * <p>
+	 * @return topic or null if topic is not defined and data shouldn't be stored
+	 */
 	public String getTargetTopic() {
-		return getString(TARGET_TOPIC_PREFIX) + getSuffix();
+		String prefix = getString(TARGET_TOPIC_PREFIX);
+		return "".equals(prefix) ? null : prefix + getSuffix();
 	}
 	
 	@Override

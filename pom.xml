@@ -15,7 +15,6 @@
 		<module>aggregator</module>
 		<module>service</module>
 		<module>test</module>
-		<module>rest-api</module>
 		<module>backnode</module>
 	</modules>
   

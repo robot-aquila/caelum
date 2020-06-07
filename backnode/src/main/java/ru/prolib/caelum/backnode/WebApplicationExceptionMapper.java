@@ -1,4 +1,4 @@
-package ru.prolib.caelum.restapi.exception;
+package ru.prolib.caelum.backnode;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
