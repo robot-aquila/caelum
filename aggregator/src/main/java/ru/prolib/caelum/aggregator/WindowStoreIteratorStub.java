@@ -1,5 +1,6 @@
 package ru.prolib.caelum.aggregator;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -13,6 +14,10 @@ public class WindowStoreIteratorStub<T> implements WindowStoreIterator<T> {
 	
 	public WindowStoreIteratorStub(List<KeyValue<Long, T>> list) {
 		this.list = new LinkedList<>(list);
+	}
+	
+	public WindowStoreIteratorStub() {
+		this(new ArrayList<>());
 	}
 
 	@Override

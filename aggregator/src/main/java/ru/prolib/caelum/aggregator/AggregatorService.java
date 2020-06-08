@@ -86,8 +86,10 @@ public class AggregatorService {
 			if ( request.getFrom() % period_millis > 0 ) {
 				from_align ++;
 			}
-			it = getStoreByName(entry).fetch(request.getSymbol(),
-					Instant.ofEpochMilli(from_align * period_millis), Instant.ofEpochMilli(to_align * period_millis));
+			it = new TupleAggregateIterator(getStoreByName(entry).fetch(request.getSymbol(),
+					Instant.ofEpochMilli(from_align * period_millis),
+					Instant.ofEpochMilli(to_align * period_millis)
+				), periods.getIntradayDuration(period));
 		} else {
 			it = getStoreByName(entry).fetch(request.getSymbol(), request.getTimeFrom(), request.getTimeTo());
 		}

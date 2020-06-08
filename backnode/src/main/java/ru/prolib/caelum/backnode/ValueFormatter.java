@@ -5,6 +5,11 @@ import java.math.BigInteger;
 import org.apache.commons.lang3.StringUtils;
 
 public class ValueFormatter {
+	private static final ValueFormatter instance = new ValueFormatter();
+	
+	public static ValueFormatter getInstance() {
+		return instance;
+	}
 	
 	String insertDot(String value, int decimals) {
 		if ( decimals > 0 ) {

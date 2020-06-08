@@ -5,8 +5,6 @@ import java.net.InetSocketAddress;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
 import ru.prolib.caelum.core.IService;
@@ -33,13 +31,13 @@ public class JettyServerBuilder {
 	
 	public IService build() {
 		if ( host == null ) {
-			throw new NullPointerException("Server host was not defined");
+			throw new IllegalStateException("Server host was not defined");
 		}
 		if ( port == null ) {
-			throw new NullPointerException("Server port was not defined");
+			throw new IllegalStateException("Server port was not defined");
 		}
 		if ( component == null ) {
-			throw new NullPointerException("Component was not defined");
+			throw new IllegalStateException("Component was not defined");
 		}
 		
 		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
@@ -48,11 +46,8 @@ public class JettyServerBuilder {
 		Server server = new Server(new InetSocketAddress(host, port));
 		server.setHandler(context);
 			
-		ResourceConfig rc = new ResourceConfig();
+		CommonResourceConfig rc = new CommonResourceConfig();
 		rc.register(component);
-		rc.register(WebApplicationExceptionMapper.class);
-		rc.register(ThrowableMapper.class);
-		rc.register(JacksonFeature.class);
 			
 		context.addServlet(new ServletHolder(new ServletContainer(rc)), "/*");
 		return new JettyServerStarter(server);

@@ -22,6 +22,10 @@ public class AggregatedDataRequest {
 		this.limit = limit;
 	}
 	
+	public boolean isValidSymbol() {
+		return symbol != null && symbol.length() > 0;
+	}
+	
 	public String getSymbol() {
 		return symbol;
 	}

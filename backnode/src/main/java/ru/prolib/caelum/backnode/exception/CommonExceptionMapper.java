@@ -1,7 +1,9 @@
-package ru.prolib.caelum.backnode;
+package ru.prolib.caelum.backnode.exception;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import ru.prolib.caelum.backnode.Result;
 
 public class CommonExceptionMapper {
 

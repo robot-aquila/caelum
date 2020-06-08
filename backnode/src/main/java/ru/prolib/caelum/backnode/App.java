@@ -3,8 +3,11 @@ package ru.prolib.caelum.backnode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonFactory;
+
 import ru.prolib.caelum.aggregator.ItemAggregatorConfig;
 import ru.prolib.caelum.aggregator.app.ItemAggregatorBuilder;
+import ru.prolib.caelum.backnode.mvc.Freemarker;
 import ru.prolib.caelum.core.CompositeService;
 import ru.prolib.caelum.service.CaelumBuilder;
 import ru.prolib.caelum.service.ICaelum;
@@ -25,7 +28,7 @@ public class App {
 		services.register(new JettyServerBuilder()
 			.withHost("192.168.1.22")
 			.withPort(60606)
-			.withComponent(new NodeService(caelum))
+			.withComponent(new NodeService(caelum, new Freemarker(), new JsonFactory()))
 			.build());
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> services.stop()));
 		services.start();
