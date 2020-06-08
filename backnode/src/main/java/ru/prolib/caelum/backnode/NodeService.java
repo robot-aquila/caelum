@@ -31,6 +31,7 @@ import ru.prolib.caelum.aggregator.WindowStoreIteratorStub;
 import ru.prolib.caelum.backnode.mvc.Freemarker;
 import ru.prolib.caelum.backnode.mvc.TupleMvcAdapterIterator;
 import ru.prolib.caelum.core.Period;
+import ru.prolib.caelum.core.Periods;
 import ru.prolib.caelum.core.Tuple;
 import ru.prolib.caelum.service.ICaelum;
 
@@ -45,11 +46,13 @@ public class NodeService {
 	private final ICaelum caelum;
 	private final Freemarker templates;
 	private final JsonFactory jsonFactory;
+	private final Periods periods;
 	
-	public NodeService(ICaelum caelum, Freemarker templates, JsonFactory json_factory) {
+	public NodeService(ICaelum caelum, Freemarker templates, JsonFactory json_factory, Periods periods) {
 		this.caelum = caelum;
 		this.templates = templates;
 		this.jsonFactory = json_factory;
+		this.periods = periods;
 	}
 	
 	@GET
@@ -150,6 +153,7 @@ public class NodeService {
 				new TupleMvcAdapterIterator(caelum.fetch(request)) : new WindowStoreIteratorStub<>();
 		final Map<String, Object> model = new HashMap<>();
 		model.put("request", request);
+		model.put("periods", periods.getIntradayPeriodCodes());
 		if ( has_output ) {
 			model.put("rows", it);
 		}

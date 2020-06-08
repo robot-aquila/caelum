@@ -8,7 +8,11 @@
 				<label for="symbol">Symbol:</label>
 				<input type="text" name="symbol" id="symbol" value="${request.symbol!""}" />
 				<label for="period">Period:</label>
-				<input type="text" name="period" id="period" value="${request.period}"/>
+				<select name="period" id="period">
+				<#list periods as p>
+					<option value="${p}"<#if p == request.period> selected</#if>/>${p}</option>
+				</#list>
+				</select>
 			</td>
 		</tr>
 		<tr>
@@ -22,7 +26,7 @@
 		<tr>
 			<td>
 				<label for="limit">Limit:</label>
-				<input type="text" name="limit" id="limit" value="${request.limit}" />
+				<input type="text" name="limit" id="limit" value="${request.limit?c}" />
 				<input type="submit" value="fetch" />
 			</td>
 		</tr>
@@ -46,7 +50,7 @@ Shown data for ${request.symbol} aggregated by ${request.period} from ${request.
 	<tbody>
 		<#list rows as row>
 		<tr>
-			<td>${row.key}</td>
+			<td>${row.key?c}</td>
 			<td>${row.time}</td>
 			<td>${row.open}</td>
 			<td>${row.high}</td>
