@@ -9,7 +9,6 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.serialization.Serdes;
 
 import ru.prolib.caelum.core.CaelumSerdes;
 import ru.prolib.caelum.core.Item;
@@ -27,7 +26,7 @@ public class ItemConsumer {
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
 		KafkaConsumer<String, Item> consumer = new KafkaConsumer<>(props,
-				Serdes.String().deserializer(), CaelumSerdes.itemSerde().deserializer());
+			CaelumSerdes.keySerde().deserializer(), CaelumSerdes.itemSerde().deserializer());
 		
 		final CountDownLatch finished = new CountDownLatch(1);
 		Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -44,10 +43,10 @@ public class ItemConsumer {
 				System.out.println("Symbol: " + record.key());
 				System.out.println(" Value: " + record.value());
 			}
+			// Можно кидать искюлючения по ходу вывода. Все норм будет
 		}
 		System.out.println("Exiting");
 		consumer.close();
-		
 	}
 
 }

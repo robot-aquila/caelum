@@ -1,5 +1,10 @@
 <#assign title="Tuples">
 <#include "console_header.ftl">
+<script>
+function resetTimeTo() {
+	document.getElementById("to").value = "";
+}
+</script>
 
 <form method="GET">
 	<table>
@@ -21,6 +26,7 @@
 				<input type="text" name="from" id="from" value="${request.timeFrom}" size="24" />
 				<label for="to">To:</label>
 				<input type="text" name="to" id="to" value="${request.timeTo}" size="24" />
+				<button type="button" onclick="resetTimeTo(); return false;">X</button>
 			</td>
 		</tr>
 		<tr>

@@ -1,6 +1,7 @@
 <html>
 	<head>
 		<title>Caelum: ${title}</title>
+		<base href="/api/v1/" />
 		<style type="text/css">
 
 table.blueTable {
@@ -55,4 +56,5 @@ html * {
 	</head>
 	<body>
 <h2>Caelum: ${title}</h2>
+<a href="console">Main</a> | <a href="console/items">Items</a> | <a href="console/tuples">Tuples</a><p>
 <hr>

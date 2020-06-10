@@ -1,6 +1,6 @@
-<#assign title="Main page">
+<#assign title="Items">
 <#include "console_header.ftl">
 
-Hello, World!
+To be implemented
 
 <#include "console_footer.ftl">

@@ -24,5 +24,9 @@ public class CaelumSerdes {
 	public static Serde<Tuple> tupleSerde() {
 		return new TupleSerde();
 	}
+	
+	public static Serde<String> keySerde() {
+		return Serdes.String();
+	}
 
 }

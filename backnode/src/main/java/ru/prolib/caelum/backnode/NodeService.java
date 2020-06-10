@@ -131,6 +131,20 @@ public class NodeService {
 	}
 	
 	@GET
+	@Path("/console/items")
+	@Produces(MediaType.TEXT_HTML)
+	public Response consoleItems() {
+		return Response.status(200)
+			.entity((StreamingOutput)((stream) -> {
+				try ( Writer out = new OutputStreamWriter(stream) ) {
+					templates.getTemplate("/console_items.ftl").process(new Object(), out);
+				} catch ( TemplateException e ) {
+					throw new IOException("Error processing template", e);
+				}
+			})).build();
+	}
+	
+	@GET
 	@Path("/console/tuples")
 	@Produces(MediaType.TEXT_HTML)
 	public Response consoleTuples(
@@ -141,10 +155,10 @@ public class NodeService {
 			@QueryParam("limit") final Long limit)
 	{
 		Long from = null, to = null;
-		if ( str_from != null ) {
+		if ( str_from != null && str_from.length() > 0 ) {
 			from = Instant.parse(str_from).toEpochMilli();
 		}
-		if ( str_to != null ) {
+		if ( str_to != null && str_to.length() > 0 ) {
 			to = Instant.parse(str_to).toEpochMilli();
 		}
 		AggregatedDataRequest request = toRequest(symbol, period, from, to, limit);

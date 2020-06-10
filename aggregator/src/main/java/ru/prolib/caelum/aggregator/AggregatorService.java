@@ -82,14 +82,14 @@ public class AggregatorService {
 		if ( entry == null ) {
 			entry = findSuitableAggregatorToRebuild(period);
 			long period_millis = periods.getIntradayDuration(period).toMillis();
-			long from_align = request.getFrom() / period_millis, to_align = request.getTo() / period_millis;
+			long from_align = request.getFrom() / period_millis, to_align = request.getTo() / period_millis + 1;
 			if ( request.getFrom() % period_millis > 0 ) {
 				from_align ++;
 			}
-			it = new TupleAggregateIterator(getStoreByName(entry).fetch(request.getSymbol(),
-					Instant.ofEpochMilli(from_align * period_millis),
-					Instant.ofEpochMilli(to_align * period_millis)
-				), periods.getIntradayDuration(period));
+			Instant from = Instant.ofEpochMilli(from_align * period_millis),
+					to = Instant.ofEpochMilli(to_align * period_millis).minusMillis(1);
+			it = new TupleAggregateIterator(getStoreByName(entry).fetch(request.getSymbol(), from, to),
+					periods.getIntradayDuration(period));
 		} else {
 			it = getStoreByName(entry).fetch(request.getSymbol(), request.getTimeFrom(), request.getTimeTo());
 		}

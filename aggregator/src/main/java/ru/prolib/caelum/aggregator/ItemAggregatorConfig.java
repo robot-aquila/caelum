@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.Properties;
 
-import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsConfig;
 
 import ru.prolib.caelum.core.AbstractConfig;
@@ -75,7 +74,7 @@ public class ItemAggregatorConfig extends AbstractConfig {
 		Properties conf = new Properties();
 		conf.put(StreamsConfig.APPLICATION_ID_CONFIG, getApplicationId());
 		conf.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, props.get(BOOTSTRAP_SERVERS));
-		conf.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+		conf.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, CaelumSerdes.keySerde().getClass());
 		conf.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, CaelumSerdes.itemSerde().getClass());
 		return conf;
 	}

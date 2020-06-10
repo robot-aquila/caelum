@@ -13,7 +13,6 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.errors.WakeupException;
-import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.streams.kstream.TimeWindowedDeserializer;
 import org.apache.kafka.streams.kstream.Windowed;
 import org.slf4j.Logger;
@@ -48,7 +47,8 @@ public class TupleConsumer implements Runnable {
 	
 	public TupleConsumer(TupleConsumerConfig config) {
 		this.consumer = new KafkaConsumer<>(config.getKafkaProperties(),
-			new TimeWindowedDeserializer<>(new StringDeserializer()), CaelumSerdes.tupleSerde().deserializer());
+			new TimeWindowedDeserializer<>(CaelumSerdes.keySerde().deserializer()),
+			CaelumSerdes.tupleSerde().deserializer());
 		this.config = config;
 	}
 	
