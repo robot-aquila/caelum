@@ -5,11 +5,11 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-public class ItemDataResponseMeta {
+public class ItemDataResponse {
 	private final long offset;
 	private final String magic;
 	
-	public ItemDataResponseMeta(long offset, String magic) {
+	public ItemDataResponse(long offset, String magic) {
 		this.offset = offset;
 		this.magic = magic;
 	}
@@ -43,10 +43,10 @@ public class ItemDataResponseMeta {
 		if ( other == this ) {
 			return true;
 		}
-		if ( other == null || other.getClass() != ItemDataResponseMeta.class ) {
+		if ( other == null || other.getClass() != ItemDataResponse.class ) {
 			return false;
 		}
-		ItemDataResponseMeta o = (ItemDataResponseMeta) other;
+		ItemDataResponse o = (ItemDataResponse) other;
 		return new EqualsBuilder()
 				.append(o.offset, offset)
 				.append(o.magic, magic)

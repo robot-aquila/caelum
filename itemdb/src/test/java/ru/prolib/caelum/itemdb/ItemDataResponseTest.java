@@ -6,12 +6,12 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ItemDataResponseMetaTest {
-	ItemDataResponseMeta service;
+public class ItemDataResponseTest {
+	ItemDataResponse service;
 
 	@Before
 	public void setUp() throws Exception {
-		service = new ItemDataResponseMeta(2500L, "xyz");
+		service = new ItemDataResponse(2500L, "xyz");
 	}
 	
 	@Test
@@ -22,7 +22,7 @@ public class ItemDataResponseMetaTest {
 	
 	@Test
 	public void testToString() {
-		String expected = "ItemDataResponseMeta[offset=2500,magic=xyz]";
+		String expected = "ItemDataResponse[offset=2500,magic=xyz]";
 		
 		assertEquals(expected, service.toString());
 	}
@@ -46,10 +46,10 @@ public class ItemDataResponseMetaTest {
 
 	@Test
 	public void testEquals() {
-		assertTrue(service.equals(new ItemDataResponseMeta(2500L, "xyz")));
-		assertFalse(service.equals(new ItemDataResponseMeta(2000L, "xyz")));
-		assertFalse(service.equals(new ItemDataResponseMeta(2500L, "zzz")));
-		assertFalse(service.equals(new ItemDataResponseMeta(2000L, "zzz")));
+		assertTrue(service.equals(new ItemDataResponse(2500L, "xyz")));
+		assertFalse(service.equals(new ItemDataResponse(2000L, "xyz")));
+		assertFalse(service.equals(new ItemDataResponse(2500L, "zzz")));
+		assertFalse(service.equals(new ItemDataResponse(2000L, "zzz")));
 	}
 
 }

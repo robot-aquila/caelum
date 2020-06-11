@@ -1,7 +1,7 @@
 package ru.prolib.caelum.itemdb;
 
-import java.util.Iterator;
+import ru.prolib.caelum.core.ICloseableIterator;
 
-public interface IItemDataIterator extends Iterator<IItemData> {
-	ItemDataResponseMeta close();
+public interface IItemDataIterator extends ICloseableIterator<IItemData> {
+	ItemDataResponse getMetaData();
 }
