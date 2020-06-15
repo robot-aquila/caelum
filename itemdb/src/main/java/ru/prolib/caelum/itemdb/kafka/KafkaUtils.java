@@ -14,6 +14,11 @@ import ru.prolib.caelum.core.CaelumSerdes;
 import ru.prolib.caelum.core.Item;
 
 public class KafkaUtils {
+	private static final KafkaUtils instance = new KafkaUtils();
+	
+	public static KafkaUtils getInstance() {
+		return instance;
+	}
 	
 	public ItemInfo getItemInfo(KafkaConsumer<String, Item> consumer, String topic, String symbol) {
 		Set<Integer> partitions = consumer.partitionsFor(topic)

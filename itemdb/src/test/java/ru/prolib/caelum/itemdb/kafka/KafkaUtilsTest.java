@@ -48,6 +48,15 @@ public class KafkaUtilsTest {
 	}
 	
 	@Test
+	public void testGetInstance() {
+		KafkaUtils actual = KafkaUtils.getInstance();
+		assertNotNull(actual);
+		assertSame(actual, KafkaUtils.getInstance());
+		assertSame(actual, KafkaUtils.getInstance());
+		assertSame(actual, KafkaUtils.getInstance());
+	}
+	
+	@Test
 	public void testGetItemInfo_ThrowsIfPartitionNotExists() {
 		int num_partitions = 4;
 		int expected_partition = HASH_CODE % num_partitions;

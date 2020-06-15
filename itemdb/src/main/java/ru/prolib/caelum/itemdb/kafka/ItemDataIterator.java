@@ -26,23 +26,27 @@ public class ItemDataIterator implements IItemDataIterator {
 			ItemInfo item_info,
 			long limit)
 	{
-		if ( item_info.hasData() == false ) {
-			throw new IllegalStateException(new StringBuilder()
-					.append("Item has no data: topic=")
-					.append(item_info.getTopic())
-					.append(" symbol=")
-					.append(item_info.getSymbol())
-					.toString());
-		}
 		this.consumer = consumer;
 		this.it = it;
 		this.itemInfo = item_info;
 		this.limit = limit;
 	}
 	
-	private void finished() {
+	private void finish() {
 		nextRecord = null;
 		finished = true;
+	}
+	
+	public boolean finished() {
+		return finished;
+	}
+	
+	public boolean closed() {
+		return closed;
+	}
+	
+	public long recordCount() {
+		return recordCount;
 	}
 	
 	/**
@@ -56,13 +60,22 @@ public class ItemDataIterator implements IItemDataIterator {
 		if ( finished ) {
 			return false;
 		}
+		if ( itemInfo.hasData() == false ) {
+			finish();
+			return false;
+		}
+		
 		final String symbol = itemInfo.getSymbol();
 		final int partition = itemInfo.getPartition();
 		final long end_offset = itemInfo.getEndOffset();
 		for ( ;; ) {
 			// Test for limit reached. It may breached by previous record.
-			if ( recordCount > limit ) {
-				finished();
+			if ( recordCount >= limit ) {
+				finish();
+				return false;
+			}
+			if ( it.hasNext() == false ) {
+				finish();
 				return false;
 			}
 			// Get the next record.
@@ -70,7 +83,7 @@ public class ItemDataIterator implements IItemDataIterator {
 			lastOffset = nextRecord.offset();
 			// Test for endOffset reached
 			if ( nextRecord.offset() > end_offset ) {
-				finished();
+				finish();
 				return false;
 			}
 			// Test for symbol
@@ -79,13 +92,14 @@ public class ItemDataIterator implements IItemDataIterator {
 				continue;
 			}
 			// Partition may be changed during our work. Let's check it.
-			if ( nextRecord.partition() != partition ) {
-				finished();
+			int record_partition = nextRecord.partition();
+			if ( record_partition != partition ) {
+				finish();
 				throw new IllegalStateException(new StringBuilder()
 						.append("Partition changed: expected=")
 						.append(partition)
 						.append(" actual=")
-						.append(nextRecord.partition())
+						.append(record_partition)
 						.toString());
 			}
 			// It's our record
@@ -121,14 +135,17 @@ public class ItemDataIterator implements IItemDataIterator {
 	@Override
 	public ItemDataResponse getMetaData() {
 		if ( closed ) {
-			throw new IllegalStateException("Iterator Already closed");
+			throw new IllegalStateException("Iterator already closed");
 		}
-		return new ItemDataResponse(lastOffset, "TODO");
+		//itemInfo.getStartOffset();
+		//itemInfo.getNumPartitions();
+		return new ItemDataResponse(lastOffset + 1, "TODO");
 	}
 	
 	@Override
 	public void close() {
 		if ( closed == false ) {
+			finish();
 			closed = true;
 			consumer.close();
 		}
