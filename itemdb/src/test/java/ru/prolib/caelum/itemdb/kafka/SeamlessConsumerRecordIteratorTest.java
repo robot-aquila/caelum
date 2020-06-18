@@ -56,6 +56,11 @@ public class SeamlessConsumerRecordIteratorTest {
 	}
 	
 	@Test
+	public void testGetters() {
+		assertSame(consumerMock, service.getConsumer());
+	}
+	
+	@Test
 	public void testHasNext_IsAlwaysTrue() {
 		assertTrue(service.hasNext());
 		assertTrue(service.hasNext());

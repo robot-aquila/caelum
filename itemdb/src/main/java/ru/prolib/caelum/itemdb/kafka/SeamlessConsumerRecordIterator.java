@@ -23,6 +23,10 @@ public class SeamlessConsumerRecordIterator<K, V> implements Iterator<ConsumerRe
 	public SeamlessConsumerRecordIterator(KafkaConsumer<K, V> consumer) {
 		this.consumer = consumer;
 	}
+	
+	public KafkaConsumer<K, V> getConsumer() {
+		return consumer;
+	}
 
 	@Override
 	public boolean hasNext() {

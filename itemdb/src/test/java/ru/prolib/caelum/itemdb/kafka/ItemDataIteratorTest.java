@@ -44,7 +44,15 @@ public class ItemDataIteratorTest {
 		consumerMock = control.createMock(KafkaConsumer.class);
 		itData = new ArrayList<>();
 		it = new IteratorStub<>(itData);
-		service = new ItemDataIterator(consumerMock, it, new ItemInfo("foo", 2, "bar", 0, 100L, 200L), 5L);
+		service = new ItemDataIterator(consumerMock, it, new ItemInfo("foo", 2, "bar", 0, 100L, 200L), 5L, 10000L);
+	}
+	
+	@Test
+	public void testGetters() {
+		assertSame(consumerMock, service.getConsumer());
+		assertEquals(it, service.getSourceIterator());
+		assertEquals(new ItemInfo("foo", 2, "bar", 0, 100L, 200L), service.getItemInfo());
+		assertEquals(5L, service.getLimit());
 	}
 	
 	@Test
@@ -58,7 +66,7 @@ public class ItemDataIteratorTest {
 	
 	@Test
 	public void testHasNext_IfHasNoData() {
-		service = new ItemDataIterator(consumerMock, it, new ItemInfo("foo", 2, "bar", 0, null, null), 10L);
+		service = new ItemDataIterator(consumerMock, it, new ItemInfo("foo", 2, "bar", 0, null, null), 10L, 10000L);
 		
 		assertFalse(service.hasNext());
 		assertTrue(service.finished());
@@ -99,7 +107,25 @@ public class ItemDataIteratorTest {
 		itData.add(CR("foo", "bar", 0, 104L, 5004L, 42L, 230L));
 		itData.add(CR("foo", "bar", 0, 105L, 5005L, 47L, 115L));
 		itData.add(CR("foo", "bar", 0, 106L, 5006L, 44L, 850L));
-		service = new ItemDataIterator(consumerMock, it, new ItemInfo("foo", 2, "bar", 0, 100L, 103L), 5L);
+		service = new ItemDataIterator(consumerMock, it, new ItemInfo("foo", 2, "bar", 0, 100L, 103L), 5L, 10000L);
+		
+		for ( int i = 0; i < 3; i ++ ) {
+			assertTrue("At #" + i, service.hasNext());
+			service.next();
+		}
+		assertFalse(service.hasNext());
+		assertTrue(service.finished());
+	}
+	
+	@Test
+	public void testHasNext_IfEndTimeReached() {
+		itData.add(CR("foo", "bar", 0, 101L, 5001L, 45L, 200L));
+		itData.add(CR("foo", "bar", 0, 102L, 5002L, 49L, 100L));
+		itData.add(CR("foo", "bar", 0, 103L, 5003L, 43L, 500L));
+		itData.add(CR("foo", "bar", 0, 104L, 5004L, 42L, 230L));
+		itData.add(CR("foo", "bar", 0, 105L, 5005L, 47L, 115L));
+		itData.add(CR("foo", "bar", 0, 106L, 5006L, 44L, 850L));
+		service = new ItemDataIterator(consumerMock, it, new ItemInfo("foo", 2, "bar", 0, 100L, 200L), 5L, 5004L);
 		
 		for ( int i = 0; i < 3; i ++ ) {
 			assertTrue("At #" + i, service.hasNext());
@@ -143,7 +169,7 @@ public class ItemDataIteratorTest {
 	
 	@Test
 	public void testNext_ThrowsIfHasNoData() {
-		service = new ItemDataIterator(consumerMock, it, new ItemInfo("foo", 2, "bar", 0, null, null), 10L);
+		service = new ItemDataIterator(consumerMock, it, new ItemInfo("foo", 2, "bar", 0, null, null), 10L, 10000L);
 		eex.expect(NoSuchElementException.class);
 		
 		service.next();
@@ -185,13 +211,30 @@ public class ItemDataIteratorTest {
 		itData.add(CR("foo", "bar", 0, 104L, 5004L, 42L, 230L));
 		itData.add(CR("foo", "bar", 0, 105L, 5005L, 47L, 115L));
 		itData.add(CR("foo", "bar", 0, 106L, 5006L, 44L, 850L));
-		service = new ItemDataIterator(consumerMock, it, new ItemInfo("foo", 2, "bar", 0, 100L, 103L), 5L);
+		service = new ItemDataIterator(consumerMock, it, new ItemInfo("foo", 2, "bar", 0, 100L, 103L), 5L, 10000L);
 		for ( int i = 0; i < 3; i ++ ) {
 			assertTrue("At #" + i, service.hasNext());
 			service.next();
 		}
 		eex.expect(NoSuchElementException.class);
 		
+		service.next();
+	}
+	
+	@Test
+	public void testNext_ThrowsIfEndTimeReached() {
+		itData.add(CR("foo", "bar", 0, 101L, 5001L, 45L, 200L));
+		itData.add(CR("foo", "bar", 0, 102L, 5002L, 49L, 100L));
+		itData.add(CR("foo", "bar", 0, 103L, 5003L, 43L, 500L));
+		itData.add(CR("foo", "bar", 0, 104L, 5004L, 42L, 230L));
+		itData.add(CR("foo", "bar", 0, 105L, 5005L, 47L, 115L));
+		itData.add(CR("foo", "bar", 0, 106L, 5006L, 44L, 850L));
+		service = new ItemDataIterator(consumerMock, it, new ItemInfo("foo", 2, "bar", 0, 100L, 200L), 5L, 5004L);
+		for ( int i = 0; i < 3; i ++ ) {
+			service.next();
+		}
+		eex.expect(NoSuchElementException.class);
+
 		service.next();
 	}
 	

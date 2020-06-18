@@ -1,14 +1,11 @@
 package ru.prolib.caelum.itemdb.kafka;
 
 import java.util.Arrays;
-import java.util.List;
 
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.PartitionInfo;
+import org.apache.kafka.common.TopicPartition;
 
-import ru.prolib.caelum.core.CaelumSerdes;
 import ru.prolib.caelum.core.Item;
-import ru.prolib.caelum.core.IteratorStub;
 import ru.prolib.caelum.itemdb.IItemDataIterator;
 import ru.prolib.caelum.itemdb.IItemDatabaseService;
 import ru.prolib.caelum.itemdb.ItemDataRequest;
@@ -29,8 +26,15 @@ public class ItemDatabaseService implements IItemDatabaseService {
 	}
 	
 	private KafkaConsumer<String, Item> createConsumer() {
-		return new KafkaConsumer<>(config.getKafkaProperties(),
-			CaelumSerdes.keySerde().deserializer(), CaelumSerdes.itemSerde().deserializer());
+		return utils.createConsumer(config.getKafkaProperties());
+	}
+	
+	private long getLimit(ItemDataRequest request) {
+		return Math.min(request.getLimit(), config.getInt(ItemDatabaseConfig.LIMIT));
+	}
+
+	private long getLimit(ItemDataRequestContinue request) {
+		return Math.min(request.getLimit(), config.getInt(ItemDatabaseConfig.LIMIT));
 	}
 
 	@Override
@@ -38,32 +42,27 @@ public class ItemDatabaseService implements IItemDatabaseService {
 		KafkaConsumer<String, Item> consumer = createConsumer();
 		ItemInfo item_info = utils.getItemInfo(consumer, config.getSourceTopic(), request.getSymbol());
 		if ( item_info.hasData() ) {
-			consumer.assign(Arrays.asList(item_info.toTopicPartition()));
-			// TODO: 
+			TopicPartition tp = item_info.toTopicPartition();
+			consumer.assign(Arrays.asList(tp));
+			consumer.seek(tp, utils.getOffset(consumer, tp, request.getFrom(), item_info.getStartOffset()));
+			return utils.createIterator(consumer, item_info, getLimit(request), request.getTo());
 		} else {
-			return new ItemDataIterator(consumer, new IteratorStub<>(), item_info, request.getLimit());
+			return utils.createIteratorStub(consumer, item_info, getLimit(request), request.getTo());
 		}
-		
-		
-		
-		
-		// choose partition
-		// assign
-		// get beginning offset
-		// get end offset
-		// choose position
-		// poll until end offset or limit reached
-		// 
-		
-		
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	@Override
 	public IItemDataIterator fetch(ItemDataRequestContinue request) {
-		// TODO Auto-generated method stub
-		return null;
+		KafkaConsumer<String, Item> consumer = createConsumer();
+		ItemInfo item_info = utils.getItemInfo(consumer, config.getSourceTopic(), request.getSymbol());
+		if ( item_info.hasData() ) {
+			TopicPartition tp = item_info.toTopicPartition();
+			consumer.assign(Arrays.asList(tp));
+			consumer.seek(tp, request.getOffset());
+			return utils.createIterator(consumer, item_info, getLimit(request), request.getTo());
+		} else {
+			return utils.createIteratorStub(consumer, item_info, getLimit(request), request.getTo());
+		}
 	}
 
 }

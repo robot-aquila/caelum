@@ -5,6 +5,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+
 public class IteratorStub<T> implements Iterator<T> {
 	private final List<T> data;
 	
@@ -27,6 +29,20 @@ public class IteratorStub<T> implements Iterator<T> {
 			throw new NoSuchElementException();
 		}
 		return data.remove(0);
+	}
+	
+	@Override
+	public boolean equals(Object other) {
+		if ( other == this ) {
+			return true;
+		}
+		if ( other == null || other.getClass() != IteratorStub.class ) {
+			return false;
+		}
+		IteratorStub<?> o = (IteratorStub<?>) other;
+		return new EqualsBuilder()
+				.append(o.data, data)
+				.build();
 	}
 
 }

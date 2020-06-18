@@ -2,6 +2,8 @@ package ru.prolib.caelum.itemdb;
 
 import static org.junit.Assert.*;
 
+import java.time.Instant;
+
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.record.TimestampType;
@@ -46,6 +48,11 @@ public class ItemDataTest {
 		assertEquals("tampa", service.getSymbol());
 		assertEquals(42600L, service.getTime());
 		assertEquals(item2, service.getItem());
+	}
+	
+	@Test
+	public void testGetTimeAsInstant() {
+		assertEquals(Instant.ofEpochMilli(5000L), service.getTimeAsInstant());
 	}
 	
 	@Test

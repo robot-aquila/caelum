@@ -1,5 +1,7 @@
 package ru.prolib.caelum.itemdb;
 
+import java.time.Instant;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -9,12 +11,13 @@ public class ItemDataRequestContinue {
 	private final String symbol;
 	private final long offset;
 	private final String magic;
-	private final long limit;
+	private final long to, limit;
 	
-	public ItemDataRequestContinue(String symbol, long offset, String magic,long limit) {
+	public ItemDataRequestContinue(String symbol, long offset, String magic, long to, long limit) {
 		this.symbol = symbol;
 		this.offset = offset;
 		this.magic = magic;
+		this.to = to;
 		this.limit = limit;
 	}
 	
@@ -30,8 +33,16 @@ public class ItemDataRequestContinue {
 		return magic;
 	}
 	
+	public long getTo() {
+		return to;
+	}
+	
 	public long getLimit() {
 		return limit;
+	}
+	
+	public Instant getTimeTo() {
+		return Instant.ofEpochMilli(to);
 	}
 	
 	@Override
@@ -40,6 +51,7 @@ public class ItemDataRequestContinue {
 				.append("symbol", symbol)
 				.append("offset", offset)
 				.append("magic", magic)
+				.append("to", to)
 				.append("limit", limit)
 				.build();
 	}
@@ -50,6 +62,7 @@ public class ItemDataRequestContinue {
 				.append(symbol)
 				.append(offset)
 				.append(magic)
+				.append(to)
 				.append(limit)
 				.build();
 	}
@@ -67,6 +80,7 @@ public class ItemDataRequestContinue {
 				.append(o.symbol, symbol)
 				.append(o.offset, offset)
 				.append(o.magic, magic)
+				.append(o.to, to)
 				.append(o.limit, limit)
 				.build();
 	}

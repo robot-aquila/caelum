@@ -1,16 +1,23 @@
 package ru.prolib.caelum.itemdb.kafka;
 
 import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 import static org.easymock.EasyMock.*;
 
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.consumer.OffsetAndTimestamp;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.utils.Utils;
@@ -23,6 +30,8 @@ import org.junit.rules.ExpectedException;
 
 import ru.prolib.caelum.core.CaelumSerdes;
 import ru.prolib.caelum.core.Item;
+import ru.prolib.caelum.core.IteratorStub;
+import ru.prolib.caelum.itemdb.IItemDataIterator;
 
 @SuppressWarnings("unchecked")
 public class KafkaUtilsTest {
@@ -129,6 +138,79 @@ public class KafkaUtilsTest {
 		control.verify();
 		ItemInfo expected = new ItemInfo("bubba", 1, SYMBOL, 0, 504L, null);
 		assertEquals(expected, actual);
+	}
+	
+	@Test
+	public void testCreateIteratorStub() {
+		IItemDataIterator actual = service.createIteratorStub(consumerMock,
+				new ItemInfo("boo", 1, "foo", 0, 400L, 800L), 150L, 718256L);
+		
+		assertNotNull(actual);
+		assertThat(actual, is(instanceOf(ItemDataIterator.class)));
+		ItemDataIterator o = (ItemDataIterator) actual;
+		assertSame(consumerMock, o.getConsumer());
+		assertEquals(new ItemInfo("boo", 1, "foo", 0, 400L, 800L), o.getItemInfo());
+		assertEquals(150L, o.getLimit());
+		assertEquals(718256L, o.getEndTime());
+		Iterator<ConsumerRecord<String, Item>> it = o.getSourceIterator();
+		assertThat(it, is(instanceOf(IteratorStub.class)));
+		assertEquals(new IteratorStub<>(), it);
+	}
+	
+	@Test
+	public void testCreateIterator() {
+		IItemDataIterator actual = service.createIterator(consumerMock,
+				new ItemInfo("bug", 5, "juk", 3, 100L, 800L), 750L, 2889000187L);
+		
+		assertNotNull(actual);
+		assertThat(actual, is(instanceOf(ItemDataIterator.class)));
+		ItemDataIterator o = (ItemDataIterator) actual;
+		assertSame(consumerMock, o.getConsumer());
+		assertEquals(new ItemInfo("bug", 5, "juk", 3, 100L, 800L), o.getItemInfo());
+		assertEquals(750L, o.getLimit());
+		assertEquals(2889000187L, o.getEndTime());
+		Iterator<ConsumerRecord<String, Item>> it = o.getSourceIterator();
+		assertThat(it, is(instanceOf(SeamlessConsumerRecordIterator.class)));
+		assertSame(consumerMock, ((SeamlessConsumerRecordIterator<String, Item>) it).getConsumer());
+	}
+	
+	@Test
+	public void testGetOffset_HasResult() {
+		Map<TopicPartition, Long> map_arg = new HashMap<>();
+		map_arg.put(new TopicPartition("foo", 2), 28866612L);
+		Map<TopicPartition, OffsetAndTimestamp> map_res = new HashMap<>();
+		map_res.put(new TopicPartition("foo", 2), new OffsetAndTimestamp(1000L, 28866620L));
+		expect(consumerMock.offsetsForTimes(map_arg)).andReturn(map_res);
+		control.replay();
+		
+		assertEquals(1000L, service.getOffset(consumerMock, new TopicPartition("foo", 2), 28866612L, 150L));
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testGetOffset_NoResult() {
+		Map<TopicPartition, Long> map_arg = new HashMap<>();
+		map_arg.put(new TopicPartition("foo", 2), 28866612L);
+		expect(consumerMock.offsetsForTimes(map_arg)).andReturn(new HashMap<>());
+		control.replay();
+		
+		assertEquals(150L, service.getOffset(consumerMock, new TopicPartition("foo", 2), 28866612L, 150L));
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testCreateConsumer() {
+		Properties conf = new Properties();
+		conf.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:8082");
+		conf.put(ConsumerConfig.GROUP_ID_CONFIG, "zumba-19");
+		conf.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+		conf.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+
+		KafkaConsumer<String, Item> actual = service.createConsumer(conf);
+		
+		assertNotNull(actual);
 	}
 
 }

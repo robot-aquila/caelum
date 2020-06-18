@@ -16,7 +16,7 @@ public class ItemDataIterator implements IItemDataIterator {
 	private final KafkaConsumer<String, Item> consumer;
 	private final Iterator<ConsumerRecord<String, Item>> it;
 	private final ItemInfo itemInfo;
-	private final long limit;
+	private final long limit, endTime;
 	private boolean finished = false, closed = false;
 	private ConsumerRecord<String, Item> nextRecord;
 	private long recordCount, lastOffset;
@@ -24,12 +24,33 @@ public class ItemDataIterator implements IItemDataIterator {
 	public ItemDataIterator(KafkaConsumer<String, Item> consumer,
 			Iterator<ConsumerRecord<String, Item>> it,
 			ItemInfo item_info,
-			long limit)
+			long limit, long end_time)
 	{
 		this.consumer = consumer;
 		this.it = it;
 		this.itemInfo = item_info;
 		this.limit = limit;
+		this.endTime = end_time;
+	}
+	
+	public KafkaConsumer<String, Item> getConsumer() {
+		return consumer;
+	}
+	
+	public Iterator<ConsumerRecord<String, Item>> getSourceIterator() {
+		return it;
+	}
+	
+	public ItemInfo getItemInfo() {
+		return itemInfo;
+	}
+	
+	public long getLimit() {
+		return limit;
+	}
+	
+	public long getEndTime() {
+		return endTime;
 	}
 	
 	private void finish() {
@@ -81,8 +102,13 @@ public class ItemDataIterator implements IItemDataIterator {
 			// Get the next record.
 			nextRecord = it.next();
 			lastOffset = nextRecord.offset();
-			// Test for endOffset reached
+			// Test for endOffset reached. Skipping this will cause a blocking call on consumer.
 			if ( nextRecord.offset() > end_offset ) {
+				finish();
+				return false;
+			}
+			// Test for end time
+			if ( nextRecord.timestamp() >= endTime ) {
 				finish();
 				return false;
 			}
