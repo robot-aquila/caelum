@@ -72,7 +72,7 @@ public class NodeService {
 	 * @return request
 	 * @throws BadRequestException - invalid data
 	 */
-	private AggregatedDataRequest toRequest(String symbol, Period period, Long from, Long to, Long limit) {
+	private AggregatedDataRequest toAggrDataRequest(String symbol, Period period, Long from, Long to, Long limit) {
 		if ( period == null ) {
 			period = DEFAULT_PERIOD;
 		}
@@ -101,6 +101,10 @@ public class NodeService {
 		return new AggregatedDataRequest(symbol, period, from, to, limit);
 	}
 	
+//	private ItemDataRequest toItemDataRequest() {
+//		
+//	}
+	
 	@GET
 	@Path("/tuples/{period}/{symbol}")
 	public Response tuples(
@@ -110,7 +114,7 @@ public class NodeService {
 			@QueryParam("to") final Long to,
 			@QueryParam("limit") @DefaultValue("500") final long limit)
 	{
-		AggregatedDataRequest request = toRequest(symbol, period, from, to, limit);
+		AggregatedDataRequest request = toAggrDataRequest(symbol, period, from, to, limit);
 		return Response.status(200)
 			.entity(new TupleStreamerJson(jsonFactory, caelum.fetch(request), request))
 			.build();
@@ -161,7 +165,7 @@ public class NodeService {
 		if ( str_to != null && str_to.length() > 0 ) {
 			to = Instant.parse(str_to).toEpochMilli();
 		}
-		AggregatedDataRequest request = toRequest(symbol, period, from, to, limit);
+		AggregatedDataRequest request = toAggrDataRequest(symbol, period, from, to, limit);
 		final boolean has_output = request.isValidSymbol();
 		final WindowStoreIterator<Tuple> it = has_output ?
 				new TupleMvcAdapterIterator(caelum.fetch(request)) : new WindowStoreIteratorStub<>();
