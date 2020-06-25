@@ -3,12 +3,14 @@ package ru.prolib.caelum.itemdb.kafka;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 import static org.easymock.EasyMock.*;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.record.TimestampType;
@@ -21,6 +23,8 @@ import org.junit.rules.ExpectedException;
 import ru.prolib.caelum.core.Item;
 import ru.prolib.caelum.core.ItemType;
 import ru.prolib.caelum.core.IteratorStub;
+import ru.prolib.caelum.itemdb.IItemData;
+import ru.prolib.caelum.itemdb.ItemData;
 import ru.prolib.caelum.itemdb.ItemDataResponse;
 
 @SuppressWarnings("unchecked")
@@ -29,6 +33,10 @@ public class ItemDataIteratorTest {
 	static ConsumerRecord<String, Item> CR(String t, String s, int p, long off, long time, long value, long volume) {
 		return new ConsumerRecord<>(t, p, off, time, TimestampType.CREATE_TIME, 0, 0, 0, s,
 				new Item(value, (byte)2, volume, (byte)0, ItemType.LONG_REGULAR));
+	}
+	
+	static IItemData ID(String s, long t, long off, long val, long vol) {
+		return new ItemData(s, t, off, new Item(val, (byte)2, vol, (byte)0, ItemType.LONG_REGULAR));
 	}
 	
 	@Rule public ExpectedException eex = ExpectedException.none();
@@ -253,18 +261,48 @@ public class ItemDataIteratorTest {
 	}
 	
 	@Test
-	public void testGetMetaData() {
+	public void testNext_Iterate() {
+		service = new ItemDataIterator(consumerMock, it, new ItemInfo("foo", 2, "bar", 0, 100L, 200L), 25L, 10000L);
 		itData.add(CR("foo", "bar", 0, 101L, 5001L, 45L, 200L));
 		itData.add(CR("foo", "bar", 0, 102L, 5002L, 49L, 100L));
 		itData.add(CR("foo", "bar", 0, 103L, 5003L, 43L, 500L));
-		service.next();
-		service.next();
-		service.next();
+		itData.add(CR("foo", "bar", 0, 104L, 5004L, 42L, 230L));
+		itData.add(CR("foo", "bar", 0, 105L, 5005L, 47L, 115L));
+		itData.add(CR("foo", "bar", 0, 106L, 5006L, 44L, 850L));
+
+		List<IItemData> actual = new ArrayList<>();
+		for ( int i = 0; i < 6; i ++ ) {
+			assertTrue("At #" + i, service.hasNext());
+			actual.add(service.next());
+		}
+		assertFalse(service.hasNext());
 		
-		ItemDataResponse actual = service.getMetaData();
-		
-		ItemDataResponse expected = new ItemDataResponse(104L, "TODO");
+		List<IItemData> expected = Arrays.asList(
+				ID("bar", 5001L, 101L, 45L, 200L),
+				ID("bar", 5002L, 102L, 49L, 100L),
+				ID("bar", 5003L, 103L, 43L, 500L),
+				ID("bar", 5004L, 104L, 42L, 230L),
+				ID("bar", 5005L, 105L, 47L, 115L),
+				ID("bar", 5006L, 106L, 44L, 850L)
+			);
 		assertEquals(expected, actual);
+	}
+	
+	@Test
+	public void testGetMetaData() {
+		String magic = DigestUtils.md5Hex("bar:100:2"); // symbol : beg_offset : num_partitions
+		itData.add(CR("foo", "bar", 0, 101L, 5001L, 45L, 200L));
+		itData.add(CR("foo", "bar", 0, 102L, 5002L, 49L, 100L));
+		itData.add(CR("foo", "bar", 0, 103L, 5003L, 43L, 500L));
+		
+		assertEquals(new ItemDataResponse(  0, magic), service.getMetaData());
+		service.next();
+		assertEquals(new ItemDataResponse(102, magic), service.getMetaData());
+		service.next();
+		assertEquals(new ItemDataResponse(103, magic), service.getMetaData());
+		service.next();
+		assertEquals(new ItemDataResponse(103, magic), service.getMetaData());
+		assertEquals(new ItemDataResponse(103, magic), service.getMetaData());
 	}
 	
 	@Test

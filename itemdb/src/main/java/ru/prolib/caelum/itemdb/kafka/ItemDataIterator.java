@@ -3,6 +3,7 @@ package ru.prolib.caelum.itemdb.kafka;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 
@@ -153,7 +154,8 @@ public class ItemDataIterator implements IItemDataIterator {
 		if ( nextRecord == null && ! advance() ) {
 			throw new NoSuchElementException();
 		}
-		ItemData data = new ItemData(itemInfo.getSymbol(), nextRecord.timestamp(), nextRecord.value());
+		ItemData data = new ItemData(itemInfo.getSymbol(), nextRecord.timestamp(),
+				nextRecord.offset(), nextRecord.value());
 		advance();
 		return data;
 	}
@@ -163,9 +165,14 @@ public class ItemDataIterator implements IItemDataIterator {
 		if ( closed ) {
 			throw new IllegalStateException("Iterator already closed");
 		}
-		//itemInfo.getStartOffset();
-		//itemInfo.getNumPartitions();
-		return new ItemDataResponse(lastOffset + 1, "TODO");
+		return new ItemDataResponse(lastOffset, DigestUtils.md5Hex(new StringBuilder()
+				.append(itemInfo.getSymbol())
+				.append(":")
+				.append(itemInfo.getStartOffset())
+				.append(":")
+				.append(itemInfo.getNumPartitions())
+				.toString())
+			);
 	}
 	
 	@Override

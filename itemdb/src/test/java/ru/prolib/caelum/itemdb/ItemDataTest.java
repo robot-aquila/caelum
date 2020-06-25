@@ -27,7 +27,7 @@ public class ItemDataTest {
 
 	@Before
 	public void setUp() throws Exception {
-		service = new ItemData("foobar", 5000L, item1);
+		service = new ItemData("foobar", 5000L, 2501L, item1);
 	}
 	
 	@Test
@@ -37,16 +37,18 @@ public class ItemDataTest {
 		
 		assertEquals("foobar", service.getSymbol());
 		assertEquals(5000L, service.getTime());
+		assertEquals(2501L, service.getOffset());
 		assertEquals(item1, service.getItem());
 	}
 	
 	@Test
 	public void testCtor1() {
-		service = new ItemData(new ConsumerRecord<>("", 0, 0, 42600L,
+		service = new ItemData(new ConsumerRecord<>("", 0, 1102L, 42600L,
 				TimestampType.CREATE_TIME, 0, 0, 0, "tampa", item2));
 		
 		assertEquals("tampa", service.getSymbol());
 		assertEquals(42600L, service.getTime());
+		assertEquals(1102L, service.getOffset());
 		assertEquals(item2, service.getItem());
 	}
 	
@@ -58,7 +60,7 @@ public class ItemDataTest {
 	@Test
 	public void testToString() {
 		String expected = new StringBuilder()
-				.append("ItemData[symbol=foobar,time=5000,item=")
+				.append("ItemData[symbol=foobar,time=5000,offset=2501,item=")
 				.append("Item[type=LONG_REGULAR,value=2500,decimals=2,volume=100,volDecimals=0]]")
 				.toString();
 		
@@ -70,6 +72,7 @@ public class ItemDataTest {
 		int expected = new HashCodeBuilder(4257009, 31)
 				.append("foobar")
 				.append(5000L)
+				.append(2501L)
 				.append(item1)
 				.build();
 		
@@ -85,11 +88,12 @@ public class ItemDataTest {
 
 	@Test
 	public void testEquals() {
-		assertTrue(service.equals(new ItemData("foobar", 5000L, item1)));
-		assertFalse(service.equals(new ItemData("barbar", 5000L, item1)));
-		assertFalse(service.equals(new ItemData("foobar", 7000L, item1)));
-		assertFalse(service.equals(new ItemData("foobar", 5000L, item2)));
-		assertFalse(service.equals(new ItemData("barbar", 7000L, item2)));
+		assertTrue(service.equals(new ItemData("foobar", 5000L, 2501L, item1)));
+		assertFalse(service.equals(new ItemData("barbar", 5000L, 2501L, item1)));
+		assertFalse(service.equals(new ItemData("foobar", 7000L, 2501L, item1)));
+		assertFalse(service.equals(new ItemData("foobar", 5000L, 2501L, item2)));
+		assertFalse(service.equals(new ItemData("foobar", 5000L, 4444L, item1)));
+		assertFalse(service.equals(new ItemData("barbar", 7000L, 4444L, item2)));
 	}
 
 }

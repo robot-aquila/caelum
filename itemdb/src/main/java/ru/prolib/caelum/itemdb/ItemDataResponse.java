@@ -14,10 +14,20 @@ public class ItemDataResponse {
 		this.magic = magic;
 	}
 	
+	/**
+	 * Get last known/processed/reached offset.
+	 * <p>
+	 * @return offset
+	 */
 	public long getOffset() {
 		return offset;
 	}
 	
+	/**
+	 * Get magic string.
+	 * <p>
+	 * @return checksum
+	 */
 	public String getMagic() {
 		return magic;
 	}

@@ -4,6 +4,10 @@
 		<base href="/api/v1/" />
 		<style type="text/css">
 
+table.noBorder tr td {
+    border: none;
+    border-collapse: collapse;
+}
 table.blueTable {
 	border: 1px solid #1C6EA4;
 	background-color: #EEEEEE;

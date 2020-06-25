@@ -12,17 +12,18 @@ import ru.prolib.caelum.core.Item;
 
 public class ItemData implements IItemData {
 	private final String symbol;
-	private final long time;
+	private final long time, offset;
 	private final Item item;
 	
-	public ItemData(String symbol, long time, Item item) {
+	public ItemData(String symbol, long time, long offset, Item item) {
 		this.symbol = symbol;
 		this.time = time;
+		this.offset = offset;
 		this.item = item;
 	}
 	
 	public ItemData(ConsumerRecord<String, Item> record) {
-		this(record.key(), record.timestamp(), record.value());
+		this(record.key(), record.timestamp(), record.offset(), record.value());
 	}
 
 	@Override
@@ -33,6 +34,11 @@ public class ItemData implements IItemData {
 	@Override
 	public long getTime() {
 		return time;
+	}
+	
+	@Override
+	public long getOffset() {
+		return offset;
 	}
 
 	@Override
@@ -45,6 +51,7 @@ public class ItemData implements IItemData {
 		return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
 				.append("symbol", symbol)
 				.append("time", time)
+				.append("offset", offset)
 				.append("item", item)
 				.build();
 	}
@@ -54,6 +61,7 @@ public class ItemData implements IItemData {
 		return new HashCodeBuilder(4257009, 31)
 				.append(symbol)
 				.append(time)
+				.append(offset)
 				.append(item)
 				.build();
 	}
@@ -70,6 +78,7 @@ public class ItemData implements IItemData {
 		return new EqualsBuilder()
 				.append(o.getSymbol(), symbol)
 				.append(o.getTime(), time)
+				.append(o.getOffset(), offset)
 				.append(o.getItem(), item)
 				.build();
 	}
