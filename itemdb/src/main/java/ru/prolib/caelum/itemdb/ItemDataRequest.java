@@ -7,7 +7,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-public class ItemDataRequest {
+public class ItemDataRequest implements IItemDataRequest {
 	private final String symbol;
 	private final long from, to, limit;
 	
@@ -18,6 +18,7 @@ public class ItemDataRequest {
 		this.limit = limit;
 	}
 	
+	@Override
 	public String getSymbol() {
 		return symbol;
 	}
@@ -26,10 +27,12 @@ public class ItemDataRequest {
 		return from;
 	}
 	
+	@Override
 	public long getTo() {
 		return to;
 	}
 	
+	@Override
 	public long getLimit() {
 		return limit;
 	}
@@ -38,6 +41,7 @@ public class ItemDataRequest {
 		return Instant.ofEpochMilli(from);
 	}
 	
+	@Override
 	public Instant getTimeTo() {
 		return Instant.ofEpochMilli(to);
 	}

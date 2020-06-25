@@ -158,10 +158,10 @@ public class NodeService {
 	}
 	
 	@GET
-	@Path("/tuples/{period}/{symbol}")
+	@Path("/tuples/{period}")
 	public Response tuples(
 			@PathParam("period") @NotNull final Period period,
-			@PathParam("symbol") @NotNull final String symbol,
+			@QueryParam("symbol") @NotNull final String symbol,
 			@QueryParam("from") final Long from,
 			@QueryParam("to") final Long to,
 			@QueryParam("limit") @DefaultValue("500") final long limit)
@@ -170,6 +170,29 @@ public class NodeService {
 		return Response.status(200)
 			.entity(new TupleStreamerJson(jsonFactory, caelum.fetch(request), request))
 			.build();
+	}
+	
+	@GET
+	@Path("/items")
+	public Response items(
+			@QueryParam("symbol") @NotNull final String symbol,
+			@QueryParam("from") final Long from,
+			@QueryParam("from_offset") final Long from_offset,
+			@QueryParam("to") final Long to,
+			@QueryParam("limit") @DefaultValue("500") final long limit,
+			@QueryParam("magic") final String magic)
+	{
+		if ( from_offset == null ) {
+			ItemDataRequest request = toItemDataRequest(symbol, from, to, limit);
+			return Response.status(200)
+				.entity(new ItemStreamerJson(jsonFactory, caelum.fetch(request), request))
+				.build();
+		} else {
+			ItemDataRequestContinue request = this.toItemDataRequestContinue(symbol, from_offset, magic, to, limit);
+			return Response.status(200)
+				.entity(new ItemStreamerJson(jsonFactory, caelum.fetch(request), request))
+				.build();
+		}
 	}
 	
 	@GET
