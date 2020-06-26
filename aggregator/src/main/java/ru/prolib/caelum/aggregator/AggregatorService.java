@@ -105,16 +105,9 @@ public class AggregatorService {
 			throw new IllegalArgumentException("Aggregator of type is not allowed to register: " + desc.type);
 		}
 		Entry entry = new Entry(desc, streams);
-		// Mapping by store name is the first priority because it isn't conflict if two or more aggregators
-		// with same period but different stores. But same store shouldn't be registered twice.
-		if ( entryByStoreName.putIfAbsent(desc.storeName, entry) != null ) {
-			throw new IllegalStateException("Aggregator associated with the store already exists: " + desc.storeName);
-		}
-		// Only a single aggregator is allowed for separate period of aggregation.
-		if ( entryByPeriod.putIfAbsent(desc.period, entry) != null ) {
-			entryByStoreName.remove(desc.storeName);
-			throw new IllegalStateException("Aggregator associated with period already exists: " + desc.period);
-		}
+		// That actually doesn't matter who's exactly will provide the data
+		entryByStoreName.put(desc.storeName, entry);
+		entryByPeriod.put(desc.period, entry);
 	}
 
 }
