@@ -14,6 +14,7 @@
 		<module>core</module>
 		<module>aggregator</module>
 		<module>itemdb</module>
+		<module>symboldb</module>
 		<module>service</module>
 		<module>test</module>
 		<module>backnode</module>
