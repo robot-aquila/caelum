@@ -4,6 +4,9 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import com.apple.foundationdb.KeyValue;
 import com.apple.foundationdb.subspace.Subspace;
 import com.apple.foundationdb.tuple.Tuple;
@@ -26,6 +29,27 @@ public class FDBSchema {
 		spCategory = root.get(0x01);
 		spCategorySymbol = root.get(0x02);
 		spSymbolUpdate = root.get(0x03);
+	}
+	
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder(7001927, 75)
+				.append(spRoot)
+				.build();
+	}
+	
+	@Override
+	public boolean equals(Object other) {
+		if ( other == this ) {
+			return true;
+		}
+		if ( other == null || other.getClass() != FDBSchema.class ) {
+			return false;
+		}
+		FDBSchema o = (FDBSchema) other;
+		return new EqualsBuilder()
+				.append(o.spRoot, spRoot)
+				.build();
 	}
 	
 	public byte[] getTrueBytes() {
@@ -79,8 +103,12 @@ public class FDBSchema {
 		return spCategorySymbol.get(category);
 	}
 	
+	public byte[] getKeyCategorySymbol(String category, String symbol) {
+		return spCategorySymbol.pack(Tuple.from(category, symbol));
+	}
+	
 	public byte[] getKeyCategorySymbol(CategorySymbol cs) {
-		return spCategorySymbol.pack(Tuple.from(cs.getCategory(), cs.getSymbol()));
+		return getKeyCategorySymbol(cs.getCategory(), cs.getSymbol());
 	}
 	
 	public CategorySymbol parseKeyCategorySymbol(byte[] key) {

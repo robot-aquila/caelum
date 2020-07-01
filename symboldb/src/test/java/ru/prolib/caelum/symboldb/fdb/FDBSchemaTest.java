@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -26,6 +27,24 @@ public class FDBSchemaTest {
 	@Before
 	public void setUp() throws Exception {
 		service = new FDBSchema(new Subspace(Tuple.from("test")));
+	}
+	
+	@Test
+	public void testHashCode() {
+		int expected = new HashCodeBuilder(7001927, 75)
+				.append(new Subspace(Tuple.from("test")))
+				.build();
+
+		assertEquals(expected, service.hashCode());
+	}
+	
+	@Test
+	public void testEquals() {
+		assertTrue(service.equals(service));
+		assertTrue(service.equals(new FDBSchema(new Subspace(Tuple.from("test")))));
+		assertFalse(service.equals(null));
+		assertFalse(service.equals(this));
+		assertFalse(service.equals(new FDBSchema(new Subspace(Tuple.from("goha")))));
 	}
 	
 	@Test
@@ -150,6 +169,14 @@ public class FDBSchemaTest {
 	
 	@Test
 	public void testGetKeyCategorySymbol() {
+		byte actual[] = service.getKeyCategorySymbol("zumba", "zumba@bumba");
+		
+		byte expected[] = new Subspace(Tuple.from("test", 0x02, "zumba", "zumba@bumba")).pack();
+		assertArrayEquals(expected, actual);
+	}
+	
+	@Test
+	public void testGetKeyCategorySymbol1() {
 		byte actual[] = service.getKeyCategorySymbol(new CategorySymbol("bubba", "kappa"));
 		
 		byte expected[] = new Subspace(Tuple.from("test", 0x02, "bubba", "kappa")).pack();

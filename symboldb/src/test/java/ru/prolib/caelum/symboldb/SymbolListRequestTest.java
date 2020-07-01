@@ -11,7 +11,7 @@ public class SymbolListRequestTest {
 
 	@Before
 	public void setUp() throws Exception {
-		service = new SymbolListRequest("foo", "bar", 500L);
+		service = new SymbolListRequest("foo", "bar", 500);
 	}
 	
 	@Test
@@ -23,7 +23,7 @@ public class SymbolListRequestTest {
 	
 	@Test
 	public void testCtor2() {
-		service = new SymbolListRequest("foo", 250L);
+		service = new SymbolListRequest("foo", 250);
 		assertEquals("foo", service.getCategory());
 		assertNull(service.getAfterSymbol());
 		assertEquals(250L, service.getLimit());
@@ -41,7 +41,7 @@ public class SymbolListRequestTest {
 		int expected = new HashCodeBuilder(221610091, 103)
 				.append("foo")
 				.append("bar")
-				.append(500L)
+				.append(500)
 				.build();
 		
 		assertEquals(expected, service.hashCode());
@@ -50,13 +50,13 @@ public class SymbolListRequestTest {
 	@Test
 	public void testEquals() {
 		assertTrue(service.equals(service));
-		assertTrue(service.equals(new SymbolListRequest("foo", "bar", 500L)));
+		assertTrue(service.equals(new SymbolListRequest("foo", "bar", 500)));
 		assertFalse(service.equals(null));
 		assertFalse(service.equals(this));
-		assertFalse(service.equals(new SymbolListRequest("aaa", "bar", 500L)));
-		assertFalse(service.equals(new SymbolListRequest("foo", "aaa", 500L)));
-		assertFalse(service.equals(new SymbolListRequest("foo", "bar", 555L)));
-		assertFalse(service.equals(new SymbolListRequest("aaa", "aaa", 555L)));
+		assertFalse(service.equals(new SymbolListRequest("aaa", "bar", 500)));
+		assertFalse(service.equals(new SymbolListRequest("foo", "aaa", 500)));
+		assertFalse(service.equals(new SymbolListRequest("foo", "bar", 555)));
+		assertFalse(service.equals(new SymbolListRequest("aaa", "aaa", 555)));
 	}
 
 }

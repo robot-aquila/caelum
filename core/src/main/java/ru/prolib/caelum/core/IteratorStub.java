@@ -8,7 +8,7 @@ import java.util.NoSuchElementException;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 
 public class IteratorStub<T> implements Iterator<T> {
-	private final List<T> data;
+	protected final List<T> data;
 	
 	public IteratorStub(List<T> data) {
 		this.data = data;
