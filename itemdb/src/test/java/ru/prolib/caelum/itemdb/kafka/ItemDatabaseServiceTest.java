@@ -13,8 +13,7 @@ import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 
-import ru.prolib.caelum.core.Item;
-import ru.prolib.caelum.itemdb.IItemDataIterator;
+import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.itemdb.ItemDataRequest;
 import ru.prolib.caelum.itemdb.ItemDataRequestContinue;
 import ru.prolib.caelum.itemdb.ItemDatabaseConfig;
@@ -23,10 +22,10 @@ import ru.prolib.caelum.itemdb.ItemDatabaseConfig;
 public class ItemDatabaseServiceTest {
 	IMocksControl control;
 	KafkaUtils utilsMock;
-	IItemDataIterator itMock;
-	KafkaConsumer<String, Item> consumerMock;
+	IItemIterator itMock;
+	KafkaConsumer<String, KafkaItem> consumerMock;
 	ItemDatabaseConfig config;
-	ItemInfo ii;
+	KafkaItemInfo ii;
 	TopicPartition tp;
 	ItemDatabaseService service;
 
@@ -34,10 +33,10 @@ public class ItemDatabaseServiceTest {
 	public void setUp() throws Exception {
 		control = createStrictControl();
 		utilsMock = control.createMock(KafkaUtils.class);
-		itMock = control.createMock(IItemDataIterator.class);
+		itMock = control.createMock(IItemIterator.class);
 		consumerMock = control.createMock(KafkaConsumer.class);
 		config = new ItemDatabaseConfig();
-		ii = new ItemInfo("caelum-item", 2, "zuzba-15", 1, 0L, 10000L);
+		ii = new KafkaItemInfo("caelum-item", 2, "zuzba-15", 1, 0L, 10000L);
 		tp = new TopicPartition("caelum-item", 1);
 		service = new ItemDatabaseService(config, utilsMock);
 	}
@@ -74,7 +73,7 @@ public class ItemDatabaseServiceTest {
 	
 	@Test
 	public void testFetch_InitialRequest_NoData() {
-		ii = new ItemInfo("caelum-item", 2, "zuzba-15", 1, null, null);
+		ii = new KafkaItemInfo("caelum-item", 2, "zuzba-15", 1, null, null);
 		expect(utilsMock.createConsumer(config.getKafkaProperties())).andReturn(consumerMock);
 		expect(utilsMock.getItemInfo(consumerMock, "caelum-item", "zuzba-15")).andReturn(ii);
 		expect(utilsMock.createIteratorStub(consumerMock, ii, 4000L, 30000000000L)).andReturn(itMock);
@@ -115,7 +114,7 @@ public class ItemDatabaseServiceTest {
 	
 	@Test
 	public void testFetch_ContinueRequest_NoData() {
-		ii = new ItemInfo("caelum-item", 2, "zuzba-15", 1, null, null);
+		ii = new KafkaItemInfo("caelum-item", 2, "zuzba-15", 1, null, null);
 		expect(utilsMock.createConsumer(config.getKafkaProperties())).andReturn(consumerMock);
 		expect(utilsMock.getItemInfo(consumerMock, "caelum-item", "zuzba-15")).andReturn(ii);
 		expect(utilsMock.createIteratorStub(consumerMock, ii, 2000L, 16789266L)).andReturn(itMock);

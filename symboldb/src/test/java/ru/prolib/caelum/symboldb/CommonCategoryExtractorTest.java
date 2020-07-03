@@ -19,7 +19,7 @@ public class CommonCategoryExtractorTest {
 	
 	@Test
 	public void testGetInstance() {
-		CategoryExtractor actual = CommonCategoryExtractor.getInstance();
+		ICategoryExtractor actual = CommonCategoryExtractor.getInstance();
 		
 		assertNotNull(actual);
 		assertThat(actual, is(instanceOf(CommonCategoryExtractor.class)));

@@ -3,17 +3,17 @@ package ru.prolib.caelum.symboldb.fdb;
 import com.apple.foundationdb.Database;
 
 import ru.prolib.caelum.core.ICloseableIterator;
-import ru.prolib.caelum.symboldb.CategoryExtractor;
+import ru.prolib.caelum.symboldb.ICategoryExtractor;
 import ru.prolib.caelum.symboldb.SymbolListRequest;
-import ru.prolib.caelum.symboldb.SymbolService;
+import ru.prolib.caelum.symboldb.ISymbolService;
 import ru.prolib.caelum.symboldb.SymbolUpdate;
 
-public class FDBSymbolService implements SymbolService {
+public class FDBSymbolService implements ISymbolService {
 	private final Database db;
-	private final CategoryExtractor catExt;
+	private final ICategoryExtractor catExt;
 	private final FDBSchema schema;
 	
-	public FDBSymbolService(Database db, CategoryExtractor cat_ext, FDBSchema schema) {
+	public FDBSymbolService(Database db, ICategoryExtractor cat_ext, FDBSchema schema) {
 		this.db = db;
 		this.catExt = cat_ext;
 		this.schema = schema;

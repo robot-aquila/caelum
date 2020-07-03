@@ -21,6 +21,11 @@
 			<artifactId>caelum-itemdb</artifactId>
 			<version>0.1.0</version>
 		</dependency>
+        <dependency>
+            <groupId>ru.prolib.caelum</groupId>
+            <artifactId>caelum-symboldb</artifactId>
+            <version>0.1.0</version>
+        </dependency>
 	</dependencies>
   
     <build>

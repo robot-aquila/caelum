@@ -6,13 +6,13 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import com.apple.foundationdb.KeyValue;
 import com.apple.foundationdb.Transaction;
 
-import ru.prolib.caelum.symboldb.CategoryExtractor;
+import ru.prolib.caelum.symboldb.ICategoryExtractor;
 import ru.prolib.caelum.symboldb.SymbolUpdate;
 
 public class FDBTransactionRegisterSymbolUpdate extends FDBTransactionRegisterSymbol {
 	protected final SymbolUpdate update;
 
-	public FDBTransactionRegisterSymbolUpdate(FDBSchema schema, CategoryExtractor catExt, SymbolUpdate update) {
+	public FDBTransactionRegisterSymbolUpdate(FDBSchema schema, ICategoryExtractor catExt, SymbolUpdate update) {
 		super(schema, catExt, update.getSymbol());
 		this.update = update;
 	}

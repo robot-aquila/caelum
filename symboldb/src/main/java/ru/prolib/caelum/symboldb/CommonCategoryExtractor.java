@@ -3,7 +3,7 @@ package ru.prolib.caelum.symboldb;
 import java.util.Arrays;
 import java.util.Collection;
 
-public class CommonCategoryExtractor implements CategoryExtractor {
+public class CommonCategoryExtractor implements ICategoryExtractor {
 	private static final CommonCategoryExtractor instance = new CommonCategoryExtractor();
 	
 	public static CommonCategoryExtractor getInstance() {

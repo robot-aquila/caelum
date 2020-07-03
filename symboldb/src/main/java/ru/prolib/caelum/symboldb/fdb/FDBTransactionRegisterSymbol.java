@@ -7,13 +7,13 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import com.apple.foundationdb.Transaction;
 
-import ru.prolib.caelum.symboldb.CategoryExtractor;
+import ru.prolib.caelum.symboldb.ICategoryExtractor;
 
 public class FDBTransactionRegisterSymbol extends FDBTransaction<Void> {
 	protected final String symbol;
-	protected final CategoryExtractor catExt;
+	protected final ICategoryExtractor catExt;
 
-	public FDBTransactionRegisterSymbol(FDBSchema schema, CategoryExtractor catExt, String symbol) {
+	public FDBTransactionRegisterSymbol(FDBSchema schema, ICategoryExtractor catExt, String symbol) {
 		super(schema);
 		this.symbol = symbol;
 		this.catExt = catExt;

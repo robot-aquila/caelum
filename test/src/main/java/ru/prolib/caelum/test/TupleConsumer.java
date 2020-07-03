@@ -18,8 +18,8 @@ import org.apache.kafka.streams.kstream.Windowed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ru.prolib.caelum.core.CaelumSerdes;
-import ru.prolib.caelum.core.Tuple;
+import ru.prolib.caelum.aggregator.kafka.KafkaTuple;
+import ru.prolib.caelum.aggregator.kafka.KafkaTupleSerdes;
 
 public class TupleConsumer implements Runnable {
 	static final Logger logger = LoggerFactory.getLogger(TupleConsumer.class);
@@ -42,17 +42,17 @@ public class TupleConsumer implements Runnable {
 	}
 	
 	private final AtomicBoolean closed = new AtomicBoolean(false);
-	private final KafkaConsumer<Windowed<String>, Tuple> consumer;
+	private final KafkaConsumer<Windowed<String>, KafkaTuple> consumer;
 	private final TupleConsumerConfig config;
 	
 	public TupleConsumer(TupleConsumerConfig config) {
 		this.consumer = new KafkaConsumer<>(config.getKafkaProperties(),
-			new TimeWindowedDeserializer<>(CaelumSerdes.keySerde().deserializer()),
-			CaelumSerdes.tupleSerde().deserializer());
+			new TimeWindowedDeserializer<>(KafkaTupleSerdes.keySerde().deserializer()),
+			KafkaTupleSerdes.tupleSerde().deserializer());
 		this.config = config;
 	}
 	
-	protected void consumeRecord(ConsumerRecord<Windowed<String>, Tuple> record) {
+	protected void consumeRecord(ConsumerRecord<Windowed<String>, KafkaTuple> record) {
 		Map<String, Object> map = new LinkedHashMap<>();
 		map.put("partition", record.partition());
 		map.put("offset", record.offset());
@@ -70,8 +70,8 @@ public class TupleConsumer implements Runnable {
 		try {
 			consumer.subscribe(Arrays.asList(topic));
 			while ( closed.get() == false ) {
-				ConsumerRecords<Windowed<String>, Tuple> records = consumer.poll(poll_interval);
-				for ( ConsumerRecord<Windowed<String>, Tuple> record : records ) {
+				ConsumerRecords<Windowed<String>, KafkaTuple> records = consumer.poll(poll_interval);
+				for ( ConsumerRecord<Windowed<String>, KafkaTuple> record : records ) {
 					consumeRecord(record);
 				}
 			}

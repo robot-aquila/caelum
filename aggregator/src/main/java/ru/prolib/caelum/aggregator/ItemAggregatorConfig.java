@@ -8,7 +8,7 @@ import org.apache.kafka.streams.StreamsConfig;
 
 import ru.prolib.caelum.core.AbstractConfig;
 import ru.prolib.caelum.core.Periods;
-import ru.prolib.caelum.core.CaelumSerdes;
+import ru.prolib.caelum.itemdb.kafka.KafkaItemSerdes;
 
 public class ItemAggregatorConfig extends AbstractConfig {
 	public static final String DEFAULT_CONFIG_FILE		= "app.itemaggregator.properties";
@@ -74,8 +74,8 @@ public class ItemAggregatorConfig extends AbstractConfig {
 		Properties conf = new Properties();
 		conf.put(StreamsConfig.APPLICATION_ID_CONFIG, getApplicationId());
 		conf.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, props.get(BOOTSTRAP_SERVERS));
-		conf.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, CaelumSerdes.keySerde().getClass());
-		conf.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, CaelumSerdes.itemSerde().getClass());
+		conf.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, KafkaItemSerdes.keySerde().getClass());
+		conf.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, KafkaItemSerdes.itemSerde().getClass());
 		return conf;
 	}
 

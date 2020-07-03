@@ -9,19 +9,18 @@ import javax.ws.rs.core.StreamingOutput;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 
-import ru.prolib.caelum.core.Item;
-import ru.prolib.caelum.itemdb.IItemData;
-import ru.prolib.caelum.itemdb.IItemDataIterator;
+import ru.prolib.caelum.core.IItem;
+import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.itemdb.IItemDataRequest;
 
 public class ItemStreamerJson implements StreamingOutput {
 	private final JsonFactory jsonFactory;
-	private final IItemDataIterator iterator;
+	private final IItemIterator iterator;
 	private final IItemDataRequest request;
 	private final ValueFormatter formatter;
 	
 	public ItemStreamerJson(JsonFactory factory,
-			IItemDataIterator iterator,
+			IItemIterator iterator,
 			IItemDataRequest request,
 			ValueFormatter formatter)
 	{
@@ -32,7 +31,7 @@ public class ItemStreamerJson implements StreamingOutput {
 	}
 	
 	public ItemStreamerJson(JsonFactory factory,
-			IItemDataIterator iterator,
+			IItemIterator iterator,
 			IItemDataRequest request)
 	{
 		this(factory, iterator, request, ValueFormatter.getInstance());
@@ -60,11 +59,10 @@ public class ItemStreamerJson implements StreamingOutput {
 				
 				long total = 0, limit = request.getLimit(), last_offset = 0L;
 				while ( iterator.hasNext() && total < limit ) {
-					IItemData item_data = iterator.next();
-					last_offset = item_data.getOffset();
-					Item item = item_data.getItem();
+					IItem item = iterator.next();
+					last_offset = item.getOffset();
 					gen.writeStartArray();
-					gen.writeNumber(item_data.getTime());
+					gen.writeNumber(item.getTime());
 					gen.writeString(formatter.format(item.getValue(), item.getDecimals()));
 					gen.writeString(formatter.format(item.getVolume(), item.getVolumeDecimals()));
 					gen.writeEndArray();

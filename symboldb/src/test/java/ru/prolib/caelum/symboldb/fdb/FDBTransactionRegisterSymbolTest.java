@@ -15,14 +15,14 @@ import com.apple.foundationdb.Transaction;
 import com.apple.foundationdb.subspace.Subspace;
 import com.apple.foundationdb.tuple.Tuple;
 
-import ru.prolib.caelum.symboldb.CategoryExtractor;
+import ru.prolib.caelum.symboldb.ICategoryExtractor;
 
 public class FDBTransactionRegisterSymbolTest {
 	static Subspace space = new Subspace(Tuple.from("foo"));
 	
 	IMocksControl control;
 	FDBSchema schema, schemaMock;
-	CategoryExtractor catExtMock1, catExtMock2;
+	ICategoryExtractor catExtMock1, catExtMock2;
 	Transaction trMock;
 	FDBTransactionRegisterSymbol service;
 
@@ -31,8 +31,8 @@ public class FDBTransactionRegisterSymbolTest {
 		control = createStrictControl();
 		schema = new FDBSchema(space);
 		schemaMock = control.createMock(FDBSchema.class);
-		catExtMock1 = control.createMock(CategoryExtractor.class);
-		catExtMock2 = control.createMock(CategoryExtractor.class);
+		catExtMock1 = control.createMock(ICategoryExtractor.class);
+		catExtMock2 = control.createMock(ICategoryExtractor.class);
 		trMock = control.createMock(Transaction.class);
 		service = new FDBTransactionRegisterSymbol(schema, catExtMock1, "lumbari");
 	}

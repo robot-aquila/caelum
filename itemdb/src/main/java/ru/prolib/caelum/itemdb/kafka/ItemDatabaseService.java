@@ -5,8 +5,7 @@ import java.util.Arrays;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 
-import ru.prolib.caelum.core.Item;
-import ru.prolib.caelum.itemdb.IItemDataIterator;
+import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.itemdb.IItemDatabaseService;
 import ru.prolib.caelum.itemdb.ItemDataRequest;
 import ru.prolib.caelum.itemdb.ItemDataRequestContinue;
@@ -25,7 +24,7 @@ public class ItemDatabaseService implements IItemDatabaseService {
 		this(config, KafkaUtils.getInstance());
 	}
 	
-	private KafkaConsumer<String, Item> createConsumer() {
+	private KafkaConsumer<String, KafkaItem> createConsumer() {
 		return utils.createConsumer(config.getKafkaProperties());
 	}
 	
@@ -38,9 +37,9 @@ public class ItemDatabaseService implements IItemDatabaseService {
 	}
 
 	@Override
-	public IItemDataIterator fetch(ItemDataRequest request) {
-		KafkaConsumer<String, Item> consumer = createConsumer();
-		ItemInfo item_info = utils.getItemInfo(consumer, config.getSourceTopic(), request.getSymbol());
+	public IItemIterator fetch(ItemDataRequest request) {
+		KafkaConsumer<String, KafkaItem> consumer = createConsumer();
+		KafkaItemInfo item_info = utils.getItemInfo(consumer, config.getSourceTopic(), request.getSymbol());
 		if ( item_info.hasData() ) {
 			TopicPartition tp = item_info.toTopicPartition();
 			consumer.assign(Arrays.asList(tp));
@@ -52,9 +51,9 @@ public class ItemDatabaseService implements IItemDatabaseService {
 	}
 
 	@Override
-	public IItemDataIterator fetch(ItemDataRequestContinue request) {
-		KafkaConsumer<String, Item> consumer = createConsumer();
-		ItemInfo item_info = utils.getItemInfo(consumer, config.getSourceTopic(), request.getSymbol());
+	public IItemIterator fetch(ItemDataRequestContinue request) {
+		KafkaConsumer<String, KafkaItem> consumer = createConsumer();
+		KafkaItemInfo item_info = utils.getItemInfo(consumer, config.getSourceTopic(), request.getSymbol());
 		if ( item_info.hasData() ) {
 			TopicPartition tp = item_info.toTopicPartition();
 			consumer.assign(Arrays.asList(tp));

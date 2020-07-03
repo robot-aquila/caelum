@@ -1,18 +1,24 @@
 package ru.prolib.caelum.service;
 
-import org.apache.kafka.streams.state.WindowStoreIterator;
-
 import ru.prolib.caelum.aggregator.AggregatedDataRequest;
-import ru.prolib.caelum.core.Tuple;
-import ru.prolib.caelum.itemdb.IItemDataIterator;
+import ru.prolib.caelum.core.ICloseableIterator;
+import ru.prolib.caelum.core.ITuple;
+import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.itemdb.ItemDataRequest;
 import ru.prolib.caelum.itemdb.ItemDataRequestContinue;
+import ru.prolib.caelum.symboldb.SymbolListRequest;
+import ru.prolib.caelum.symboldb.SymbolUpdate;
 
 /**
  * Caelum facade interface.
  */
 public interface ICaelum {
-	WindowStoreIterator<Tuple> fetch(AggregatedDataRequest request);
-	IItemDataIterator fetch(ItemDataRequest request);
-	IItemDataIterator fetch(ItemDataRequestContinue request);
+	void registerSymbol(String symbol);
+	void registerSymbolUpdate(SymbolUpdate update);
+	ICloseableIterator<ITuple> fetch(AggregatedDataRequest request);
+	IItemIterator fetch(ItemDataRequest request);
+	IItemIterator fetch(ItemDataRequestContinue request);
+	ICloseableIterator<String> fetchCategories();
+	ICloseableIterator<String> fetchSymbols(SymbolListRequest request);
+	ICloseableIterator<SymbolUpdate> fetchSymbolUpdates(String symbol);
 }

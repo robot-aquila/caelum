@@ -15,7 +15,7 @@ import com.apple.foundationdb.subspace.Subspace;
 import com.apple.foundationdb.tuple.Tuple;
 
 import ru.prolib.caelum.core.ICloseableIterator;
-import ru.prolib.caelum.symboldb.CategoryExtractor;
+import ru.prolib.caelum.symboldb.ICategoryExtractor;
 import ru.prolib.caelum.symboldb.CommonCategoryExtractor;
 import ru.prolib.caelum.symboldb.SymbolListRequest;
 import ru.prolib.caelum.symboldb.SymbolUpdate;
@@ -25,7 +25,7 @@ public class FDBSymbolServiceTest {
 	IMocksControl control;
 	Database dbMock;
 	ICloseableIterator<?> itMock;
-	CategoryExtractor catExt;
+	ICategoryExtractor catExt;
 	FDBSchema schema;
 	FDBSymbolService service;
 

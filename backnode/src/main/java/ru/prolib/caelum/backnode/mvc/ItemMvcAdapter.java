@@ -4,52 +4,52 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import ru.prolib.caelum.backnode.ValueFormatter;
+import ru.prolib.caelum.core.IItem;
 import ru.prolib.caelum.core.ItemType;
-import ru.prolib.caelum.itemdb.IItemData;
 
 public class ItemMvcAdapter {
 	private final ValueFormatter formatter;
-	private final IItemData itemData;
+	private final IItem item;
 
-	public ItemMvcAdapter(IItemData item_data, ValueFormatter formatter) {
+	public ItemMvcAdapter(IItem item, ValueFormatter formatter) {
 		this.formatter = formatter;
-		this.itemData = item_data;
+		this.item = item;
 	}
 	
-	public ItemMvcAdapter(IItemData item_data) {
-		this(item_data, ValueFormatter.getInstance());
+	public ItemMvcAdapter(IItem item) {
+		this(item, ValueFormatter.getInstance());
 	}
 	
-	public IItemData getItemData() {
-		return itemData;
+	public IItem getItem() {
+		return item;
 	}
 	
 	public String getSymbol() {
-		return itemData.getSymbol();
+		return item.getSymbol();
 	}
 	
 	public String getTime() {
-		return itemData.getTimeAsInstant().toString();
+		return item.getTimeAsInstant().toString();
 	}
 	
 	public long getTimeMillis() {
-		return itemData.getTime();
+		return item.getTime();
 	}
 	
 	public long getOffset() {
-		return itemData.getOffset();
+		return item.getOffset();
 	}
 	
 	public ItemType getType() {
-		return itemData.getItem().getType();
+		return item.getType();
 	}
 	
 	public String getValue() {
-		return formatter.format(itemData.getItem().getValue(), itemData.getItem().getDecimals());
+		return formatter.format(item.getValue(), item.getDecimals());
 	}
 	
 	public String getVolume() {
-		return formatter.format(itemData.getItem().getVolume(), itemData.getItem().getVolumeDecimals());
+		return formatter.format(item.getVolume(), item.getVolumeDecimals());
 	}
 	
 	@Override
@@ -62,14 +62,14 @@ public class ItemMvcAdapter {
 		}
 		ItemMvcAdapter o = (ItemMvcAdapter) other;
 		return new EqualsBuilder()
-				.append(o.itemData, itemData)
+				.append(o.item, item)
 				.build();
 	}
 	
 	@Override
 	public int hashCode() {
 		return new HashCodeBuilder(172076541, 703)
-				.append(itemData)
+				.append(item)
 				.build();
 	}
 	

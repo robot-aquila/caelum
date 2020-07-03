@@ -16,7 +16,7 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.log4j.BasicConfigurator;
 
-import ru.prolib.caelum.core.Item;
+import ru.prolib.caelum.itemdb.kafka.KafkaItem;
 
 public class TradeGenerator {
 	static final double MAX_VOLATILITY = 0.30d, MIN_VOLATILITY = 0.01d, AVG_VOLATILITY = 0.15d;
@@ -100,7 +100,7 @@ public class TradeGenerator {
 			return result;
 		}
 
-		Item randomTrade(SymbolDesc desc) {
+		KafkaItem randomTrade(SymbolDesc desc) {
 			desc.totalCount ++;
 			if ( desc.totalCount % VOLATILITY_RECALC_TRIGGER == 0 ) {
 				double old_volatility = desc.recalcVolatility(rand.nextGaussian());
@@ -127,7 +127,7 @@ public class TradeGenerator {
 			print(">>>      Delta: " + delta);
 			print(">>>   Delta(L): " + delta_l);
 			print(">>>   Overflow: " + overflow);
-			return new Item(desc.lastPrice, desc.priceDecimals, rand.nextLong(), desc.volumeDecimals);
+			return new KafkaItem(desc.lastPrice, desc.priceDecimals, rand.nextLong(), desc.volumeDecimals);
 		}
 		
 	}
@@ -167,7 +167,7 @@ public class TradeGenerator {
 		int freq = 60000 / conf.getInt(TradeGeneratorConfig.TRADES_PER_MINUTE, 1, 60000);
 		int freq_half = freq / 2;
 		AtomicLong start_time = new AtomicLong(System.currentTimeMillis()), total_trades = new AtomicLong(0L);
-		final KafkaProducer<String, Item> producer = new KafkaProducer<>(conf.getKafkaProperties());
+		final KafkaProducer<String, KafkaItem> producer = new KafkaProducer<>(conf.getKafkaProperties());
 		final String topic = conf.getString(TradeGeneratorConfig.TARGET_TOPIC);
 		final CountDownLatch finished = new CountDownLatch(1);
 		Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -184,7 +184,7 @@ public class TradeGenerator {
 				print("   Wait for: " + wait + "ms");
 				Thread.sleep(wait);
 				SymbolDesc symbol = symbols.get(symbol_list.get(rand.nextInt(symbol_list.size())));
-				Item trade = utils.randomTrade(symbol);
+				KafkaItem trade = utils.randomTrade(symbol);
 				long time = System.currentTimeMillis();
 				print("Symbol Desc: " + symbol);
 				print("      Trade: " + trade);

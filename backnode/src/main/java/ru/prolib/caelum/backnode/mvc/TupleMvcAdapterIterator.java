@@ -1,20 +1,13 @@
 package ru.prolib.caelum.backnode.mvc;
 
-import org.apache.kafka.streams.KeyValue;
-import org.apache.kafka.streams.state.WindowStoreIterator;
+import ru.prolib.caelum.core.ICloseableIterator;
+import ru.prolib.caelum.core.ITuple;
 
-import ru.prolib.caelum.core.Tuple;
-
-public class TupleMvcAdapterIterator implements WindowStoreIterator<Tuple> {
-	private final WindowStoreIterator<Tuple> iterator;
+public class TupleMvcAdapterIterator implements ICloseableIterator<TupleMvcAdapter> {
+	private final ICloseableIterator<ITuple> iterator;
 	
-	public TupleMvcAdapterIterator(WindowStoreIterator<Tuple> iterator) {
+	public TupleMvcAdapterIterator(ICloseableIterator<ITuple> iterator) {
 		this.iterator = iterator;
-	}
-
-	@Override
-	public Long peekNextKey() {
-		return iterator.peekNextKey();
 	}
 
 	@Override
@@ -24,12 +17,11 @@ public class TupleMvcAdapterIterator implements WindowStoreIterator<Tuple> {
 
 	@Override
 	public TupleMvcAdapter next() {
-		KeyValue<Long, Tuple> kv = iterator.next();
-		return new TupleMvcAdapter(kv.key, kv.value);
+		return new TupleMvcAdapter(iterator.next());
 	}
 
 	@Override
-	public void close() {
+	public void close() throws Exception {
 		iterator.close();
 	}
 

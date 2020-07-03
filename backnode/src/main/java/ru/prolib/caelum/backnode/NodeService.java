@@ -19,7 +19,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 
-import org.apache.kafka.streams.state.WindowStoreIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,15 +26,16 @@ import com.fasterxml.jackson.core.JsonFactory;
 
 import freemarker.template.TemplateException;
 import ru.prolib.caelum.aggregator.AggregatedDataRequest;
-import ru.prolib.caelum.aggregator.WindowStoreIteratorStub;
 import ru.prolib.caelum.backnode.mvc.Freemarker;
 import ru.prolib.caelum.backnode.mvc.ItemMvcAdapterIterator;
+import ru.prolib.caelum.backnode.mvc.TupleMvcAdapter;
 import ru.prolib.caelum.backnode.mvc.TupleMvcAdapterIterator;
+import ru.prolib.caelum.core.CloseableIteratorStub;
+import ru.prolib.caelum.core.ICloseableIterator;
 import ru.prolib.caelum.core.Period;
 import ru.prolib.caelum.core.Periods;
-import ru.prolib.caelum.core.Tuple;
-import ru.prolib.caelum.itemdb.IItemDataIterator;
-import ru.prolib.caelum.itemdb.ItemDataIteratorStub;
+import ru.prolib.caelum.itemdb.IItemIterator;
+import ru.prolib.caelum.itemdb.ItemIteratorStub;
 import ru.prolib.caelum.itemdb.ItemDataRequest;
 import ru.prolib.caelum.itemdb.ItemDataRequestContinue;
 import ru.prolib.caelum.service.ICaelum;
@@ -229,7 +229,7 @@ public class NodeService {
 		}
 		boolean has_output = symbol != null && symbol.length() > 0;
 		final Map<String, Object> model = new HashMap<>();
-		IItemDataIterator item_iterator = null;
+		IItemIterator item_iterator = null;
 		boolean is_continue_request = false;
 		Object request = null;
 		if ( has_output ) {
@@ -245,7 +245,7 @@ public class NodeService {
 				request = _request;
 			}
 		} else {
-			item_iterator = new ItemDataIteratorStub();
+			item_iterator = new ItemIteratorStub();
 			ItemDataRequest _request = toItemDataRequest(symbol, from, to, limit);
 			request = _request;
 		}
@@ -291,8 +291,8 @@ public class NodeService {
 		}
 		AggregatedDataRequest request = toAggrDataRequest(symbol, period, from, to, limit);
 		final boolean has_output = request.isValidSymbol();
-		final WindowStoreIterator<Tuple> it = has_output ?
-				new TupleMvcAdapterIterator(caelum.fetch(request)) : new WindowStoreIteratorStub<>();
+		final ICloseableIterator<TupleMvcAdapter> it = has_output ?
+				new TupleMvcAdapterIterator(caelum.fetch(request)) : new CloseableIteratorStub<>();
 		final Map<String, Object> model = new HashMap<>();
 		model.put("request", request);
 		model.put("periods", periods.getIntradayPeriodCodes());
@@ -306,7 +306,11 @@ public class NodeService {
 				} catch ( TemplateException e ) {
 					throw new IOException("Error processing template", e);
 				} finally {
-					it.close();
+					try {
+						it.close();
+					} catch ( Exception e ) {
+						throw new IOException(e);
+					}
 				}
 			})).build();
 	}

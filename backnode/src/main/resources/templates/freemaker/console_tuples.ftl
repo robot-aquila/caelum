@@ -56,8 +56,8 @@ Shown data for ${request.symbol} aggregated by ${request.period} from ${request.
 	<tbody>
 		<#list rows as row>
 		<tr>
-			<td>${row.key?c}</td>
-			<td>${row.time}</td>
+			<td>${row.time?c}</td>
+			<td>${row.timeAsInstant}</td>
 			<td>${row.open}</td>
 			<td>${row.high}</td>
 			<td>${row.low}</td>

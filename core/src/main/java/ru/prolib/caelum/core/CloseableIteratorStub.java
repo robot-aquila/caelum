@@ -18,7 +18,7 @@ public class CloseableIteratorStub<T> extends IteratorStub<T> implements IClosea
 	
 	@Override
 	public void close() {
-		
+		data.clear();
 	}
 	
 	@Override

@@ -17,15 +17,16 @@ import org.apache.kafka.streams.state.WindowStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ru.prolib.caelum.aggregator.AggregatorDesc;
-import ru.prolib.caelum.aggregator.AggregatorService;
 import ru.prolib.caelum.aggregator.AggregatorType;
 import ru.prolib.caelum.aggregator.ItemAggregatorConfig;
-import ru.prolib.caelum.core.CaelumSerdes;
+import ru.prolib.caelum.aggregator.kafka.AggregatorDescr;
+import ru.prolib.caelum.aggregator.kafka.AggregatorService;
+import ru.prolib.caelum.aggregator.kafka.KafkaTuple;
+import ru.prolib.caelum.aggregator.kafka.KafkaTupleSerdes;
+import ru.prolib.caelum.aggregator.kafka.utils.KafkaStreamsService;
 import ru.prolib.caelum.core.IService;
-import ru.prolib.caelum.core.Item;
 import ru.prolib.caelum.core.Period;
-import ru.prolib.caelum.core.Tuple;
+import ru.prolib.caelum.itemdb.kafka.KafkaItem;
 
 public class ItemAggregatorBuilder {
 	private static final Logger logger = LoggerFactory.getLogger(ItemAggregatorBuilder.class);
@@ -50,16 +51,16 @@ public class ItemAggregatorBuilder {
 		final String target_topic = conf.getTargetTopic();
 		
 		final StreamsBuilder builder = new StreamsBuilder();
-		KStream<String, Item> items = builder.stream(source_topic);
-		KTable<Windowed<String>, Tuple> table = items.groupByKey()
+		KStream<String, KafkaItem> items = builder.stream(source_topic);
+		KTable<Windowed<String>, KafkaTuple> table = items.groupByKey()
 			.windowedBy(TimeWindows.of(conf.getAggregationPeriod()))
-			.aggregate(Tuple::new, new ru.prolib.caelum.aggregator.ItemAggregator(),
-				Materialized.<String, Tuple, WindowStore<Bytes, byte[]>>as(store_name)
-					.withValueSerde(CaelumSerdes.tupleSerde()));
+			.aggregate(KafkaTuple::new, new ru.prolib.caelum.aggregator.kafka.KafkaItemAggregator(),
+				Materialized.<String, KafkaTuple, WindowStore<Bytes, byte[]>>as(store_name)
+					.withValueSerde(KafkaTupleSerdes.tupleSerde()));
 
 		if ( target_topic != null ) {
-			table.toStream().to(conf.getTargetTopic(), Produced.<Windowed<String>, Tuple>with(
-					WindowedSerdes.timeWindowedSerdeFrom(String.class), CaelumSerdes.tupleSerde()));
+			table.toStream().to(conf.getTargetTopic(), Produced.<Windowed<String>, KafkaTuple>with(
+					WindowedSerdes.timeWindowedSerdeFrom(String.class), KafkaTupleSerdes.tupleSerde()));
 			logger.debug("Data aggregated by {} will be stored in topic: {}", period_code, target_topic);
 		}
 		Topology topology = builder.build();
@@ -67,11 +68,11 @@ public class ItemAggregatorBuilder {
 		KafkaStreams streams = new KafkaStreams(topology, conf.getKafkaProperties());
 		streams.setStateListener((new_state, old_state) -> {
 			if ( new_state == KafkaStreams.State.RUNNING ) {
-				aggregatorService.register(new AggregatorDesc(AggregatorType.ITEM,
+				aggregatorService.register(new AggregatorDescr(AggregatorType.ITEM,
 					Period.valueOf(period_code), source_topic, target_topic, store_name), streams);
 			}
 		});
-		return new ItemAggregatorService(conf, streams);
+		return new KafkaStreamsService(streams, "Item aggregator by " + period_code, conf);
 	}
 	
 	public IService build(String conf_file) throws IOException {

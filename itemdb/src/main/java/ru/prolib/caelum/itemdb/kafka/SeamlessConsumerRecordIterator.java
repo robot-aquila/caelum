@@ -35,9 +35,10 @@ public class SeamlessConsumerRecordIterator<K, V> implements Iterator<ConsumerRe
 
 	@Override
 	public ConsumerRecord<K, V> next() {
+		Duration d = Duration.ofSeconds(1);
 		for ( ;; ) {
 			if ( it == null || ! it.hasNext() ) {
-				ConsumerRecords<K, V> cr = consumer.poll(Duration.ofSeconds(1));
+				ConsumerRecords<K, V> cr = consumer.poll(d);
 				if ( cr.isEmpty() ) {
 					continue;
 				}

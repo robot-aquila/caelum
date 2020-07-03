@@ -28,10 +28,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import ru.prolib.caelum.core.CaelumSerdes;
-import ru.prolib.caelum.core.Item;
 import ru.prolib.caelum.core.IteratorStub;
-import ru.prolib.caelum.itemdb.IItemDataIterator;
+import ru.prolib.caelum.itemdb.IItemIterator;
 
 @SuppressWarnings("unchecked")
 public class KafkaUtilsTest {
@@ -40,13 +38,13 @@ public class KafkaUtilsTest {
 	
 	static {
 		SYMBOL = "bumba";
-		HASH_CODE = Utils.toPositive(Utils.murmur2(CaelumSerdes.keySerde().serializer().serialize("topic", SYMBOL)));
+		HASH_CODE = Utils.toPositive(Utils.murmur2(KafkaItemSerdes.keySerde().serializer().serialize("topic", SYMBOL)));
 	}
 	
 	@Rule
 	public ExpectedException eex = ExpectedException.none();
 	IMocksControl control;
-	KafkaConsumer<String, Item> consumerMock;
+	KafkaConsumer<String, KafkaItem> consumerMock;
 	KafkaUtils service;
 
 	@Before
@@ -99,10 +97,10 @@ public class KafkaUtilsTest {
 				.collect(Collectors.toMap(x -> new TopicPartition("zulu24", x.key), x -> x.value)));
 		control.replay();
 		
-		ItemInfo actual = service.getItemInfo(consumerMock, "zulu24", SYMBOL);
+		KafkaItemInfo actual = service.getItemInfo(consumerMock, "zulu24", SYMBOL);
 		
 		control.verify();
-		ItemInfo expected = new ItemInfo("zulu24", 8, SYMBOL, expected_partition, 25L, 802L);
+		KafkaItemInfo expected = new KafkaItemInfo("zulu24", 8, SYMBOL, expected_partition, 25L, 802L);
 		assertEquals(expected, actual);
 	}
 	
@@ -116,10 +114,10 @@ public class KafkaUtilsTest {
 				.collect(Collectors.toMap(x -> new TopicPartition("bubba", x.key), x -> x.value)));
 		control.replay();
 		
-		ItemInfo actual = service.getItemInfo(consumerMock, "bubba", SYMBOL);
+		KafkaItemInfo actual = service.getItemInfo(consumerMock, "bubba", SYMBOL);
 		
 		control.verify();
-		ItemInfo expected = new ItemInfo("bubba", 1, SYMBOL, 0, null, 854L);
+		KafkaItemInfo expected = new KafkaItemInfo("bubba", 1, SYMBOL, 0, null, 854L);
 		assertEquals(expected, actual);
 	}
 
@@ -133,45 +131,45 @@ public class KafkaUtilsTest {
 		expect(consumerMock.endOffsets(Arrays.asList(new TopicPartition("bubba", 0)))).andReturn(new HashMap<>());
 		control.replay();
 		
-		ItemInfo actual = service.getItemInfo(consumerMock, "bubba", SYMBOL);
+		KafkaItemInfo actual = service.getItemInfo(consumerMock, "bubba", SYMBOL);
 		
 		control.verify();
-		ItemInfo expected = new ItemInfo("bubba", 1, SYMBOL, 0, 504L, null);
+		KafkaItemInfo expected = new KafkaItemInfo("bubba", 1, SYMBOL, 0, 504L, null);
 		assertEquals(expected, actual);
 	}
 	
 	@Test
 	public void testCreateIteratorStub() {
-		IItemDataIterator actual = service.createIteratorStub(consumerMock,
-				new ItemInfo("boo", 1, "foo", 0, 400L, 800L), 150L, 718256L);
+		IItemIterator actual = service.createIteratorStub(consumerMock,
+				new KafkaItemInfo("boo", 1, "foo", 0, 400L, 800L), 150L, 718256L);
 		
 		assertNotNull(actual);
-		assertThat(actual, is(instanceOf(ItemDataIterator.class)));
-		ItemDataIterator o = (ItemDataIterator) actual;
+		assertThat(actual, is(instanceOf(ItemIterator.class)));
+		ItemIterator o = (ItemIterator) actual;
 		assertSame(consumerMock, o.getConsumer());
-		assertEquals(new ItemInfo("boo", 1, "foo", 0, 400L, 800L), o.getItemInfo());
+		assertEquals(new KafkaItemInfo("boo", 1, "foo", 0, 400L, 800L), o.getItemInfo());
 		assertEquals(150L, o.getLimit());
 		assertEquals(718256L, o.getEndTime());
-		Iterator<ConsumerRecord<String, Item>> it = o.getSourceIterator();
+		Iterator<ConsumerRecord<String, KafkaItem>> it = o.getSourceIterator();
 		assertThat(it, is(instanceOf(IteratorStub.class)));
 		assertEquals(new IteratorStub<>(), it);
 	}
 	
 	@Test
 	public void testCreateIterator() {
-		IItemDataIterator actual = service.createIterator(consumerMock,
-				new ItemInfo("bug", 5, "juk", 3, 100L, 800L), 750L, 2889000187L);
+		IItemIterator actual = service.createIterator(consumerMock,
+				new KafkaItemInfo("bug", 5, "juk", 3, 100L, 800L), 750L, 2889000187L);
 		
 		assertNotNull(actual);
-		assertThat(actual, is(instanceOf(ItemDataIterator.class)));
-		ItemDataIterator o = (ItemDataIterator) actual;
+		assertThat(actual, is(instanceOf(ItemIterator.class)));
+		ItemIterator o = (ItemIterator) actual;
 		assertSame(consumerMock, o.getConsumer());
-		assertEquals(new ItemInfo("bug", 5, "juk", 3, 100L, 800L), o.getItemInfo());
+		assertEquals(new KafkaItemInfo("bug", 5, "juk", 3, 100L, 800L), o.getItemInfo());
 		assertEquals(750L, o.getLimit());
 		assertEquals(2889000187L, o.getEndTime());
-		Iterator<ConsumerRecord<String, Item>> it = o.getSourceIterator();
+		Iterator<ConsumerRecord<String, KafkaItem>> it = o.getSourceIterator();
 		assertThat(it, is(instanceOf(SeamlessConsumerRecordIterator.class)));
-		assertSame(consumerMock, ((SeamlessConsumerRecordIterator<String, Item>) it).getConsumer());
+		assertSame(consumerMock, ((SeamlessConsumerRecordIterator<String, KafkaItem>) it).getConsumer());
 	}
 	
 	@Test
@@ -208,7 +206,7 @@ public class KafkaUtilsTest {
 		conf.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		conf.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
 
-		KafkaConsumer<String, Item> actual = service.createConsumer(conf);
+		KafkaConsumer<String, KafkaItem> actual = service.createConsumer(conf);
 		
 		assertNotNull(actual);
 	}

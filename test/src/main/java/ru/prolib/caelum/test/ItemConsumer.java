@@ -10,8 +10,8 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 
-import ru.prolib.caelum.core.CaelumSerdes;
-import ru.prolib.caelum.core.Item;
+import ru.prolib.caelum.itemdb.kafka.KafkaItem;
+import ru.prolib.caelum.itemdb.kafka.KafkaItemSerdes;
 
 public class ItemConsumer {
 	
@@ -25,8 +25,8 @@ public class ItemConsumer {
 		props.put("group.id", "caelum-item-consumer");
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
-		KafkaConsumer<String, Item> consumer = new KafkaConsumer<>(props,
-			CaelumSerdes.keySerde().deserializer(), CaelumSerdes.itemSerde().deserializer());
+		KafkaConsumer<String, KafkaItem> consumer = new KafkaConsumer<>(props,
+			KafkaItemSerdes.keySerde().deserializer(), KafkaItemSerdes.itemSerde().deserializer());
 		
 		final CountDownLatch finished = new CountDownLatch(1);
 		Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -37,8 +37,8 @@ public class ItemConsumer {
 		
 		consumer.subscribe(Arrays.asList("caelum-item"));
 		while ( finished.getCount() > 0 ) {
-			ConsumerRecords<String, Item> records = consumer.poll(Duration.ofSeconds(1));
-			for ( ConsumerRecord<String, Item> record : records ) {
+			ConsumerRecords<String, KafkaItem> records = consumer.poll(Duration.ofSeconds(1));
+			for ( ConsumerRecord<String, KafkaItem> record : records ) {
 				System.out.println("  Time: " + record.timestamp());
 				System.out.println("Symbol: " + record.key());
 				System.out.println(" Value: " + record.value());

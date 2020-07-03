@@ -5,7 +5,7 @@ import java.util.Properties;
 import org.apache.kafka.clients.producer.ProducerConfig;
 
 import ru.prolib.caelum.core.AbstractConfig;
-import ru.prolib.caelum.core.CaelumSerdes;
+import ru.prolib.caelum.itemdb.kafka.KafkaItemSerdes;
 
 public class TradeGeneratorConfig extends AbstractConfig {
 	public static final String DEFAULT_CONFIG_FILE	= "app.tradegenerator.properties";
@@ -34,8 +34,8 @@ public class TradeGeneratorConfig extends AbstractConfig {
 	public Properties getKafkaProperties() {
 		Properties conf = new Properties();
 		conf.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, props.get(BOOTSTRAP_SERVERS));
-		conf.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, CaelumSerdes.keySerde().serializer().getClass());
-		conf.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, CaelumSerdes.itemSerde().serializer().getClass());
+		conf.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, KafkaItemSerdes.keySerde().serializer().getClass());
+		conf.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaItemSerdes.itemSerde().serializer().getClass());
 		return conf;
 	}
 	
