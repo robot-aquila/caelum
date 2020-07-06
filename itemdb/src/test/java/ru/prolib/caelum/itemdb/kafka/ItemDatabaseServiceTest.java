@@ -16,7 +16,6 @@ import org.junit.Test;
 import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.itemdb.ItemDataRequest;
 import ru.prolib.caelum.itemdb.ItemDataRequestContinue;
-import ru.prolib.caelum.itemdb.ItemDatabaseConfig;
 
 @SuppressWarnings("unchecked")
 public class ItemDatabaseServiceTest {
@@ -39,6 +38,11 @@ public class ItemDatabaseServiceTest {
 		ii = new KafkaItemInfo("caelum-item", 2, "zuzba-15", 1, 0L, 10000L);
 		tp = new TopicPartition("caelum-item", 1);
 		service = new ItemDatabaseService(config, utilsMock);
+	}
+	
+	@Test
+	public void testGetters() {
+		assertSame(config, service.getConfig());
 	}
 	
 	@Test

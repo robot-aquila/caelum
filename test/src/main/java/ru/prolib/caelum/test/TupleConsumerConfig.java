@@ -13,6 +13,11 @@ public class TupleConsumerConfig extends AbstractConfig {
 	public static final String SOURCE_TOPIC			= "caelum.tupleconsumer.source.topic";
 	
 	@Override
+	public String getDefaultConfigFile() {
+		return DEFAULT_CONFIG_FILE;
+	}
+	
+	@Override
 	public void setDefaults() {
 		props.put(BOOTSTRAP_SERVERS, "localhost:8082");
 		props.put(GROUP_ID, "caelum-tuple-consumer");
@@ -23,7 +28,6 @@ public class TupleConsumerConfig extends AbstractConfig {
 		return getString(SOURCE_TOPIC);
 	}
 
-	@Override
 	public Properties getKafkaProperties() {
 		Properties conf = new Properties();
 		conf.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, props.get(BOOTSTRAP_SERVERS));

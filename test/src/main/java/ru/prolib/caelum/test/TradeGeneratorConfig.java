@@ -19,6 +19,11 @@ public class TradeGeneratorConfig extends AbstractConfig {
 	public static final String TRADES_PER_MINUTE	= "caelum.tradegenerator.trades.per.minute";
 	
 	@Override
+	public String getDefaultConfigFile() {
+		return DEFAULT_CONFIG_FILE;
+	}
+	
+	@Override
 	public void setDefaults() {
 		props.put(BOOTSTRAP_SERVERS, "localhost:8082");
 		props.put(TARGET_TOPIC, "caelum-item");
@@ -30,7 +35,6 @@ public class TradeGeneratorConfig extends AbstractConfig {
 		props.put(TRADES_PER_MINUTE, "120");
 	}
 
-	@Override
 	public Properties getKafkaProperties() {
 		Properties conf = new Properties();
 		conf.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, props.get(BOOTSTRAP_SERVERS));

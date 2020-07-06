@@ -62,8 +62,9 @@ public class FDBSymbolServiceIT {
 
 	@Before
 	public void setUp() throws Exception {
-		service = new FDBSymbolService(db, CommonCategoryExtractor.getInstance(),
-				new FDBSchema(helper.getTestSubspace()));
+		service = new FDBSymbolService(CommonCategoryExtractor.getInstance(),
+				new FDBSchema(helper.getTestSubspace()), 1000);
+		service.setDatabase(db);
 	}
 	
 	@After

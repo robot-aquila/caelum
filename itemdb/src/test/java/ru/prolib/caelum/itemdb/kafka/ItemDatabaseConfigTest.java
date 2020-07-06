@@ -1,4 +1,4 @@
-package ru.prolib.caelum.itemdb;
+package ru.prolib.caelum.itemdb.kafka;
 
 import static org.junit.Assert.*;
 
@@ -6,6 +6,8 @@ import java.util.Properties;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import ru.prolib.caelum.itemdb.kafka.ItemDatabaseConfig;
 
 public class ItemDatabaseConfigTest {
 	ItemDatabaseConfig service;
@@ -17,20 +19,22 @@ public class ItemDatabaseConfigTest {
 	
 	void verifyDefaultProperties(Properties props) {
 		assertEquals(4, props.size());
-		assertEquals("localhost:8082", props.get("caelum.itemdb.bootstrap.servers"));
-		assertEquals("caelum-item-db", props.get("caelum.itemdb.group.id"));
-		assertEquals("caelum-item", props.get("caelum.itemdb.source.topic"));
-		assertEquals("5000", props.get("caelum.itemdb.limit"));
+		assertEquals("localhost:8082",	props.get("caelum.itemdb.kafka.bootstrap.servers"));
+		assertEquals("caelum-item-db",	props.get("caelum.itemdb.kafka.group.id"));
+		assertEquals("caelum-item",		props.get("caelum.itemdb.kafka.source.topic"));
+		assertEquals("5000",			props.get("caelum.itemdb.kafka.limit"));
 	}
 	
 	@Test
 	public void testDefaults() throws Exception {
 		assertEquals("app.itemdb.properties", ItemDatabaseConfig.DEFAULT_CONFIG_FILE);
+		assertEquals("app.itemdb.properties", service.getDefaultConfigFile());
 		
 		verifyDefaultProperties(service.getProperties());
 		
 		Properties props = new Properties();
 		assertTrue(service.loadFromResources(ItemDatabaseConfig.DEFAULT_CONFIG_FILE, props));
+		
 		verifyDefaultProperties(props);
 	}
 

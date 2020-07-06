@@ -9,7 +9,6 @@ import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.itemdb.IItemDatabaseService;
 import ru.prolib.caelum.itemdb.ItemDataRequest;
 import ru.prolib.caelum.itemdb.ItemDataRequestContinue;
-import ru.prolib.caelum.itemdb.ItemDatabaseConfig;
 
 public class ItemDatabaseService implements IItemDatabaseService {
 	private final ItemDatabaseConfig config;
@@ -34,6 +33,10 @@ public class ItemDatabaseService implements IItemDatabaseService {
 
 	private long getLimit(ItemDataRequestContinue request) {
 		return Math.min(request.getLimit(), config.getInt(ItemDatabaseConfig.LIMIT));
+	}
+	
+	public ItemDatabaseConfig getConfig() {
+		return config;
 	}
 
 	@Override

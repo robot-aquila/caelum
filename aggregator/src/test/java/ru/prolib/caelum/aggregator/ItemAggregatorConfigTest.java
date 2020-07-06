@@ -27,6 +27,7 @@ public class ItemAggregatorConfigTest {
 	@Test
 	public void testDefaults() throws Exception {
 		assertEquals("app.itemaggregator.properties", ItemAggregatorConfig.DEFAULT_CONFIG_FILE);
+		assertEquals("app.itemaggregator.properties", service.getDefaultConfigFile());
 		
 		verifyDefaultProperties(service.getProperties());
 		

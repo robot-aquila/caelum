@@ -1,4 +1,4 @@
-package ru.prolib.caelum.itemdb;
+package ru.prolib.caelum.itemdb.kafka;
 
 import java.util.Properties;
 
@@ -8,20 +8,24 @@ import ru.prolib.caelum.core.AbstractConfig;
 
 public class ItemDatabaseConfig extends AbstractConfig {
 	public static final String DEFAULT_CONFIG_FILE		= "app.itemdb.properties";
-	public static final String BOOTSTRAP_SERVERS		= "caelum.itemdb.bootstrap.servers";
-	public static final String GROUP_ID					= "caelum.itemdb.group.id";
-	public static final String SOURCE_TOPIC				= "caelum.itemdb.source.topic";
-	public static final String LIMIT					= "caelum.itemdb.limit";
+	public static final String BOOTSTRAP_SERVERS		= "caelum.itemdb.kafka.bootstrap.servers";
+	public static final String GROUP_ID					= "caelum.itemdb.kafka.group.id";
+	public static final String SOURCE_TOPIC				= "caelum.itemdb.kafka.source.topic";
+	public static final String LIMIT					= "caelum.itemdb.kafka.limit";
 
 	@Override
-	public void setDefaults() {
+	protected void setDefaults() {
 		props.put(BOOTSTRAP_SERVERS, "localhost:8082");
 		props.put(GROUP_ID, "caelum-item-db");
 		props.put(SOURCE_TOPIC, "caelum-item");
 		props.put(LIMIT, "5000");
 	}
-
+	
 	@Override
+	protected String getDefaultConfigFile() {
+		return DEFAULT_CONFIG_FILE;
+	}
+
 	public Properties getKafkaProperties() {
 		Properties conf = new Properties();
 		conf.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, props.get(BOOTSTRAP_SERVERS));
@@ -34,5 +38,5 @@ public class ItemDatabaseConfig extends AbstractConfig {
 	public String getSourceTopic() {
 		return getString(SOURCE_TOPIC);
 	}
-	
+
 }

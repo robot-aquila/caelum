@@ -3,7 +3,7 @@ package ru.prolib.caelum.backnode;
 import java.io.IOException;
 
 import ru.prolib.caelum.aggregator.ItemAggregatorConfig;
-import ru.prolib.caelum.itemdb.ItemDatabaseConfig;
+import ru.prolib.caelum.itemdb.kafka.ItemDatabaseConfig;
 
 public class AppConfig {
 	public static final String DEFAULT_CONFIG_FILE		= "app.backnode.properties";

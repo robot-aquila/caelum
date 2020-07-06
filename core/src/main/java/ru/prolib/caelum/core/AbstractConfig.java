@@ -19,8 +19,15 @@ public abstract class AbstractConfig {
 		setDefaults();
 	}
 	
-	public abstract void setDefaults();
-	public abstract Properties getKafkaProperties();
+	protected abstract void setDefaults();
+	
+	/**
+	 * Return path to default configuration properties file.
+	 * The system will search for this file in resources, then in current directory.
+	 * <p>
+	 * @return path
+	 */
+	protected abstract String getDefaultConfigFile();
 	
 	public boolean loadFromResources(String path, Properties props) throws IOException {
 		InputStream is = getClass().getClassLoader().getResourceAsStream(path);
@@ -82,6 +89,10 @@ public abstract class AbstractConfig {
 			loadFromFile(default_config_file);
 		}
 		loadFromSystemProperties();
+	}
+	
+	public void load(String config_file) throws IOException {
+		load(getDefaultConfigFile(), config_file);
 	}
 	
 	public void print(PrintStream stream) {

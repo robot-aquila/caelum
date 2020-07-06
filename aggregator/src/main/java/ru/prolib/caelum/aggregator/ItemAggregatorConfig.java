@@ -26,6 +26,11 @@ public class ItemAggregatorConfig extends AbstractConfig {
 	}
 	
 	@Override
+	protected String getDefaultConfigFile() {
+		return DEFAULT_CONFIG_FILE;
+	}
+	
+	@Override
 	public void setDefaults() {
 		props.put(APPLICATION_ID_PREFIX, "caelum-item-aggregator-");
 		props.put(AGGREGATION_STORE_PREFIX, "caelum-tuple-store-");
@@ -69,7 +74,6 @@ public class ItemAggregatorConfig extends AbstractConfig {
 		return "".equals(prefix) ? null : prefix + getSuffix();
 	}
 	
-	@Override
 	public Properties getKafkaProperties() {
 		Properties conf = new Properties();
 		conf.put(StreamsConfig.APPLICATION_ID_CONFIG, getApplicationId());

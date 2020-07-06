@@ -9,14 +9,36 @@ import ru.prolib.caelum.symboldb.ISymbolService;
 import ru.prolib.caelum.symboldb.SymbolUpdate;
 
 public class FDBSymbolService implements ISymbolService {
-	private final Database db;
+	private volatile Database db;
 	private final ICategoryExtractor catExt;
 	private final FDBSchema schema;
+	private final int listSymbolsMaxLimit;
 	
-	public FDBSymbolService(Database db, ICategoryExtractor cat_ext, FDBSchema schema) {
+	public FDBSymbolService(ICategoryExtractor cat_ext, FDBSchema schema, int list_symbols_max_limit) {
 		this.db = db;
 		this.catExt = cat_ext;
 		this.schema = schema;
+		this.listSymbolsMaxLimit = list_symbols_max_limit;
+	}
+	
+	public void setDatabase(Database db) {
+		this.db = db;
+	}
+	
+	public Database getDatabase() {
+		return db;
+	}
+	
+	public ICategoryExtractor getCategoryExtractor() {
+		return catExt;
+	}
+	
+	public FDBSchema getSchema() {
+		return schema;
+	}
+	
+	public int getListSymbolsMaxLimit() {
+		return listSymbolsMaxLimit;
 	}
 	
 	@Override
@@ -36,7 +58,7 @@ public class FDBSymbolService implements ISymbolService {
 	
 	@Override
 	public ICloseableIterator<String> listSymbols(SymbolListRequest request) {
-		return db.run(new FDBTransactionListSymbols(schema, request));
+		return db.run(new FDBTransactionListSymbols(schema, request, listSymbolsMaxLimit));
 	}
 	
 	@Override

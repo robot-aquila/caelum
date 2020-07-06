@@ -36,7 +36,16 @@ public class FDBSymbolServiceTest {
 		itMock = control.createMock(ICloseableIterator.class);
 		catExt = new CommonCategoryExtractor();
 		schema = new FDBSchema(new Subspace(Tuple.from("xxx")));
-		service = new FDBSymbolService(dbMock, catExt, schema);
+		service = new FDBSymbolService(catExt, schema, 4000);
+		service.setDatabase(dbMock);
+	}
+	
+	@Test
+	public void testGetters() {
+		assertSame(dbMock, service.getDatabase());
+		assertSame(catExt, service.getCategoryExtractor());
+		assertSame(schema, service.getSchema());
+		assertEquals(4000, service.getListSymbolsMaxLimit());
 	}
 	
 	@Test
@@ -73,7 +82,7 @@ public class FDBSymbolServiceTest {
 	
 	@Test
 	public void testListSymbols() {
-		expect(dbMock.run(new FDBTransactionListSymbols(schema, new SymbolListRequest("kappa", null, 200))))
+		expect(dbMock.run(new FDBTransactionListSymbols(schema, new SymbolListRequest("kappa", null, 200), 4000)))
 			.andReturn((ICloseableIterator<String>) itMock);
 		control.replay();
 		

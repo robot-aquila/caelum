@@ -40,7 +40,25 @@ public class FDBTransactionListSymbolsTest {
 		schemaMock = control.createMock(FDBSchema.class);
 		trMock = control.createMock(Transaction.class);
 		iterableMock = control.createMock(AsyncIterable.class);
-		service = new FDBTransactionListSymbols(schema, new SymbolListRequest("cat1", null, 500));
+		service = new FDBTransactionListSymbols(schema, new SymbolListRequest("cat1", null, 500), 1000);
+	}
+	
+	@Test
+	public void testApply_MaxLimit() {
+		Range range_cat = space.get(Tuple.from(0x02, "cat1")).range(); 
+		expect(trMock.getRange(aryEq(range_cat.begin), aryEq(range_cat.end), eq(100))).andReturn(iterableMock);
+		expect(iterableMock.iterator()).andReturn(new AsyncIteratorStub<>(new ArrayList<>(Arrays.asList(
+				new KeyValue(space.get(Tuple.from(0x02, "cat1", "cat1@bambr")).pack(), Tuple.from(true).pack())
+			))));
+		control.replay();
+		
+		service = new FDBTransactionListSymbols(schema, new SymbolListRequest("cat1", null, 500), 100);
+		ICloseableIterator<String> actual = service.apply(trMock);
+		
+		control.verify();
+		ICloseableIterator<String> expected = new CloseableIteratorStub<>(Arrays.asList("cat1@bambr"));
+		assertEquals(expected, actual);
+		
 	}
 	
 	@Test
@@ -79,7 +97,7 @@ public class FDBTransactionListSymbolsTest {
 			))));
 		control.replay();
 		
-		service = new FDBTransactionListSymbols(schema, new SymbolListRequest("cat1", "cat1@kambo", 500));
+		service = new FDBTransactionListSymbols(schema, new SymbolListRequest("cat1", "cat1@kambo", 500), 1000);
 		ICloseableIterator<String> actual = service.apply(trMock);
 		
 		control.verify();
@@ -104,7 +122,7 @@ public class FDBTransactionListSymbolsTest {
 			))));
 		control.replay();
 		
-		service = new FDBTransactionListSymbols(schema, new SymbolListRequest("cat1", "cat1@kambo", 3));
+		service = new FDBTransactionListSymbols(schema, new SymbolListRequest("cat1", "cat1@kambo", 3), 1000);
 		ICloseableIterator<String> actual = service.apply(trMock);
 
 		control.verify();
@@ -118,6 +136,7 @@ public class FDBTransactionListSymbolsTest {
 		int expected = new HashCodeBuilder(1209865, 51)
 				.append(schema)
 				.append(new SymbolListRequest("cat1", null, 500))
+				.append(1000)
 				.build();
 		
 		assertEquals(expected, service.hashCode());
@@ -126,12 +145,13 @@ public class FDBTransactionListSymbolsTest {
 	@Test
 	public void testEquals() {
 		assertTrue(service.equals(service));
-		assertTrue(service.equals(new FDBTransactionListSymbols(schema, new SymbolListRequest("cat1", null, 500))));
+		assertTrue(service.equals(new FDBTransactionListSymbols(schema, new SymbolListRequest("cat1", null, 500), 1000)));
 		assertFalse(service.equals(null));
 		assertFalse(service.equals(this));
-		assertFalse(service.equals(new FDBTransactionListSymbols(schemaMock, new SymbolListRequest("cat1", null, 500))));
-		assertFalse(service.equals(new FDBTransactionListSymbols(schema, new SymbolListRequest("boom", null, 200))));
-		assertFalse(service.equals(new FDBTransactionListSymbols(schemaMock, new SymbolListRequest("boom", null, 200))));
+		assertFalse(service.equals(new FDBTransactionListSymbols(schemaMock, new SymbolListRequest("cat1", null, 500), 1000)));
+		assertFalse(service.equals(new FDBTransactionListSymbols(schema, new SymbolListRequest("boom", null, 200), 1000)));
+		assertFalse(service.equals(new FDBTransactionListSymbols(schema, new SymbolListRequest("cat1", null, 500), 2000)));
+		assertFalse(service.equals(new FDBTransactionListSymbols(schemaMock, new SymbolListRequest("boom", null, 200), 2000)));
 	}
 
 }
