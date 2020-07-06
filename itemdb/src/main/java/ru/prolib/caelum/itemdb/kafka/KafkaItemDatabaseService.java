@@ -9,17 +9,18 @@ import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.itemdb.IItemDatabaseService;
 import ru.prolib.caelum.itemdb.ItemDataRequest;
 import ru.prolib.caelum.itemdb.ItemDataRequestContinue;
+import ru.prolib.caelum.itemdb.ItemDatabaseConfig;
 
-public class ItemDatabaseService implements IItemDatabaseService {
-	private final ItemDatabaseConfig config;
+public class KafkaItemDatabaseService implements IItemDatabaseService {
+	private final KafkaItemDatabaseConfig config;
 	private final KafkaUtils utils;
 	
-	ItemDatabaseService(ItemDatabaseConfig config, KafkaUtils utils) {
+	KafkaItemDatabaseService(KafkaItemDatabaseConfig config, KafkaUtils utils) {
 		this.config = config;
 		this.utils = utils;
 	}
 	
-	public ItemDatabaseService(ItemDatabaseConfig config) {
+	public KafkaItemDatabaseService(KafkaItemDatabaseConfig config) {
 		this(config, KafkaUtils.getInstance());
 	}
 	
@@ -28,14 +29,14 @@ public class ItemDatabaseService implements IItemDatabaseService {
 	}
 	
 	private long getLimit(ItemDataRequest request) {
-		return Math.min(request.getLimit(), config.getInt(ItemDatabaseConfig.LIMIT));
+		return Math.min(request.getLimit(), config.getInt(ItemDatabaseConfig.LIST_ITEMS_LIMIT));
 	}
 
 	private long getLimit(ItemDataRequestContinue request) {
-		return Math.min(request.getLimit(), config.getInt(ItemDatabaseConfig.LIMIT));
+		return Math.min(request.getLimit(), config.getInt(ItemDatabaseConfig.LIST_ITEMS_LIMIT));
 	}
 	
-	public ItemDatabaseConfig getConfig() {
+	public KafkaItemDatabaseConfig getConfig() {
 		return config;
 	}
 

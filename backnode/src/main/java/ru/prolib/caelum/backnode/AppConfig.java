@@ -3,27 +3,27 @@ package ru.prolib.caelum.backnode;
 import java.io.IOException;
 
 import ru.prolib.caelum.aggregator.ItemAggregatorConfig;
-import ru.prolib.caelum.itemdb.kafka.ItemDatabaseConfig;
+import ru.prolib.caelum.itemdb.kafka.KafkaItemDatabaseConfig;
 
 public class AppConfig {
 	public static final String DEFAULT_CONFIG_FILE		= "app.backnode.properties";
 	private final ItemAggregatorConfig itemAggrConfig;
-	private final ItemDatabaseConfig itemDbConfig;
+	private final KafkaItemDatabaseConfig itemDbConfig;
 	
-	AppConfig(ItemAggregatorConfig item_aggr_config, ItemDatabaseConfig itemdb_config) {
+	AppConfig(ItemAggregatorConfig item_aggr_config, KafkaItemDatabaseConfig itemdb_config) {
 		this.itemAggrConfig = item_aggr_config;
 		this.itemDbConfig = itemdb_config;
 	}
 	
 	public AppConfig() {
-		this(new ItemAggregatorConfig(), new ItemDatabaseConfig());
+		this(new ItemAggregatorConfig(), new KafkaItemDatabaseConfig());
 	}
 	
 	public ItemAggregatorConfig getItemAggregatorConfig() {
 		return itemAggrConfig;
 	}
 	
-	public ItemDatabaseConfig getItemDatabaseConfig() {
+	public KafkaItemDatabaseConfig getItemDatabaseConfig() {
 		return itemDbConfig;
 	}
 	

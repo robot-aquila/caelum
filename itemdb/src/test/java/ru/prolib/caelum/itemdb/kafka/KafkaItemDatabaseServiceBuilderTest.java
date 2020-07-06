@@ -11,34 +11,34 @@ import org.junit.Test;
 import ru.prolib.caelum.core.CompositeService;
 import ru.prolib.caelum.itemdb.IItemDatabaseService;
 
-public class ItemDatabaseServiceBuilderTest {
+public class KafkaItemDatabaseServiceBuilderTest {
 	IMocksControl control;
-	ItemDatabaseConfig configMock;
-	ItemDatabaseService serviceMock;
-	ItemDatabaseServiceBuilder service, mockedService;
+	KafkaItemDatabaseConfig configMock;
+	KafkaItemDatabaseService serviceMock;
+	KafkaItemDatabaseServiceBuilder service, mockedService;
 
 	@Before
 	public void setUp() throws Exception {
 		control = createStrictControl();
-		configMock = control.createMock(ItemDatabaseConfig.class);
-		serviceMock = control.createMock(ItemDatabaseService.class);
-		mockedService = partialMockBuilder(ItemDatabaseServiceBuilder.class)
+		configMock = control.createMock(KafkaItemDatabaseConfig.class);
+		serviceMock = control.createMock(KafkaItemDatabaseService.class);
+		mockedService = partialMockBuilder(KafkaItemDatabaseServiceBuilder.class)
 				.addMockedMethod("createConfig")
 				.addMockedMethod("createService")
 				.createMock();
-		service = new ItemDatabaseServiceBuilder();
+		service = new KafkaItemDatabaseServiceBuilder();
 	}
 	
 	@Test
 	public void testCreateConfig() {
-		ItemDatabaseConfig actual = service.createConfig();
+		KafkaItemDatabaseConfig actual = service.createConfig();
 		
 		assertNotNull(actual);
 	}
 	
 	@Test
 	public void testCreateService() {
-		ItemDatabaseService actual = service.createService(configMock);
+		KafkaItemDatabaseService actual = service.createService(configMock);
 		
 		assertNotNull(actual);
 		assertSame(configMock, actual.getConfig());
@@ -47,15 +47,15 @@ public class ItemDatabaseServiceBuilderTest {
 	@Test
 	public void testBuild() throws Exception {
 		expect(mockedService.createConfig()).andReturn(configMock);
-		configMock.load("tutumbr.props");
+		configMock.load("bururum.props", "tutumbr.props");
 		expect(mockedService.createService(configMock)).andReturn(serviceMock);
 		replay(mockedService);
 		
-		IItemDatabaseService actual = mockedService.build("tutumbr.props", new CompositeService());
+		IItemDatabaseService actual = mockedService.build("bururum.props", "tutumbr.props", new CompositeService());
 		
 		verify(mockedService);
 		assertNotNull(actual);
-		assertThat(actual, is(instanceOf(ItemDatabaseService.class)));
+		assertThat(actual, is(instanceOf(KafkaItemDatabaseService.class)));
 	}
 	
 	@Test
@@ -68,7 +68,7 @@ public class ItemDatabaseServiceBuilderTest {
 	@Test
 	public void testEquals() {
 		assertTrue(service.equals(service));
-		assertTrue(service.equals(new ItemDatabaseServiceBuilder()));
+		assertTrue(service.equals(new KafkaItemDatabaseServiceBuilder()));
 		assertFalse(service.equals(null));
 		assertFalse(service.equals(this));
 	}

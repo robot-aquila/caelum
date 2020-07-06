@@ -1,4 +1,4 @@
-package ru.prolib.caelum.symboldb;
+package ru.prolib.caelum.itemdb;
 
 import static org.junit.Assert.*;
 import static org.easymock.EasyMock.*;
@@ -9,16 +9,14 @@ import java.util.Properties;
 
 import org.easymock.Capture;
 import org.easymock.IMocksControl;
-
 import org.junit.Before;
 import org.junit.Test;
 
 import ru.prolib.caelum.core.CompositeService;
-import ru.prolib.caelum.core.ICloseableIterator;
 
-public class SymbolServiceBuilderTest {
+public class ItemDatabaseServiceBuilderTest {
 	
-	static class TestService implements ISymbolService {
+	static class TestService implements IItemDatabaseService {
 		private final String default_config_file, config_file;
 		private final CompositeService services;
 		
@@ -29,35 +27,21 @@ public class SymbolServiceBuilderTest {
 		}
 
 		@Override
-		public void registerSymbol(String symbol) {
+		public IItemIterator fetch(ItemDataRequest request) {
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
-		public void registerSymbolUpdate(SymbolUpdate update) {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public ICloseableIterator<String> listCategories() {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public ICloseableIterator<String> listSymbols(SymbolListRequest request) {
-			throw new UnsupportedOperationException();		}
-
-		@Override
-		public ICloseableIterator<SymbolUpdate> listSymbolUpdates(String symbol) {
+		public IItemIterator fetch(ItemDataRequestContinue request) {
 			throw new UnsupportedOperationException();
 		}
 		
 	}
 	
-	static class TestBuilder implements ISymbolServiceBuilder {
+	static class TestBuilder implements IItemDatabaseServiceBuilder {
 
 		@Override
-		public ISymbolService build(String default_config_file, String config_file, CompositeService services)
+		public IItemDatabaseService build(String default_config_file, String config_file, CompositeService services)
 				throws IOException
 		{
 			return new TestService(default_config_file, config_file, services);
@@ -66,31 +50,31 @@ public class SymbolServiceBuilderTest {
 	}
 	
 	IMocksControl control;
-	SymbolServiceConfig configStub;
+	ItemDatabaseConfig configStub;
 	CompositeService servicesMock;
-	SymbolServiceBuilder service, mockedService;
+	ItemDatabaseServiceBuilder service, mockedService;
 
 	@Before
 	public void setUp() throws Exception {
 		control = createStrictControl();
-		configStub = new SymbolServiceConfig();
+		configStub = new ItemDatabaseConfig();
 		servicesMock = control.createMock(CompositeService.class);
-		service = new SymbolServiceBuilder();
-		mockedService = partialMockBuilder(SymbolServiceBuilder.class)
+		service = new ItemDatabaseServiceBuilder();
+		mockedService = partialMockBuilder(ItemDatabaseServiceBuilder.class)
 				.addMockedMethod("createConfig")
 				.createMock();
 	}
 	
 	@Test
 	public void testCreateConfig() {
-		SymbolServiceConfig actual = service.createConfig();
+		ItemDatabaseConfig actual = service.createConfig();
 		
 		assertNotNull(actual);
 	}
 	
 	@Test
 	public void testCreateBuilder() throws Exception {
-		ISymbolServiceBuilder actual = service.createBuilder(TestBuilder.class.getName());
+		IItemDatabaseServiceBuilder actual = service.createBuilder(TestBuilder.class.getName());
 		
 		assertNotNull(actual);
 		assertThat(actual, is(instanceOf(TestBuilder.class)));
@@ -99,7 +83,7 @@ public class SymbolServiceBuilderTest {
 	@Test
 	public void testBuild() throws Exception {
 		final Capture<String> cap1 = newCapture(), cap2 = newCapture();
-		configStub = new SymbolServiceConfig() {
+		configStub = new ItemDatabaseConfig() {
 			@Override
 			public void load(String default_props_file, String props_file) {
 				cap1.setValue(default_props_file);
@@ -107,26 +91,26 @@ public class SymbolServiceBuilderTest {
 			}
 		};
 		Properties props = configStub.getProperties();
-		props.put("caelum.symboldb.builder", TestBuilder.class.getName());
+		props.put("caelum.itemdb.builder", TestBuilder.class.getName());
 		expect(mockedService.createConfig()).andReturn(configStub);
 		control.replay();
 		replay(mockedService);
-		
-		ISymbolService actual = mockedService.build("/bar/bums.defaults", "/bar/bums.props", servicesMock);
+
+		IItemDatabaseService actual = mockedService.build("/jumbo/foo.props", "/jumbo/bar.props", servicesMock);
 		
 		verify(mockedService);
 		control.verify();
 		assertNotNull(actual);
 		assertThat(actual, is(instanceOf(TestService.class)));
 		TestService x = (TestService) actual;
-		assertEquals("/bar/bums.defaults", x.default_config_file);
-		assertEquals("/bar/bums.props", x.config_file);
+		assertEquals("/jumbo/foo.props", x.default_config_file);
+		assertEquals("/jumbo/bar.props", x.config_file);
 		assertSame(servicesMock, x.services);
 	}
-	
+
 	@Test
 	public void testHashCode() {
-		int expected = 5578912;
+		int expected = 998102811;
 		
 		assertEquals(expected, service.hashCode());
 	}
@@ -134,9 +118,9 @@ public class SymbolServiceBuilderTest {
 	@Test
 	public void testEquals() {
 		assertTrue(service.equals(service));
-		assertTrue(service.equals(new SymbolServiceBuilder()));
+		assertTrue(service.equals(new ItemDatabaseServiceBuilder()));
 		assertFalse(service.equals(null));
 		assertFalse(service.equals(this));
 	}
-
+	
 }

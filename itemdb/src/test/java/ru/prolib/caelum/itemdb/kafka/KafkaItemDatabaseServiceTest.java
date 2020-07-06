@@ -18,15 +18,15 @@ import ru.prolib.caelum.itemdb.ItemDataRequest;
 import ru.prolib.caelum.itemdb.ItemDataRequestContinue;
 
 @SuppressWarnings("unchecked")
-public class ItemDatabaseServiceTest {
+public class KafkaItemDatabaseServiceTest {
 	IMocksControl control;
 	KafkaUtils utilsMock;
 	IItemIterator itMock;
 	KafkaConsumer<String, KafkaItem> consumerMock;
-	ItemDatabaseConfig config;
+	KafkaItemDatabaseConfig config;
 	KafkaItemInfo ii;
 	TopicPartition tp;
-	ItemDatabaseService service;
+	KafkaItemDatabaseService service;
 
 	@Before
 	public void setUp() throws Exception {
@@ -34,10 +34,10 @@ public class ItemDatabaseServiceTest {
 		utilsMock = control.createMock(KafkaUtils.class);
 		itMock = control.createMock(IItemIterator.class);
 		consumerMock = control.createMock(KafkaConsumer.class);
-		config = new ItemDatabaseConfig();
+		config = new KafkaItemDatabaseConfig();
 		ii = new KafkaItemInfo("caelum-item", 2, "zuzba-15", 1, 0L, 10000L);
 		tp = new TopicPartition("caelum-item", 1);
-		service = new ItemDatabaseService(config, utilsMock);
+		service = new KafkaItemDatabaseService(config, utilsMock);
 	}
 	
 	@Test

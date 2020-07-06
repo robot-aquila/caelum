@@ -121,5 +121,20 @@ public class FDBSymbolServiceBuilderTest {
 		assertEquals("/foo/default.props", cap1.getValue());
 		assertEquals("/foo/my.props", cap2.getValue());
 	}
+	
+	@Test
+	public void testHashCode() {
+		int expected = 2011572;
+		
+		assertEquals(expected, service.hashCode());
+	}
+	
+	@Test
+	public void testEquals() {
+		assertTrue(service.equals(service));
+		assertTrue(service.equals(new FDBSymbolServiceBuilder()));
+		assertFalse(service.equals(null));
+		assertFalse(service.equals(this));
+	}
 
 }

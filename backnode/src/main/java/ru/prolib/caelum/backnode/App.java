@@ -9,7 +9,7 @@ import ru.prolib.caelum.aggregator.app.ItemAggregatorBuilder;
 import ru.prolib.caelum.backnode.mvc.Freemarker;
 import ru.prolib.caelum.core.CompositeService;
 import ru.prolib.caelum.core.Periods;
-import ru.prolib.caelum.itemdb.kafka.ItemDatabaseService;
+import ru.prolib.caelum.itemdb.ItemDatabaseServiceBuilder;
 import ru.prolib.caelum.service.CaelumBuilder;
 import ru.prolib.caelum.service.ICaelum;
 import ru.prolib.caelum.symboldb.SymbolServiceBuilder;
@@ -25,10 +25,10 @@ public class App {
 		CompositeService services = new CompositeService();
 		ItemAggregatorBuilder item_aggregator_builder = new ItemAggregatorBuilder();
 		ICaelum caelum = new CaelumBuilder()
-				.withAggregatorService(item_aggregator_builder.getAggregatorService())
-				.withItemDatabaseService(new ItemDatabaseService(config.getItemDatabaseConfig()))
-				.withSymbolService(new SymbolServiceBuilder().build(default_config_file, config_file, services))
-				.build();
+			.withAggregatorService(item_aggregator_builder.getAggregatorService())
+			.withItemDatabaseService(new ItemDatabaseServiceBuilder().build(default_config_file, config_file, services))
+			.withSymbolService(new SymbolServiceBuilder().build(default_config_file, config_file, services))
+			.build();
 		services.register(item_aggregator_builder.build(config.getItemAggregatorConfig()));
 		services.register(new JettyServerBuilder()
 			.withHost("127.0.0.1")

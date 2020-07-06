@@ -4,26 +4,19 @@ import java.util.Properties;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 
-import ru.prolib.caelum.core.AbstractConfig;
+import ru.prolib.caelum.itemdb.ItemDatabaseConfig;
 
-public class ItemDatabaseConfig extends AbstractConfig {
-	public static final String DEFAULT_CONFIG_FILE		= "app.itemdb.properties";
+public class KafkaItemDatabaseConfig extends ItemDatabaseConfig {
 	public static final String BOOTSTRAP_SERVERS		= "caelum.itemdb.kafka.bootstrap.servers";
 	public static final String GROUP_ID					= "caelum.itemdb.kafka.group.id";
 	public static final String SOURCE_TOPIC				= "caelum.itemdb.kafka.source.topic";
-	public static final String LIMIT					= "caelum.itemdb.kafka.limit";
 
 	@Override
 	protected void setDefaults() {
+		super.setDefaults();
 		props.put(BOOTSTRAP_SERVERS, "localhost:8082");
 		props.put(GROUP_ID, "caelum-item-db");
 		props.put(SOURCE_TOPIC, "caelum-item");
-		props.put(LIMIT, "5000");
-	}
-	
-	@Override
-	protected String getDefaultConfigFile() {
-		return DEFAULT_CONFIG_FILE;
 	}
 
 	public Properties getKafkaProperties() {

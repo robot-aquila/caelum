@@ -41,5 +41,21 @@ public class FDBSymbolServiceBuilder implements ISymbolServiceBuilder {
 		services.register(new FDBDatabaseService(service, config.getString(FDBSymbolServiceConfig.FDB_CLUSTER)));
 		return service;
 	}
+	
+	@Override
+	public int hashCode() {
+		return 2011572;
+	}
+	
+	@Override
+	public boolean equals(Object other) {
+		if ( other == this ) {
+			return true;
+		}
+		if ( other == null || other.getClass() != FDBSymbolServiceBuilder.class ) {
+			return false;
+		}
+		return true;
+	}
 
 }

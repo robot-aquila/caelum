@@ -27,5 +27,21 @@ public class SymbolServiceBuilder implements ISymbolServiceBuilder {
 		ISymbolServiceBuilder builder = createBuilder(config.getString(SymbolServiceConfig.BUILDER));
 		return builder.build(default_config_file, config_file, services);
 	}
+	
+	@Override
+	public int hashCode() {
+		return 5578912;
+	}
+	
+	@Override
+	public boolean equals(Object other) {
+		if ( other == this ) {
+			return true;
+		}
+		if ( other == null || other.getClass() != SymbolServiceBuilder.class ) {
+			return false;
+		}
+		return true;
+	}
 
 }
