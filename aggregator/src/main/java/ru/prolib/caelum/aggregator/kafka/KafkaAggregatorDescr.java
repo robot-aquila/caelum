@@ -9,7 +9,7 @@ import ru.prolib.caelum.aggregator.AggregatorType;
 import ru.prolib.caelum.aggregator.IAggregatorDescr;
 import ru.prolib.caelum.core.Period;
 
-public class AggregatorDescr implements IAggregatorDescr {
+public class KafkaAggregatorDescr implements IAggregatorDescr {
 	protected final AggregatorType type;
 	protected final Period period;
 	protected final String source, target, storeName;
@@ -23,7 +23,7 @@ public class AggregatorDescr implements IAggregatorDescr {
 	 * @param target - target topic. May be null in case if aggregated data do not stream to topic.
 	 * @param store_name - store name to use for accessing data. 
 	 */
-	public AggregatorDescr(AggregatorType type, Period period, String source, String target, String store_name) {
+	public KafkaAggregatorDescr(AggregatorType type, Period period, String source, String target, String store_name) {
 		this.type = type;
 		this.period = period;
 		this.source = source;
@@ -80,10 +80,10 @@ public class AggregatorDescr implements IAggregatorDescr {
 		if ( other == this ) {
 			return true;
 		}
-		if ( other == null || other.getClass() != AggregatorDescr.class ) {
+		if ( other == null || other.getClass() != KafkaAggregatorDescr.class ) {
 			return false;
 		}
-		AggregatorDescr o = (AggregatorDescr) other;
+		KafkaAggregatorDescr o = (KafkaAggregatorDescr) other;
 		return new EqualsBuilder()
 				.append(o.type, type)
 				.append(o.period, period)

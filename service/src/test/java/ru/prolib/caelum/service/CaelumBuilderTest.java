@@ -10,14 +10,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import ru.prolib.caelum.aggregator.kafka.AggregatorService;
+import ru.prolib.caelum.aggregator.kafka.KafkaAggregatorService;
 import ru.prolib.caelum.itemdb.IItemDatabaseService;
 import ru.prolib.caelum.symboldb.ISymbolService;
 
 public class CaelumBuilderTest {
 	@Rule public ExpectedException eex = ExpectedException.none();
 	IMocksControl control;
-	AggregatorService aggrSvcMock;
+	KafkaAggregatorService aggrSvcMock;
 	IItemDatabaseService itemDbSvcMock;
 	ISymbolService symbolSvcMock;
 	CaelumBuilder service;
@@ -25,7 +25,7 @@ public class CaelumBuilderTest {
 	@Before
 	public void setUp() throws Exception {
 		control = createStrictControl();
-		aggrSvcMock = control.createMock(AggregatorService.class);
+		aggrSvcMock = control.createMock(KafkaAggregatorService.class);
 		itemDbSvcMock = control.createMock(IItemDatabaseService.class);
 		symbolSvcMock = control.createMock(ISymbolService.class);
 		service = new CaelumBuilder();

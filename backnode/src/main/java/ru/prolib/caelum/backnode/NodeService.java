@@ -9,7 +9,6 @@ import java.util.Map;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.BadRequestException;
-import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -45,7 +44,7 @@ import ru.prolib.caelum.service.ICaelum;
 public class NodeService {
 	static final Logger logger = LoggerFactory.getLogger(NodeService.class);
 	public static final long MAX_LIMIT = 5000L;
-	public static final long DEFAULT_LIMIT = 500L;
+	public static final int DEFAULT_LIMIT = 1000;
 	public static final Period DEFAULT_PERIOD = Period.M5;
 	
 	private final ICaelum caelum;
@@ -91,7 +90,7 @@ public class NodeService {
 		}
 	}
 	
-	private Long validateLimit(Long limit) {
+	private Integer validateLimit(Integer limit) {
 		if ( limit == null ) {
 			limit = DEFAULT_LIMIT;
 		}
@@ -125,7 +124,7 @@ public class NodeService {
 	 * @return request
 	 * @throws BadRequestException - invalid data
 	 */
-	private AggregatedDataRequest toAggrDataRequest(String symbol, Period period, Long from, Long to, Long limit) {
+	private AggregatedDataRequest toAggrDataRequest(String symbol, Period period, Long from, Long to, Integer limit) {
 		period = validatePeriod(period);
 		from = validateFrom(from);
 		to = validateTo(to);
@@ -134,7 +133,7 @@ public class NodeService {
 		return new AggregatedDataRequest(symbol, period, from, to, limit);
 	}
 	
-	private ItemDataRequest toItemDataRequest(String symbol, Long from, Long to, Long limit) {
+	private ItemDataRequest toItemDataRequest(String symbol, Long from, Long to, Integer limit) {
 		from = validateFrom(from);
 		to = validateTo(to);
 		validateFromAndTo(from, to);
@@ -143,7 +142,7 @@ public class NodeService {
 	}
 	
 	private ItemDataRequestContinue toItemDataRequestContinue(String symbol, Long offset,
-			String magic, Long to, Long limit)
+			String magic, Long to, Integer limit)
 	{
 		offset = validateOffset(offset);
 		to = validateTo(to);
@@ -164,7 +163,7 @@ public class NodeService {
 			@QueryParam("symbol") @NotNull final String symbol,
 			@QueryParam("from") final Long from,
 			@QueryParam("to") final Long to,
-			@QueryParam("limit") @DefaultValue("500") final long limit)
+			@QueryParam("limit") final Integer limit)
 	{
 		AggregatedDataRequest request = toAggrDataRequest(symbol, period, from, to, limit);
 		return Response.status(200)
@@ -179,7 +178,7 @@ public class NodeService {
 			@QueryParam("from") final Long from,
 			@QueryParam("from_offset") final Long from_offset,
 			@QueryParam("to") final Long to,
-			@QueryParam("limit") @DefaultValue("500") final long limit,
+			@QueryParam("limit") final Integer limit,
 			@QueryParam("magic") final String magic)
 	{
 		if ( from_offset == null ) {
@@ -216,7 +215,7 @@ public class NodeService {
 			@QueryParam("symbol") final String symbol,
 			@QueryParam("from") final String str_from,
 			@QueryParam("to") final String str_to,
-			@QueryParam("limit") final Long limit,
+			@QueryParam("limit") final Integer limit,
 			@QueryParam("from_offset") final Long offset,
 			@QueryParam("magic") final String magic)
 	{
@@ -280,7 +279,7 @@ public class NodeService {
 			@QueryParam("period") final Period period,
 			@QueryParam("from") final String str_from,
 			@QueryParam("to") final String str_to,
-			@QueryParam("limit") final Long limit)
+			@QueryParam("limit") final Integer limit)
 	{
 		Long from = null, to = null;
 		if ( str_from != null && str_from.length() > 0 ) {

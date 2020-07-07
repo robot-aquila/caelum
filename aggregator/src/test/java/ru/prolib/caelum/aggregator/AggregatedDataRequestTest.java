@@ -16,7 +16,7 @@ public class AggregatedDataRequestTest {
 
 	@Before
 	public void setUp() throws Exception {
-		service = new AggregatedDataRequest("foobar", Period.H1, 2000L, 5000L, 500L);
+		service = new AggregatedDataRequest("foobar", Period.H1, 2000L, 5000L, 500);
 	}
 	
 	@Test
@@ -25,7 +25,7 @@ public class AggregatedDataRequestTest {
 		assertEquals(Period.H1, service.getPeriod());
 		assertEquals(2000L, service.getFrom());
 		assertEquals(5000L, service.getTo());
-		assertEquals(500L, service.getLimit());
+		assertEquals(500, service.getLimit());
 		assertEquals(Instant.ofEpochMilli(2000L), service.getTimeFrom());
 		assertEquals(Instant.ofEpochMilli(5000L), service.getTimeTo());
 	}
@@ -44,7 +44,7 @@ public class AggregatedDataRequestTest {
 				.append(Period.H1)
 				.append(2000L)
 				.append(5000L)
-				.append(500L)
+				.append(500)
 				.build();
 		
 		assertEquals(expected, service.hashCode());
@@ -59,13 +59,13 @@ public class AggregatedDataRequestTest {
 
 	@Test
 	public void testEquals() {
-		assertTrue(service.equals(new AggregatedDataRequest("foobar", Period.H1, 2000L, 5000L, 500L)));
-		assertFalse(service.equals(new AggregatedDataRequest("gammar", Period.H1, 2000L, 5000L, 500L)));
-		assertFalse(service.equals(new AggregatedDataRequest("foobar", Period.H2, 2000L, 5000L, 500L)));
-		assertFalse(service.equals(new AggregatedDataRequest("foobar", Period.H1, 1000L, 5000L, 500L)));
-		assertFalse(service.equals(new AggregatedDataRequest("foobar", Period.H1, 2000L, 7000L, 500L)));
-		assertFalse(service.equals(new AggregatedDataRequest("foobar", Period.H1, 2000L, 5000L, 800L)));
-		assertFalse(service.equals(new AggregatedDataRequest("gammar", Period.H2, 1000L, 7000L, 800L)));
+		assertTrue(service.equals(new AggregatedDataRequest("foobar", Period.H1, 2000L, 5000L, 500)));
+		assertFalse(service.equals(new AggregatedDataRequest("gammar", Period.H1, 2000L, 5000L, 500)));
+		assertFalse(service.equals(new AggregatedDataRequest("foobar", Period.H2, 2000L, 5000L, 500)));
+		assertFalse(service.equals(new AggregatedDataRequest("foobar", Period.H1, 1000L, 5000L, 500)));
+		assertFalse(service.equals(new AggregatedDataRequest("foobar", Period.H1, 2000L, 7000L, 500)));
+		assertFalse(service.equals(new AggregatedDataRequest("foobar", Period.H1, 2000L, 5000L, 800)));
+		assertFalse(service.equals(new AggregatedDataRequest("gammar", Period.H2, 1000L, 7000L, 800)));
 	}
 
 }

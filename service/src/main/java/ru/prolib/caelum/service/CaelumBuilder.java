@@ -1,15 +1,15 @@
 package ru.prolib.caelum.service;
 
-import ru.prolib.caelum.aggregator.kafka.AggregatorService;
+import ru.prolib.caelum.aggregator.IAggregatorService;
 import ru.prolib.caelum.itemdb.IItemDatabaseService;
 import ru.prolib.caelum.symboldb.ISymbolService;
 
 public class CaelumBuilder {
-	private AggregatorService aggrService;
+	private IAggregatorService aggrService;
 	private IItemDatabaseService itemDbService;
 	private ISymbolService symbolService;
 	
-	public CaelumBuilder withAggregatorService(AggregatorService service) {
+	public CaelumBuilder withAggregatorService(IAggregatorService service) {
 		this.aggrService = service;
 		return this;
 	}

@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonFactory;
 
-import ru.prolib.caelum.aggregator.app.ItemAggregatorBuilder;
+import ru.prolib.caelum.aggregator.AggregatorServiceBuilder;
 import ru.prolib.caelum.backnode.mvc.Freemarker;
 import ru.prolib.caelum.core.CompositeService;
 import ru.prolib.caelum.core.Periods;
@@ -23,13 +23,11 @@ public class App {
 		config.load(config_file);
 		
 		CompositeService services = new CompositeService();
-		ItemAggregatorBuilder item_aggregator_builder = new ItemAggregatorBuilder();
 		ICaelum caelum = new CaelumBuilder()
-			.withAggregatorService(item_aggregator_builder.getAggregatorService())
+			.withAggregatorService(new AggregatorServiceBuilder().build(default_config_file, config_file, services))
 			.withItemDatabaseService(new ItemDatabaseServiceBuilder().build(default_config_file, config_file, services))
 			.withSymbolService(new SymbolServiceBuilder().build(default_config_file, config_file, services))
 			.build();
-		services.register(item_aggregator_builder.build(config.getItemAggregatorConfig()));
 		services.register(new JettyServerBuilder()
 			.withHost("127.0.0.1")
 			.withPort(60606)

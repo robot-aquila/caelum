@@ -13,33 +13,47 @@ import ru.prolib.caelum.core.ITuple;
 import ru.prolib.caelum.core.Period;
 import ru.prolib.caelum.core.Periods;
 
-public class AggregatorService implements IAggregatorService {
+public class KafkaAggregatorService implements IAggregatorService {
 	
 	static Instant T(long time) {
 		return Instant.ofEpochMilli(time);
 	}
 	
 	private final Periods periods;
-	private final AggregatorRegistry registry;
+	private final KafkaAggregatorRegistry registry;
+	private final int maxLimit;
 	
-	AggregatorService(Periods periods, AggregatorRegistry registry) {
+	KafkaAggregatorService(Periods periods, KafkaAggregatorRegistry registry, int maxLimit) {
 		this.periods = periods;
 		this.registry = registry;
+		this.maxLimit = maxLimit;
 	}
 	
-	public AggregatorService(Periods periods) {
-		this(periods, new AggregatorRegistry(periods));
+	public KafkaAggregatorService(Periods periods, int maxLimit) {
+		this(periods, new KafkaAggregatorRegistry(periods), maxLimit);
 	}
 	
-	public AggregatorService() {
-		this(Periods.getInstance());
+	public KafkaAggregatorService(int maxLimit) {
+		this(Periods.getInstance(), maxLimit);
+	}
+	
+	public Periods getPeriods() {
+		return periods;
+	}
+	
+	public KafkaAggregatorRegistry getRegistry() {
+		return registry;
+	}
+	
+	public int getMaxLimit() {
+		return maxLimit;
 	}
 	
 	@Override
 	public ICloseableIterator<ITuple> fetch(AggregatedDataRequest request) {
 		final String symbol = request.getSymbol();
 		final Period period = request.getPeriod();
-		AggregatorEntry entry = registry.getByPeriod(period);
+		KafkaAggregatorEntry entry = registry.getByPeriod(period);
 		long period_millis = periods.getIntradayDuration(period).toMillis();
 		long from_align = request.getFrom() / period_millis, to_align = request.getTo() / period_millis;
 		if ( request.getTo() % period_millis > 0 ) {
@@ -54,10 +68,11 @@ public class AggregatorService implements IAggregatorService {
 		} else {
 			it = entry.getStore().fetch(symbol, from, to);
 		}
-		return new TupleIterator(symbol, new WindowStoreIteratorLimited<KafkaTuple>(it, request.getLimit()));
+		return new TupleIterator(symbol,
+				new WindowStoreIteratorLimited<KafkaTuple>(it, Math.min(maxLimit, request.getLimit())));
 	}
 	
-	public void register(AggregatorDescr descr, KafkaStreams streams) {
+	public void register(KafkaAggregatorDescr descr, KafkaStreams streams) {
 		registry.register(descr, streams);
 	}
 

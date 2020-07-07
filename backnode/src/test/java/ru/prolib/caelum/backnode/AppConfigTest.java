@@ -7,19 +7,19 @@ import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 
-import ru.prolib.caelum.aggregator.ItemAggregatorConfig;
+import ru.prolib.caelum.aggregator.kafka.KafkaAggregatorConfig;
 import ru.prolib.caelum.itemdb.kafka.KafkaItemDatabaseConfig;
 
 public class AppConfigTest {
 	IMocksControl control;
-	ItemAggregatorConfig itemAggrConfMock;
+	KafkaAggregatorConfig itemAggrConfMock;
 	KafkaItemDatabaseConfig itemDbConfMock;
 	AppConfig service;
 
 	@Before
 	public void setUp() throws Exception {
 		control = createStrictControl();
-		itemAggrConfMock = control.createMock(ItemAggregatorConfig.class);
+		itemAggrConfMock = control.createMock(KafkaAggregatorConfig.class);
 		itemDbConfMock = control.createMock(KafkaItemDatabaseConfig.class);
 		service = new AppConfig(itemAggrConfMock, itemDbConfMock);
 	}

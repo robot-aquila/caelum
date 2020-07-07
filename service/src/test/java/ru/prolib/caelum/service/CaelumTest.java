@@ -9,7 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import ru.prolib.caelum.aggregator.AggregatedDataRequest;
-import ru.prolib.caelum.aggregator.kafka.AggregatorService;
+import ru.prolib.caelum.aggregator.kafka.KafkaAggregatorService;
 import ru.prolib.caelum.core.ICloseableIterator;
 import ru.prolib.caelum.core.ITuple;
 import ru.prolib.caelum.itemdb.IItemIterator;
@@ -23,7 +23,7 @@ import ru.prolib.caelum.symboldb.SymbolUpdate;
 @SuppressWarnings("unchecked")
 public class CaelumTest {
 	IMocksControl control;
-	AggregatorService aggrSvcMock;
+	KafkaAggregatorService aggrSvcMock;
 	IItemDatabaseService itemDbSvcMock;
 	ISymbolService symbolSvcMock;
 	Caelum service;
@@ -31,7 +31,7 @@ public class CaelumTest {
 	@Before
 	public void setUp() throws Exception {
 		control = createStrictControl();
-		aggrSvcMock = control.createMock(AggregatorService.class);
+		aggrSvcMock = control.createMock(KafkaAggregatorService.class);
 		itemDbSvcMock = control.createMock(IItemDatabaseService.class);
 		symbolSvcMock = control.createMock(ISymbolService.class);
 		service = new Caelum(aggrSvcMock, itemDbSvcMock, symbolSvcMock);

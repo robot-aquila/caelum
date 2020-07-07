@@ -20,21 +20,21 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-public class AggregatorEntryTest {
+public class KafkaAggregatorEntryTest {
 	@Rule public ExpectedException eex = ExpectedException.none();
 	IMocksControl control;
 	KafkaStreams streamsMock1, streamsMock2;
-	AggregatorDescr descr1, descr2;
-	AggregatorEntry service;
+	KafkaAggregatorDescr descr1, descr2;
+	KafkaAggregatorEntry service;
 
 	@Before
 	public void setUp() throws Exception {
 		control = createStrictControl();
 		streamsMock1 = control.createMock(KafkaStreams.class);
 		streamsMock2 = control.createMock(KafkaStreams.class);
-		descr1 = new AggregatorDescr(ITEM, M5, "items1", "tuples1", "store1");
-		descr2 = new AggregatorDescr(TUPLE, M1, "items2", "tuples2", "store2");
-		service = new AggregatorEntry(descr1, streamsMock1);
+		descr1 = new KafkaAggregatorDescr(ITEM, M5, "items1", "tuples1", "store1");
+		descr2 = new KafkaAggregatorDescr(TUPLE, M1, "items2", "tuples2", "store2");
+		service = new KafkaAggregatorEntry(descr1, streamsMock1);
 	}
 	
 	@Test
@@ -46,7 +46,7 @@ public class AggregatorEntryTest {
 	@Test
 	public void testToString() {
 		String expected = new StringBuilder()
-				.append("AggregatorEntry[descr=AggregatorDescr[type=ITEM,period=M5")
+				.append("KafkaAggregatorEntry[descr=KafkaAggregatorDescr[type=ITEM,period=M5")
 				.append(",source=items1,target=tuples1,storeName=store1],streams=")
 				.append(streamsMock1)
 				.append("]")
@@ -68,12 +68,12 @@ public class AggregatorEntryTest {
 	@Test
 	public void testEquals() {
 		assertTrue(service.equals(service));
-		assertTrue(service.equals(new AggregatorEntry(descr1, streamsMock1)));
+		assertTrue(service.equals(new KafkaAggregatorEntry(descr1, streamsMock1)));
 		assertFalse(service.equals(null));
 		assertFalse(service.equals(this));
-		assertFalse(service.equals(new AggregatorEntry(descr2, streamsMock1)));
-		assertFalse(service.equals(new AggregatorEntry(descr1, streamsMock2)));
-		assertFalse(service.equals(new AggregatorEntry(descr2, streamsMock2)));
+		assertFalse(service.equals(new KafkaAggregatorEntry(descr2, streamsMock1)));
+		assertFalse(service.equals(new KafkaAggregatorEntry(descr1, streamsMock2)));
+		assertFalse(service.equals(new KafkaAggregatorEntry(descr2, streamsMock2)));
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })

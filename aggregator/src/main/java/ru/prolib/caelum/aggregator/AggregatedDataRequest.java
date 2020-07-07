@@ -12,9 +12,10 @@ import ru.prolib.caelum.core.Period;
 public class AggregatedDataRequest {
 	private final String symbol;
 	private final Period period;
-	private final long from, to, limit;
+	private final long from, to;
+	private final int limit;
 	
-	public AggregatedDataRequest(String symbol, Period period, long from, long to, long limit) {
+	public AggregatedDataRequest(String symbol, Period period, long from, long to, int limit) {
 		this.symbol = symbol;
 		this.period = period;
 		this.from = from;
@@ -42,7 +43,7 @@ public class AggregatedDataRequest {
 		return to;
 	}
 	
-	public long getLimit() {
+	public int getLimit() {
 		return limit;
 	}
 	

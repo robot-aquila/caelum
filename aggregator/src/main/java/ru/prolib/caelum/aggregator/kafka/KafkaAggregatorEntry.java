@@ -9,16 +9,16 @@ import org.apache.kafka.streams.StoreQueryParameters;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyWindowStore;
 
-class AggregatorEntry {
-	private final AggregatorDescr descr;
+class KafkaAggregatorEntry {
+	private final KafkaAggregatorDescr descr;
 	private final KafkaStreams streams;
 	
-	AggregatorEntry(AggregatorDescr descr, KafkaStreams streams) {
+	KafkaAggregatorEntry(KafkaAggregatorDescr descr, KafkaStreams streams) {
 		this.descr = descr;
 		this.streams = streams;
 	}
 	
-	public AggregatorDescr getDescriptor() {
+	public KafkaAggregatorDescr getDescriptor() {
 		return descr;
 	}
 	
@@ -39,10 +39,10 @@ class AggregatorEntry {
 		if ( other == this ) {
 			return true;
 		}
-		if ( other == null || other.getClass() != AggregatorEntry.class ) {
+		if ( other == null || other.getClass() != KafkaAggregatorEntry.class ) {
 			return false;
 		}
-		AggregatorEntry o = (AggregatorEntry) other;
+		KafkaAggregatorEntry o = (KafkaAggregatorEntry) other;
 		return new EqualsBuilder()
 				.append(o.descr, descr)
 				.append(o.streams, streams)

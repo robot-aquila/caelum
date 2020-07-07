@@ -1,7 +1,7 @@
 package ru.prolib.caelum.service;
 
 import ru.prolib.caelum.aggregator.AggregatedDataRequest;
-import ru.prolib.caelum.aggregator.kafka.AggregatorService;
+import ru.prolib.caelum.aggregator.IAggregatorService;
 import ru.prolib.caelum.core.ICloseableIterator;
 import ru.prolib.caelum.core.ITuple;
 import ru.prolib.caelum.itemdb.IItemIterator;
@@ -13,11 +13,11 @@ import ru.prolib.caelum.symboldb.ISymbolService;
 import ru.prolib.caelum.symboldb.SymbolUpdate;
 
 public class Caelum implements ICaelum {
-	private final AggregatorService aggrService;
+	private final IAggregatorService aggrService;
 	private final IItemDatabaseService itemDbService;
 	private final ISymbolService symbolService;
 	
-	public Caelum(AggregatorService aggregator_service,
+	public Caelum(IAggregatorService aggregator_service,
 			IItemDatabaseService itemdb_service,
 			ISymbolService symbol_service)
 	{
@@ -26,7 +26,7 @@ public class Caelum implements ICaelum {
 		this.symbolService = symbol_service;
 	}
 	
-	public AggregatorService getAggregatorService() {
+	public IAggregatorService getAggregatorService() {
 		return aggrService;
 	}
 	
