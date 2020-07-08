@@ -5,29 +5,20 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonFactory;
 
-import ru.prolib.caelum.aggregator.AggregatorServiceBuilder;
 import ru.prolib.caelum.backnode.mvc.Freemarker;
 import ru.prolib.caelum.core.CompositeService;
 import ru.prolib.caelum.core.Periods;
-import ru.prolib.caelum.itemdb.ItemDatabaseServiceBuilder;
 import ru.prolib.caelum.service.CaelumBuilder;
 import ru.prolib.caelum.service.ICaelum;
-import ru.prolib.caelum.symboldb.SymbolServiceBuilder;
 
 public class App {
 	static final Logger logger = LoggerFactory.getLogger(App.class);
 	
 	public static void main(String[] args) throws Exception {
 		String default_config_file = AppConfig.DEFAULT_CONFIG_FILE, config_file = args.length > 0 ? args[0] : null;
-		AppConfig config = new AppConfig();
-		config.load(config_file);
 		
 		CompositeService services = new CompositeService();
-		ICaelum caelum = new CaelumBuilder()
-			.withAggregatorService(new AggregatorServiceBuilder().build(default_config_file, config_file, services))
-			.withItemDatabaseService(new ItemDatabaseServiceBuilder().build(default_config_file, config_file, services))
-			.withSymbolService(new SymbolServiceBuilder().build(default_config_file, config_file, services))
-			.build();
+		ICaelum caelum = new CaelumBuilder().build(default_config_file, config_file, services);
 		services.register(new JettyServerBuilder()
 			.withHost("127.0.0.1")
 			.withPort(60606)

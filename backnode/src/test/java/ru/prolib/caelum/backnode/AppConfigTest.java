@@ -12,51 +12,12 @@ import ru.prolib.caelum.itemdb.kafka.KafkaItemDatabaseConfig;
 
 public class AppConfigTest {
 	IMocksControl control;
-	KafkaAggregatorConfig itemAggrConfMock;
-	KafkaItemDatabaseConfig itemDbConfMock;
 	AppConfig service;
 
 	@Before
 	public void setUp() throws Exception {
 		control = createStrictControl();
-		itemAggrConfMock = control.createMock(KafkaAggregatorConfig.class);
-		itemDbConfMock = control.createMock(KafkaItemDatabaseConfig.class);
-		service = new AppConfig(itemAggrConfMock, itemDbConfMock);
-	}
-	
-	@Test
-	public void testGetters() {
-		assertSame(itemAggrConfMock, service.getItemAggregatorConfig());
-		assertSame(itemDbConfMock, service.getItemDatabaseConfig());
-	}
-	
-	@Test
-	public void testCtor0() {
 		service = new AppConfig();
-		assertNotNull(service.getItemAggregatorConfig());
-		assertNotNull(service.getItemDatabaseConfig());
-	}
-	
-	@Test
-	public void testLoad1() throws Exception {
-		itemAggrConfMock.load("app.backnode.properties", "foo.bar");
-		itemDbConfMock.load("app.backnode.properties", "foo.bar");
-		control.replay();
-		
-		service.load("foo.bar");
-		
-		control.verify();
-	}
-
-	@Test
-	public void testLoad0() throws Exception {
-		itemAggrConfMock.load("app.backnode.properties", null);
-		itemDbConfMock.load("app.backnode.properties", null);
-		control.replay();
-		
-		service.load();
-		
-		control.verify();
 	}
 
 }
