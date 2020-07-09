@@ -1,4 +1,4 @@
-package ru.prolib.caelum.backnode;
+package ru.prolib.caelum.backnode.rest.jetty;
 
 import org.eclipse.jetty.server.Server;
 import org.slf4j.Logger;
@@ -13,6 +13,10 @@ public class JettyServerStarter implements IService {
 	
 	public JettyServerStarter(Server server) {
 		this.server = server;
+	}
+	
+	public Server getServer() {
+		return server;
 	}
 
 	@Override

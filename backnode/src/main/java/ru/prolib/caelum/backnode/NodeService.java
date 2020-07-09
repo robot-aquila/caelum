@@ -59,6 +59,22 @@ public class NodeService {
 		this.periods = periods;
 	}
 	
+	public ICaelum getCaelum() {
+		return caelum;
+	}
+	
+	public Freemarker getFreemarker() {
+		return templates;
+	}
+	
+	public JsonFactory getJsonFactory() {
+		return jsonFactory;
+	}
+	
+	public Periods getPeriods() {
+		return periods;
+	}
+	
 	private Period validatePeriod(Period period) {
 		if ( period == null ) {
 			period = DEFAULT_PERIOD;
