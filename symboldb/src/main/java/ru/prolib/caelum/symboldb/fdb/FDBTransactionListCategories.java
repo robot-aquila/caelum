@@ -10,7 +10,7 @@ import com.apple.foundationdb.KeyValue;
 import com.apple.foundationdb.Transaction;
 import com.apple.foundationdb.async.AsyncIterator;
 
-import ru.prolib.caelum.core.CloseableIteratorStub;
+import ru.prolib.caelum.core.IteratorStub;
 import ru.prolib.caelum.core.ICloseableIterator;
 
 public class FDBTransactionListCategories extends FDBTransaction<ICloseableIterator<String>> {
@@ -26,7 +26,7 @@ public class FDBTransactionListCategories extends FDBTransaction<ICloseableItera
 		while ( it.hasNext() ) {
 			result.add(schema.parseKeyCategory(it.next().getKey()));
 		}
-		return new CloseableIteratorStub<>(result);
+		return new IteratorStub<>(result);
 	}
 	
 	@Override

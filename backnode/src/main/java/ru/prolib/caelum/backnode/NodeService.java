@@ -21,16 +21,15 @@ import javax.ws.rs.core.StreamingOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonFactory;
-
 import freemarker.template.TemplateException;
 import ru.prolib.caelum.aggregator.AggregatedDataRequest;
 import ru.prolib.caelum.backnode.mvc.Freemarker;
 import ru.prolib.caelum.backnode.mvc.ItemMvcAdapterIterator;
+import ru.prolib.caelum.backnode.mvc.StreamFactory;
 import ru.prolib.caelum.backnode.mvc.TupleMvcAdapter;
 import ru.prolib.caelum.backnode.mvc.TupleMvcAdapterIterator;
-import ru.prolib.caelum.core.CloseableIteratorStub;
 import ru.prolib.caelum.core.ICloseableIterator;
+import ru.prolib.caelum.core.IteratorStub;
 import ru.prolib.caelum.core.Period;
 import ru.prolib.caelum.core.Periods;
 import ru.prolib.caelum.itemdb.IItemIterator;
@@ -49,13 +48,13 @@ public class NodeService {
 	
 	private final ICaelum caelum;
 	private final Freemarker templates;
-	private final JsonFactory jsonFactory;
+	private final StreamFactory streamFactory;
 	private final Periods periods;
 	
-	public NodeService(ICaelum caelum, Freemarker templates, JsonFactory json_factory, Periods periods) {
+	public NodeService(ICaelum caelum, Freemarker templates, StreamFactory streamFactory, Periods periods) {
 		this.caelum = caelum;
 		this.templates = templates;
-		this.jsonFactory = json_factory;
+		this.streamFactory = streamFactory;
 		this.periods = periods;
 	}
 	
@@ -67,8 +66,8 @@ public class NodeService {
 		return templates;
 	}
 	
-	public JsonFactory getJsonFactory() {
-		return jsonFactory;
+	public StreamFactory getStreamFactory() {
+		return streamFactory;
 	}
 	
 	public Periods getPeriods() {
@@ -183,7 +182,7 @@ public class NodeService {
 	{
 		AggregatedDataRequest request = toAggrDataRequest(symbol, period, from, to, limit);
 		return Response.status(200)
-			.entity(new TupleStreamerJson(jsonFactory, caelum.fetch(request), request))
+			.entity(streamFactory.tuplesToJson(caelum.fetch(request), request))
 			.build();
 	}
 	
@@ -200,14 +199,21 @@ public class NodeService {
 		if ( from_offset == null ) {
 			ItemDataRequest request = toItemDataRequest(symbol, from, to, limit);
 			return Response.status(200)
-				.entity(new ItemStreamerJson(jsonFactory, caelum.fetch(request), request))
+				.entity(streamFactory.itemsToJson(caelum.fetch(request), request))
 				.build();
 		} else {
 			ItemDataRequestContinue request = this.toItemDataRequestContinue(symbol, from_offset, magic, to, limit);
 			return Response.status(200)
-				.entity(new ItemStreamerJson(jsonFactory, caelum.fetch(request), request))
+				.entity(streamFactory.itemsToJson(caelum.fetch(request), request))
 				.build();
 		}
+	}
+	
+	@GET
+	@Path("/categories")
+	public Response categories() {
+		caelum.fetchCategories();
+		return null;
 	}
 	
 	@GET
@@ -307,7 +313,7 @@ public class NodeService {
 		AggregatedDataRequest request = toAggrDataRequest(symbol, period, from, to, limit);
 		final boolean has_output = request.isValidSymbol();
 		final ICloseableIterator<TupleMvcAdapter> it = has_output ?
-				new TupleMvcAdapterIterator(caelum.fetch(request)) : new CloseableIteratorStub<>();
+				new TupleMvcAdapterIterator(caelum.fetch(request)) : new IteratorStub<>();
 		final Map<String, Object> model = new HashMap<>();
 		model.put("request", request);
 		model.put("periods", periods.getIntradayPeriodCodes());

@@ -26,6 +26,20 @@ public class IteratorStubTest {
 	}
 	
 	@Test
+	public void testCtor2() {
+		service = new IteratorStub<>(data1, true);
+		data1.remove(3); // shouldn't affect the iterator
+		data1.remove(2);
+		data1.remove(1);
+		
+		assertEquals(Integer.valueOf( 1), service.next());
+		assertEquals(Integer.valueOf( 2), service.next());
+		assertEquals(Integer.valueOf( 5), service.next());
+		assertEquals(Integer.valueOf(12), service.next());
+		assertEquals(Integer.valueOf(19), service.next());
+	}
+	
+	@Test
 	public void testIterate() {
 		assertTrue(service.hasNext());
 		assertEquals(Integer.valueOf( 1), service.next());
@@ -41,6 +55,33 @@ public class IteratorStubTest {
 	}
 	
 	@Test
+	public void testClosed() {
+		assertFalse(service.closed());
+		
+		service.close();
+		
+		assertTrue(service.closed());
+	}
+	
+	@Test
+	public void testHasNext_ThrowsIfClosed() {
+		service.close();
+		eex.expect(IllegalStateException.class);
+		eex.expectMessage("Iterator already closed");
+		
+		service.hasNext();
+	}
+	
+	@Test
+	public void testNext_ThrowsIfClosed() {
+		service.close();
+		eex.expect(IllegalStateException.class);
+		eex.expectMessage("Iterator already closed");
+		
+		service.next();
+	}
+	
+	@Test
 	public void testNext_ThrowsIfNoMoreData() {
 		service.next();
 		service.next();
@@ -52,13 +93,16 @@ public class IteratorStubTest {
 		service.next();
 	}
 
+	@SuppressWarnings("resource")
 	@Test
 	public void testEquals() {
+		IteratorStub<?> it1 = new IteratorStub<>(data2); it1.close();
 		assertTrue(service.equals(service));
 		assertTrue(service.equals(new IteratorStub<>(data2)));
 		assertFalse(service.equals(this));
 		assertFalse(service.equals(null));
 		assertFalse(service.equals(new IteratorStub<>(data3)));
+		assertFalse(service.equals(it1)); // closed
 	}
 
 }

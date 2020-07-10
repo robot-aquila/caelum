@@ -2,7 +2,6 @@ package ru.prolib.caelum.backnode.mvc;
 
 import static org.junit.Assert.*;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 
@@ -13,7 +12,7 @@ import org.junit.rules.ExpectedException;
 
 import ru.prolib.caelum.aggregator.kafka.KafkaTuple;
 import ru.prolib.caelum.aggregator.kafka.Tuple;
-import ru.prolib.caelum.core.CloseableIteratorStub;
+import ru.prolib.caelum.core.IteratorStub;
 import ru.prolib.caelum.core.ITuple;
 import ru.prolib.caelum.core.TupleType;
 
@@ -33,17 +32,17 @@ public class TupleMvcAdapterIteratorTest {
 	
 	@Rule
 	public ExpectedException eex = ExpectedException.none();
-	CloseableIteratorStub<ITuple> iterator;
+	IteratorStub<ITuple> iterator;
 	TupleMvcAdapterIterator service;
 
 	@Before
 	public void setUp() throws Exception {
-		iterator = new CloseableIteratorStub<>(new ArrayList<>(Arrays.asList(
+		iterator = new IteratorStub<>(Arrays.asList(
 				T(1000L, 25, 27, 23, 28, 100),
 				T(2000L, 28, 30, 24, 27, 200),
 				T(3000L, 31, 31, 28, 30, 150),
 				T(4000L, 33, 35, 31, 35, 300)
-			)));
+			), true);
 		service = new TupleMvcAdapterIterator(iterator);
 	}
 	

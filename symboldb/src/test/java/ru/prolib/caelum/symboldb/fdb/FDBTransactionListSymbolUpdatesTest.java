@@ -1,7 +1,6 @@
 package ru.prolib.caelum.symboldb.fdb;
 
-import static org.easymock.EasyMock.createStrictControl;
-import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
@@ -20,7 +19,7 @@ import com.apple.foundationdb.async.AsyncIterable;
 import com.apple.foundationdb.subspace.Subspace;
 import com.apple.foundationdb.tuple.Tuple;
 
-import ru.prolib.caelum.core.CloseableIteratorStub;
+import ru.prolib.caelum.core.IteratorStub;
 import ru.prolib.caelum.core.ICloseableIterator;
 import ru.prolib.caelum.symboldb.SymbolUpdate;
 
@@ -72,11 +71,11 @@ public class FDBTransactionListSymbolUpdatesTest {
 		ICloseableIterator<SymbolUpdate> actual = service.apply(trMock);
 		
 		control.verify();
-		ICloseableIterator<SymbolUpdate> expected = new CloseableIteratorStub<>(new ArrayList<>(Arrays.asList(
+		ICloseableIterator<SymbolUpdate> expected = new IteratorStub<>(Arrays.asList(
 				new SymbolUpdate("barak", 17829L, toMap(5, "goo", 6, "moo", 7, "gap")),
 				new SymbolUpdate("barak", 17950L, toMap(1, "foo", 2, "bar", 3, "zoo")),
 				new SymbolUpdate("barak", 17980L, toMap(5, "ups"))
-			)));
+			), true);
 		assertEquals(expected, actual);
 	}
 	

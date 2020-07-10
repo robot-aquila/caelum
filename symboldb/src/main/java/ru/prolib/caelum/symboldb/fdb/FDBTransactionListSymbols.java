@@ -11,7 +11,7 @@ import com.apple.foundationdb.Range;
 import com.apple.foundationdb.Transaction;
 import com.apple.foundationdb.async.AsyncIterator;
 
-import ru.prolib.caelum.core.CloseableIteratorStub;
+import ru.prolib.caelum.core.IteratorStub;
 import ru.prolib.caelum.core.ICloseableIterator;
 import ru.prolib.caelum.symboldb.CategorySymbol;
 import ru.prolib.caelum.symboldb.SymbolListRequest;
@@ -58,7 +58,7 @@ public class FDBTransactionListSymbols extends FDBTransaction<ICloseableIterator
 				}
 			}
 		}
-		return new CloseableIteratorStub<>(result);
+		return new IteratorStub<>(result);
 	}
 	
 	@Override

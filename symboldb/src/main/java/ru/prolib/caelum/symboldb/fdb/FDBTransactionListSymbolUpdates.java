@@ -10,7 +10,7 @@ import com.apple.foundationdb.KeyValue;
 import com.apple.foundationdb.Transaction;
 import com.apple.foundationdb.async.AsyncIterator;
 
-import ru.prolib.caelum.core.CloseableIteratorStub;
+import ru.prolib.caelum.core.IteratorStub;
 import ru.prolib.caelum.core.ICloseableIterator;
 import ru.prolib.caelum.symboldb.SymbolUpdate;
 
@@ -29,7 +29,7 @@ public class FDBTransactionListSymbolUpdates extends FDBTransaction<ICloseableIt
 		while ( it.hasNext() ) {
 			result.add(schema.unpackSymbolUpdate(it.next()));
 		}
-		return new CloseableIteratorStub<>(result);
+		return new IteratorStub<>(result);
 	}
 	
 	@Override

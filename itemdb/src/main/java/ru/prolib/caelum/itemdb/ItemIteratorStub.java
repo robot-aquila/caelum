@@ -1,30 +1,34 @@
 package ru.prolib.caelum.itemdb;
 
-import java.util.NoSuchElementException;
+import java.util.List;
 
 import ru.prolib.caelum.core.IItem;
 import ru.prolib.caelum.core.IteratorStub;
 
 public class ItemIteratorStub extends IteratorStub<IItem> implements IItemIterator {
-
-	@Override
-	public boolean hasNext() {
-		return false;
+	protected final ItemDataResponse metaData;
+	
+	public ItemIteratorStub(List<IItem> data, ItemDataResponse meta_data, boolean make_copy) {
+		super(data, make_copy);
+		this.metaData = meta_data;
 	}
-
-	@Override
-	public IItem next() {
-		throw new NoSuchElementException();
+	
+	public ItemIteratorStub(ItemDataResponse meta_data) {
+		super();
+		this.metaData = meta_data;
 	}
-
-	@Override
-	public void close() throws Exception {
-
+	
+	public ItemIteratorStub() {
+		this(null);
 	}
 
 	@Override
 	public ItemDataResponse getMetaData() {
-		throw new IllegalStateException("No metadata");
+		if ( metaData == null ) {
+			throw new IllegalStateException("No metadata");
+		} else {
+			return metaData;
+		}
 	}
 
 }

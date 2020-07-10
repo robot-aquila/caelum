@@ -17,7 +17,7 @@ import com.apple.foundationdb.async.AsyncIterable;
 import com.apple.foundationdb.subspace.Subspace;
 import com.apple.foundationdb.tuple.Tuple;
 
-import ru.prolib.caelum.core.CloseableIteratorStub;
+import ru.prolib.caelum.core.IteratorStub;
 import ru.prolib.caelum.core.ICloseableIterator;
 
 @SuppressWarnings("unchecked")
@@ -55,8 +55,7 @@ public class FDBTransactionListCategoriesTest {
 		ICloseableIterator<String> actual = service.apply(trMock);
 		
 		control.verify();
-		ICloseableIterator<String> expected =
-				new CloseableIteratorStub<>(new ArrayList<>(Arrays.asList("bumba", "gamba", "toper", "lisar")));
+		IteratorStub<String> expected = new IteratorStub<>(Arrays.asList("bumba", "gamba", "toper", "lisar"), true);
 		assertEquals(expected, actual);
 	}
 

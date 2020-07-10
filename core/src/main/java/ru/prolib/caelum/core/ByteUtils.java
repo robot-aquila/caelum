@@ -10,6 +10,13 @@ public class ByteUtils {
 	public boolean isLongCompact(long value, long volume) {
 		return (0xFFFFFFFFFFFFFFC0L & volume) == 0L && (0xFFFFFFFFFFFF0000L & value) == 0L;
 	}
+	
+	public boolean isNumberOfDecimalsFits4Bits(int decimals) {
+		if ( decimals < 0 || decimals > 255 ) {
+			throw new IllegalArgumentException("Number of decimals must be in range 0-255 but: " + decimals);
+		}
+		return decimals <= 15;
+	}
 
 	/**
 	 * Convert long value to big endian byte array.

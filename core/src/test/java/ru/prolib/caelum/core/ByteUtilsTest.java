@@ -3,9 +3,12 @@ package ru.prolib.caelum.core;
 import static org.junit.Assert.*;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 public class ByteUtilsTest {
+	@Rule public ExpectedException eex = ExpectedException.none();
 	ByteUtils service;
 	
 	@Before
@@ -22,9 +25,39 @@ public class ByteUtilsTest {
 		assertFalse(service.isLongCompact(251, 9127778992L));
 		assertFalse(service.isLongCompact(65536, 13));
 		assertFalse(service.isLongCompact(1238, 64));
+		assertFalse(service.isLongCompact(250L, 100L));
 		assertTrue(service.isLongCompact(251, 13));
 		assertTrue(service.isLongCompact(0, 0));
 		assertTrue(service.isLongCompact(65535, 63));
+	}
+	
+	@Test
+	public void testIsNumberOfDecimalsFits4Bits() {
+		assertTrue(service.isNumberOfDecimalsFits4Bits( 0));
+		assertTrue(service.isNumberOfDecimalsFits4Bits( 3));
+		assertTrue(service.isNumberOfDecimalsFits4Bits( 9));
+		assertTrue(service.isNumberOfDecimalsFits4Bits(12));
+		assertTrue(service.isNumberOfDecimalsFits4Bits(13));
+		assertTrue(service.isNumberOfDecimalsFits4Bits(15));
+		assertFalse(service.isNumberOfDecimalsFits4Bits(16));
+		assertFalse(service.isNumberOfDecimalsFits4Bits(200));
+		assertFalse(service.isNumberOfDecimalsFits4Bits(255));
+	}
+	
+	@Test
+	public void testIsNumberOfDecimalsFits4Bits_ThrowsIfNegativeDecimals() {
+		eex.expect(IllegalArgumentException.class);
+		eex.expectMessage("Number of decimals must be in range 0-255 but: -13");
+		
+		service.isNumberOfDecimalsFits4Bits(-13);
+	}
+	
+	@Test
+	public void testIsNumberOfDecimalsFits4Bits_ThrowsIfGreaterThan255() {
+		eex.expect(IllegalArgumentException.class);
+		eex.expectMessage("Number of decimals must be in range 0-255 but: 12000");
+		
+		service.isNumberOfDecimalsFits4Bits(12000);
 	}
 
 	@Test

@@ -19,7 +19,7 @@ import com.apple.foundationdb.async.AsyncIterable;
 import com.apple.foundationdb.subspace.Subspace;
 import com.apple.foundationdb.tuple.Tuple;
 
-import ru.prolib.caelum.core.CloseableIteratorStub;
+import ru.prolib.caelum.core.IteratorStub;
 import ru.prolib.caelum.core.ICloseableIterator;
 import ru.prolib.caelum.symboldb.SymbolListRequest;
 
@@ -56,7 +56,7 @@ public class FDBTransactionListSymbolsTest {
 		ICloseableIterator<String> actual = service.apply(trMock);
 		
 		control.verify();
-		ICloseableIterator<String> expected = new CloseableIteratorStub<>(Arrays.asList("cat1@bambr"));
+		ICloseableIterator<String> expected = new IteratorStub<>(Arrays.asList("cat1@bambr"));
 		assertEquals(expected, actual);
 		
 	}
@@ -76,8 +76,8 @@ public class FDBTransactionListSymbolsTest {
 		ICloseableIterator<String> actual = service.apply(trMock);
 		
 		control.verify();
-		ICloseableIterator<String> expected =
-				new CloseableIteratorStub<>(Arrays.asList("cat1@bambr", "cat1@chuwe", "cat1@garbo", "cat1@alpha"));
+		IteratorStub<String> expected =
+				new IteratorStub<>(Arrays.asList("cat1@bambr", "cat1@chuwe", "cat1@garbo", "cat1@alpha"));
 		assertEquals(expected, actual);
 	}
 	
@@ -101,8 +101,7 @@ public class FDBTransactionListSymbolsTest {
 		ICloseableIterator<String> actual = service.apply(trMock);
 		
 		control.verify();
-		ICloseableIterator<String> expected =
-				new CloseableIteratorStub<>(Arrays.asList("cat1@chuwe", "cat1@garbo", "cat1@alpha"));
+		IteratorStub<String> expected = new IteratorStub<>(Arrays.asList("cat1@chuwe", "cat1@garbo", "cat1@alpha"));
 		assertEquals(expected, actual);
 	}
 	
@@ -126,8 +125,7 @@ public class FDBTransactionListSymbolsTest {
 		ICloseableIterator<String> actual = service.apply(trMock);
 
 		control.verify();
-		ICloseableIterator<String> expected =
-				new CloseableIteratorStub<>(Arrays.asList("cat1@bambr", "cat1@chuwe", "cat1@garbo"));
+		IteratorStub<String> expected = new IteratorStub<>(Arrays.asList("cat1@bambr", "cat1@chuwe", "cat1@garbo"));
 		assertEquals(expected, actual);
 	}
 	

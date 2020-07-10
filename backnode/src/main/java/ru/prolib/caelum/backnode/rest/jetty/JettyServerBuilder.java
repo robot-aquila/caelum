@@ -8,12 +8,11 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.servlet.ServletContainer;
 
-import com.fasterxml.jackson.core.JsonFactory;
-
 import ru.prolib.caelum.backnode.BacknodeConfig;
 import ru.prolib.caelum.backnode.CommonResourceConfig;
 import ru.prolib.caelum.backnode.NodeService;
 import ru.prolib.caelum.backnode.mvc.Freemarker;
+import ru.prolib.caelum.backnode.mvc.StreamFactory;
 import ru.prolib.caelum.backnode.rest.IRestServiceBuilder;
 import ru.prolib.caelum.core.IService;
 import ru.prolib.caelum.core.Periods;
@@ -29,7 +28,7 @@ public class JettyServerBuilder implements IRestServiceBuilder {
 	}
 	
 	protected Object createComponent(ICaelum caelum) {
-		return new NodeService(caelum, new Freemarker(), new JsonFactory(), Periods.getInstance());
+		return new NodeService(caelum, new Freemarker(), new StreamFactory(), Periods.getInstance());
 	}
 	
 	protected IService createServer(String host, int port, Object component) {
