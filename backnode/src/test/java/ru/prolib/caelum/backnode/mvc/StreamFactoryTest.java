@@ -21,6 +21,7 @@ import ru.prolib.caelum.core.ITuple;
 import ru.prolib.caelum.itemdb.IItemDataRequest;
 import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.symboldb.SymbolListRequest;
+import ru.prolib.caelum.symboldb.SymbolUpdate;
 
 @SuppressWarnings("unchecked")
 public class StreamFactoryTest {
@@ -108,6 +109,21 @@ public class StreamFactoryTest {
 		assertSame(itMock, x.getIterator());
 		assertSame(requestMock, x.getRequest());
 		assertSame(formatterMock, x.getFormatter());
+	}
+	
+	@Test
+	public void testSymbolUpdatesToJson() {
+		ICloseableIterator<SymbolUpdate> itMock = control.createMock(ICloseableIterator.class);
+		
+		StreamingOutput actual = service.symbolUpdatesToJson(itMock, "foo@bar");
+		
+		assertNotNull(actual);
+		assertThat(actual, is(instanceOf(StreamSymbolUpdatesToJson.class)));
+		StreamSymbolUpdatesToJson x = (StreamSymbolUpdatesToJson) actual;
+		assertSame(jsonFactoryMock, x.getJsonFactory());
+		assertSame(clockMock, x.getClock());
+		assertSame(itMock, x.getIterator());
+		assertEquals("foo@bar", x.getRequest());
 	}
 
 }

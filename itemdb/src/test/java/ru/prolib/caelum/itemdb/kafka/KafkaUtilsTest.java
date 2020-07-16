@@ -18,12 +18,16 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.OffsetAndTimestamp;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.utils.Utils;
 import org.apache.kafka.streams.KeyValue;
+import org.apache.log4j.BasicConfigurator;
 import org.easymock.IMocksControl;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -39,6 +43,12 @@ public class KafkaUtilsTest {
 	static {
 		SYMBOL = "bumba";
 		HASH_CODE = Utils.toPositive(Utils.murmur2(KafkaItemSerdes.keySerde().serializer().serialize("topic", SYMBOL)));
+	}
+	
+	@BeforeClass
+	public static void setUpBeforeClass() {
+		BasicConfigurator.resetConfiguration();
+		BasicConfigurator.configure();
 	}
 	
 	@Rule
@@ -207,6 +217,17 @@ public class KafkaUtilsTest {
 		conf.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
 
 		KafkaConsumer<String, KafkaItem> actual = service.createConsumer(conf);
+		
+		assertNotNull(actual);
+	}
+	
+	@Test
+	public void testCreateProducer() {
+		Properties conf = new Properties();
+		conf.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:8082");
+		conf.put(ProducerConfig.ACKS_CONFIG, "all");
+		
+		KafkaProducer<String, KafkaItem> actual = service.createProducer(conf);
 		
 		assertNotNull(actual);
 	}

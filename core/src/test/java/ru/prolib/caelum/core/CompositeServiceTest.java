@@ -8,15 +8,23 @@ import java.util.LinkedList;
 
 import static org.easymock.EasyMock.*;
 
+import org.apache.log4j.BasicConfigurator;
 import org.easymock.IMocksControl;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 public class CompositeServiceTest {
-	@Rule
-	public ExpectedException eex = ExpectedException.none();
+	
+	@BeforeClass
+	public static void setUpBeforeClass() {
+		BasicConfigurator.resetConfiguration();
+		BasicConfigurator.configure();
+	}
+	
+	@Rule public ExpectedException eex = ExpectedException.none();
 	IMocksControl control;
 	IService serviceMock1, serviceMock2, serviceMock3;
 	CompositeService service;

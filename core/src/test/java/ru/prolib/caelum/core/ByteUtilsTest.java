@@ -2,6 +2,8 @@ package ru.prolib.caelum.core;
 
 import static org.junit.Assert.*;
 
+import java.math.BigDecimal;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -172,6 +174,13 @@ public class ByteUtilsTest {
 		
 		byte source4[] = { (byte)0xF2,(byte)0x1E,(byte)0xEE,(byte)0xFF,(byte)0x03,(byte)0xE8,(byte)0xF7,(byte)0xD5 };
 		assertEquals(0xF21EEEFF03E8F7D5L, service.bytesToLong(source4, 0, 8));
+	}
+	
+	@Test
+	public void testCentsToLong_FromBigDecimal() {
+		assertEquals(1312000L, service.centsToLong(new BigDecimal("13.12000")));
+		assertEquals( 200000L, service.centsToLong(new BigDecimal("20.0000")));
+		assertEquals(   4000L, service.centsToLong(new BigDecimal("4000")));
 	}
 
 }

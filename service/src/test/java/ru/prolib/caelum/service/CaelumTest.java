@@ -12,6 +12,7 @@ import ru.prolib.caelum.aggregator.AggregatedDataRequest;
 import ru.prolib.caelum.aggregator.kafka.KafkaAggregatorService;
 import ru.prolib.caelum.core.ICloseableIterator;
 import ru.prolib.caelum.core.ITuple;
+import ru.prolib.caelum.core.Item;
 import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.itemdb.IItemDatabaseService;
 import ru.prolib.caelum.itemdb.ItemDataRequest;
@@ -26,6 +27,7 @@ public class CaelumTest {
 	KafkaAggregatorService aggrSvcMock;
 	IItemDatabaseService itemDbSvcMock;
 	ISymbolService symbolSvcMock;
+	ISymbolCache symbolCacheMock;
 	Caelum service;
 
 	@Before
@@ -34,7 +36,16 @@ public class CaelumTest {
 		aggrSvcMock = control.createMock(KafkaAggregatorService.class);
 		itemDbSvcMock = control.createMock(IItemDatabaseService.class);
 		symbolSvcMock = control.createMock(ISymbolService.class);
-		service = new Caelum(aggrSvcMock, itemDbSvcMock, symbolSvcMock);
+		symbolCacheMock = control.createMock(ISymbolCache.class);
+		service = new Caelum(aggrSvcMock, itemDbSvcMock, symbolSvcMock, symbolCacheMock);
+	}
+	
+	@Test
+	public void testGetters() {
+		assertSame(aggrSvcMock, service.getAggregatorService());
+		assertSame(itemDbSvcMock, service.getItemDatabaseService());
+		assertSame(symbolSvcMock, service.getSymbolService());
+		assertSame(symbolCacheMock, service.getSymbolCache());
 	}
 	
 	@Test
@@ -56,7 +67,7 @@ public class CaelumTest {
 		
 		control.verify();
 	}
-
+	
 	@Test
 	public void testFetch_AggrDataRequest() {
 		AggregatedDataRequest requestMock = control.createMock(AggregatedDataRequest.class);
@@ -89,6 +100,18 @@ public class CaelumTest {
 		control.replay();
 		
 		assertSame(resultMock, service.fetch(requestMock));
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testRegisterItem() {
+		Item item = Item.ofDecimax15("foo", 15739304L, 15000, 2, 1000, 4);
+		symbolCacheMock.registerSymbol("foo");
+		itemDbSvcMock.registerItem(item);
+		control.replay();
+		
+		service.registerItem(item);
 		
 		control.verify();
 	}

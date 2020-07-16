@@ -3,9 +3,12 @@ package ru.prolib.caelum.itemdb.kafka;
 import java.util.Arrays;
 
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 
 import ru.prolib.caelum.itemdb.IItemIterator;
+import ru.prolib.caelum.core.IItem;
 import ru.prolib.caelum.itemdb.IItemDatabaseService;
 import ru.prolib.caelum.itemdb.ItemDataRequest;
 import ru.prolib.caelum.itemdb.ItemDataRequestContinue;
@@ -13,19 +16,24 @@ import ru.prolib.caelum.itemdb.ItemDatabaseConfig;
 
 public class KafkaItemDatabaseService implements IItemDatabaseService {
 	private final KafkaItemDatabaseConfig config;
+	private final KafkaProducer<String, KafkaItem> producer;
 	private final KafkaUtils utils;
 	
-	KafkaItemDatabaseService(KafkaItemDatabaseConfig config, KafkaUtils utils) {
+	KafkaItemDatabaseService(KafkaItemDatabaseConfig config,
+			KafkaProducer<String, KafkaItem> producer,
+			KafkaUtils utils)
+	{
 		this.config = config;
+		this.producer = producer;
 		this.utils = utils;
 	}
 	
-	public KafkaItemDatabaseService(KafkaItemDatabaseConfig config) {
-		this(config, KafkaUtils.getInstance());
+	public KafkaItemDatabaseService(KafkaItemDatabaseConfig config, KafkaProducer<String, KafkaItem> producer) {
+		this(config, producer, KafkaUtils.getInstance());
 	}
 	
 	private KafkaConsumer<String, KafkaItem> createConsumer() {
-		return utils.createConsumer(config.getKafkaProperties());
+		return utils.createConsumer(config.getConsumerKafkaProperties());
 	}
 	
 	private long getLimit(ItemDataRequest request) {
@@ -38,6 +46,14 @@ public class KafkaItemDatabaseService implements IItemDatabaseService {
 	
 	public KafkaItemDatabaseConfig getConfig() {
 		return config;
+	}
+	
+	public KafkaProducer<String, KafkaItem> getProducer() {
+		return producer;
+	}
+	
+	public KafkaUtils getUtils() {
+		return utils;
 	}
 
 	@Override
@@ -66,6 +82,13 @@ public class KafkaItemDatabaseService implements IItemDatabaseService {
 		} else {
 			return utils.createIteratorStub(consumer, item_info, getLimit(request), request.getTo());
 		}
+	}
+
+	@Override
+	public void registerItem(IItem item) {
+		producer.send(new ProducerRecord<>(config.getSourceTopic(), null, item.getTime(), item.getSymbol(),
+			new KafkaItem(item.getValue(), item.getDecimals(), item.getVolume(), item.getVolumeDecimals(),
+					item.getType())));
 	}
 
 }

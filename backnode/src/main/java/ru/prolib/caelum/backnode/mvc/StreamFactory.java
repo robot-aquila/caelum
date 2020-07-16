@@ -13,6 +13,7 @@ import ru.prolib.caelum.core.ITuple;
 import ru.prolib.caelum.itemdb.IItemDataRequest;
 import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.symboldb.SymbolListRequest;
+import ru.prolib.caelum.symboldb.SymbolUpdate;
 
 public class StreamFactory {
 	private final JsonFactory jsonFactory;
@@ -55,6 +56,10 @@ public class StreamFactory {
 	
 	public StreamingOutput tuplesToJson(ICloseableIterator<ITuple> iterator, AggregatedDataRequest request) {
 		return new StreamTuplesToJson(jsonFactory, iterator, request, formatter, clock);
+	}
+	
+	public StreamingOutput symbolUpdatesToJson(ICloseableIterator<SymbolUpdate> iterator, String symbol) {
+		return new StreamSymbolUpdatesToJson(jsonFactory, iterator, symbol, clock);
 	}
 
 }

@@ -1,5 +1,7 @@
 package ru.prolib.caelum.core;
 
+import java.math.BigDecimal;
+
 public class ByteUtils {
 	private static final ByteUtils instance = new ByteUtils();
 	
@@ -74,6 +76,10 @@ public class ByteUtils {
 			result |= (bytes[offset] & 0xFF);
 		}
 		return result;
+	}
+	
+	public long centsToLong(BigDecimal value) {
+		return value.multiply(BigDecimal.TEN.pow(value.scale())).longValueExact();
 	}
 	
 }

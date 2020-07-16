@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.OffsetAndTimestamp;
+import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.utils.Utils;
 
@@ -72,5 +73,9 @@ public class KafkaUtils {
 				KafkaItemSerdes.itemSerde().deserializer());
 	}
 
+	public KafkaProducer<String, KafkaItem> createProducer(Properties props) {
+		return new KafkaProducer<>(props, KafkaItemSerdes.keySerde().serializer(),
+				KafkaItemSerdes.itemSerde().serializer());
+	}
 
 }

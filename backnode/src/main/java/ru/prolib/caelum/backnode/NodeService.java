@@ -3,21 +3,28 @@ package ru.prolib.caelum.backnode;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +35,9 @@ import ru.prolib.caelum.backnode.mvc.ItemMvcAdapterIterator;
 import ru.prolib.caelum.backnode.mvc.StreamFactory;
 import ru.prolib.caelum.backnode.mvc.TupleMvcAdapter;
 import ru.prolib.caelum.backnode.mvc.TupleMvcAdapterIterator;
+import ru.prolib.caelum.core.ByteUtils;
 import ru.prolib.caelum.core.ICloseableIterator;
+import ru.prolib.caelum.core.Item;
 import ru.prolib.caelum.core.IteratorStub;
 import ru.prolib.caelum.core.Period;
 import ru.prolib.caelum.core.Periods;
@@ -37,6 +46,8 @@ import ru.prolib.caelum.itemdb.ItemIteratorStub;
 import ru.prolib.caelum.itemdb.ItemDataRequest;
 import ru.prolib.caelum.itemdb.ItemDataRequestContinue;
 import ru.prolib.caelum.service.ICaelum;
+import ru.prolib.caelum.symboldb.SymbolListRequest;
+import ru.prolib.caelum.symboldb.SymbolUpdate;
 
 @Path("/api/v1/")
 @Produces(MediaType.APPLICATION_JSON)
@@ -50,12 +61,19 @@ public class NodeService {
 	private final Freemarker templates;
 	private final StreamFactory streamFactory;
 	private final Periods periods;
+	private final ByteUtils byteUtils;
 	
-	public NodeService(ICaelum caelum, Freemarker templates, StreamFactory streamFactory, Periods periods) {
+	public NodeService(ICaelum caelum,
+			Freemarker templates,
+			StreamFactory streamFactory,
+			Periods periods,
+			ByteUtils byteUtils)
+	{
 		this.caelum = caelum;
 		this.templates = templates;
 		this.streamFactory = streamFactory;
 		this.periods = periods;
+		this.byteUtils = byteUtils;
 	}
 	
 	public ICaelum getCaelum() {
@@ -74,11 +92,36 @@ public class NodeService {
 		return periods;
 	}
 	
+	public ByteUtils getByteUtils() {
+		return byteUtils;
+	}
+	
+	private String validateSymbol(String symbol) {
+		if ( symbol == null || symbol.length() == 0 ) {
+			throw new BadRequestException("Symbol cannot be null");
+		}
+		return symbol;
+	}
+	
+	private String validateCategory(String category) {
+		if ( category == null || category.length() == 0 ) {
+			throw new BadRequestException("Category cannot be null");
+		}
+		return category;
+	}
+	
 	private Period validatePeriod(Period period) {
 		if ( period == null ) {
 			period = DEFAULT_PERIOD;
 		}
 		return period;
+	}
+	
+	private Long validateTime(Long time) {
+		if ( time == null || time < 0 ) {
+			throw new BadRequestException("Time cannot be null or negative but: " + time);
+		}
+		return time;
 	}
 	
 	private Long validateFrom(Long from) {
@@ -165,10 +208,33 @@ public class NodeService {
 		return new ItemDataRequestContinue(symbol, offset, magic, to, limit);
 	}
 	
+	private SymbolListRequest toSymbolListRequest(String category, String afterSymbol, Integer limit) {
+		return new SymbolListRequest(validateCategory(category), afterSymbol, validateLimit(limit));
+	}
+	
+	private Result<Void> success() {
+		return new Result<Void>(System.currentTimeMillis(), null);
+	}
+	
+	private long toLong(BigDecimal value) {
+		try {
+			return byteUtils.centsToLong(value);
+		} catch ( ArithmeticException e ) {
+			throw new BadRequestException("Unsupported decimal size: " + value.toPlainString(), e);
+		}
+	}
+	
+	private byte toNumberOfDecimals(BigDecimal value) {
+		if ( byteUtils.isNumberOfDecimalsFits4Bits(value.scale()) == false ) {
+			throw new BadRequestException("Unsupported number of decimals: " + value.toPlainString());
+		}
+		return (byte) value.scale();
+	}
+	
 	@GET
 	@Path("/ping")
 	public Result<Void> ping() {
-		return new Result<Void>(System.currentTimeMillis(), null);
+		return success();
 	}
 	
 	@GET
@@ -202,18 +268,81 @@ public class NodeService {
 				.entity(streamFactory.itemsToJson(caelum.fetch(request), request))
 				.build();
 		} else {
-			ItemDataRequestContinue request = this.toItemDataRequestContinue(symbol, from_offset, magic, to, limit);
+			ItemDataRequestContinue request = toItemDataRequestContinue(symbol, from_offset, magic, to, limit);
 			return Response.status(200)
 				.entity(streamFactory.itemsToJson(caelum.fetch(request), request))
 				.build();
 		}
 	}
 	
+	@PUT
+	@Path("/item")
+	public Result<Void> item(
+			@QueryParam("symbol") @NotNull final String symbol,
+			@QueryParam("time") @NotNull final Long time,
+			@QueryParam("value") @NotNull final BigDecimal bd_value,
+			@QueryParam("volume") @NotNull final BigDecimal bd_volume)
+	{
+		caelum.registerItem(Item.ofDecimax15(validateSymbol(symbol), validateTime(time),
+				toLong(bd_value), toNumberOfDecimals(bd_value),
+				toLong(bd_volume), toNumberOfDecimals(bd_volume)));
+		return success();
+	}
+	
 	@GET
 	@Path("/categories")
 	public Response categories() {
-		caelum.fetchCategories();
-		return null;
+		return Response.status(200)
+			.entity(streamFactory.categoriesToJson(caelum.fetchCategories()))
+			.build();
+	}
+	
+	@GET
+	@Path("/symbols")
+	public Response symbols(
+			@QueryParam("category") @NotNull final String category,
+			@QueryParam("after_symbol") final String after_symbol,
+			@QueryParam("limit") final Integer limit)
+	{
+		SymbolListRequest request = toSymbolListRequest(category, after_symbol, limit);
+		return Response.status(200)
+			.entity(streamFactory.symbolsToJson(caelum.fetchSymbols(request), request))
+			.build();
+	}
+	
+	@GET
+	@Path("/symbol/updates")
+	public Response symbolUpdates(@QueryParam("symbol") @NotNull final String symbol) {
+		return Response.status(200)
+			.entity(streamFactory.symbolUpdatesToJson(caelum.fetchSymbolUpdates(validateSymbol(symbol)), symbol))
+			.build();
+	}
+	
+	@PUT
+	@Path("/symbol/update")
+	public Result<Void> symbolUpdate(@Context HttpServletRequest request) {
+		String symbol = null;
+		Long time = null;
+		Map<Integer, String> tokens = new LinkedHashMap<>();
+		Enumeration<String> param_list = request.getParameterNames();
+		while ( param_list.hasMoreElements() ) {
+			String param = param_list.nextElement(), value = request.getParameter(param);
+			if ( "symbol".equals(param) ) {
+				symbol = request.getParameter(param);
+			} else if ( "time".equals(param) ) {
+				time = Long.parseLong(request.getParameter(param));
+			} else if ( StringUtils.isNumeric(param) ) {
+				try {
+					tokens.put(Integer.parseInt(param), value);
+				} catch ( NumberFormatException e ) {
+					throw new BadRequestException("Illegal token: " + param);
+				}
+			} else {
+				throw new BadRequestException("Unknown parameter or parameter type: " + param);
+			}
+		}
+		caelum.registerSymbolUpdate(new SymbolUpdate(validateSymbol(symbol), validateTime(time), tokens));
+		return success(); 
 	}
 	
 	@GET
@@ -352,12 +481,6 @@ public class NodeService {
 //					.collect(Collectors.toList()))
 //			)
 //			.collect(Collectors.toList());
-//	}
-//	
-//	@GET
-//	@Path("/test/error")
-//	public void error() throws Exception {
-//		throw new Exception("Test error");
 //	}
 
 }

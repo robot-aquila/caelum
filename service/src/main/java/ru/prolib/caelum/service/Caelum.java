@@ -3,6 +3,7 @@ package ru.prolib.caelum.service;
 import ru.prolib.caelum.aggregator.AggregatedDataRequest;
 import ru.prolib.caelum.aggregator.IAggregatorService;
 import ru.prolib.caelum.core.ICloseableIterator;
+import ru.prolib.caelum.core.IItem;
 import ru.prolib.caelum.core.ITuple;
 import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.itemdb.IItemDatabaseService;
@@ -16,14 +17,17 @@ public class Caelum implements ICaelum {
 	private final IAggregatorService aggrService;
 	private final IItemDatabaseService itemDbService;
 	private final ISymbolService symbolService;
+	private final ISymbolCache symbolCache;
 	
 	public Caelum(IAggregatorService aggregator_service,
 			IItemDatabaseService itemdb_service,
-			ISymbolService symbol_service)
+			ISymbolService symbol_service,
+			ISymbolCache symbol_cache)
 	{
 		this.aggrService = aggregator_service;
 		this.itemDbService = itemdb_service;
 		this.symbolService = symbol_service;
+		this.symbolCache = symbol_cache;
 	}
 	
 	public IAggregatorService getAggregatorService() {
@@ -36,6 +40,10 @@ public class Caelum implements ICaelum {
 	
 	public ISymbolService getSymbolService() {
 		return symbolService;
+	}
+	
+	public ISymbolCache getSymbolCache() {
+		return symbolCache;
 	}
 	
 	@Override
@@ -61,6 +69,12 @@ public class Caelum implements ICaelum {
 	@Override
 	public IItemIterator fetch(ItemDataRequestContinue request) {
 		return itemDbService.fetch(request);
+	}
+	
+	@Override
+	public void registerItem(IItem item) {
+		symbolCache.registerSymbol(item.getSymbol());
+		itemDbService.registerItem(item);
 	}
 
 	@Override

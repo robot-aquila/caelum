@@ -36,6 +36,7 @@ public class CompositeService implements IService {
 		}
 		for ( IService service : registered ) {
 			try {
+				logger.debug("Starting service: {}", service);
 				service.start();
 				started.add(service);
 			} catch ( Throwable t ) {
@@ -52,7 +53,9 @@ public class CompositeService implements IService {
 		Throwable last_error = null;
 		while ( started.size() > 0 ) {
 			try {
-				started.removeLast().stop();
+				IService service = started.removeLast(); 
+				logger.debug("Stopping service: {}", service);
+				service.stop();
 			} catch ( Throwable t ) {
 				last_error = t;
 				logger.error("Unexpected exception: ", t);

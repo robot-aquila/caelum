@@ -13,6 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import ru.prolib.caelum.core.CompositeService;
+import ru.prolib.caelum.core.IItem;
 
 public class ItemDatabaseServiceBuilderTest {
 	
@@ -33,6 +34,11 @@ public class ItemDatabaseServiceBuilderTest {
 
 		@Override
 		public IItemIterator fetch(ItemDataRequestContinue request) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public void registerItem(IItem item) {
 			throw new UnsupportedOperationException();
 		}
 		

@@ -5,6 +5,8 @@ import static org.junit.Assert.*;
 import java.util.Arrays;
 
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 
 import static org.easymock.EasyMock.*;
@@ -13,6 +15,7 @@ import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 
+import ru.prolib.caelum.core.ItemType;
 import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.itemdb.ItemDataRequest;
 import ru.prolib.caelum.itemdb.ItemDataRequestContinue;
@@ -23,6 +26,7 @@ public class KafkaItemDatabaseServiceTest {
 	KafkaUtils utilsMock;
 	IItemIterator itMock;
 	KafkaConsumer<String, KafkaItem> consumerMock;
+	KafkaProducer<String, KafkaItem> producerMock;
 	KafkaItemDatabaseConfig config;
 	KafkaItemInfo ii;
 	TopicPartition tp;
@@ -34,20 +38,31 @@ public class KafkaItemDatabaseServiceTest {
 		utilsMock = control.createMock(KafkaUtils.class);
 		itMock = control.createMock(IItemIterator.class);
 		consumerMock = control.createMock(KafkaConsumer.class);
+		producerMock = control.createMock(KafkaProducer.class);
 		config = new KafkaItemDatabaseConfig();
 		ii = new KafkaItemInfo("caelum-item", 2, "zuzba-15", 1, 0L, 10000L);
 		tp = new TopicPartition("caelum-item", 1);
-		service = new KafkaItemDatabaseService(config, utilsMock);
+		service = new KafkaItemDatabaseService(config, producerMock, utilsMock);
 	}
 	
 	@Test
 	public void testGetters() {
 		assertSame(config, service.getConfig());
+		assertSame(producerMock, service.getProducer());
+		assertSame(utilsMock, service.getUtils());
+	}
+	
+	@Test
+	public void testGetters_Ctor2() {
+		service = new KafkaItemDatabaseService(config, producerMock);
+		assertSame(config, service.getConfig());
+		assertSame(producerMock, service.getProducer());
+		assertSame(KafkaUtils.getInstance(), service.getUtils());
 	}
 	
 	@Test
 	public void testFetch_InitialRequest_HasData_LimitFromRequest() {
-		expect(utilsMock.createConsumer(config.getKafkaProperties())).andReturn(consumerMock);
+		expect(utilsMock.createConsumer(config.getConsumerKafkaProperties())).andReturn(consumerMock);
 		expect(utilsMock.getItemInfo(consumerMock, "caelum-item", "zuzba-15")).andReturn(ii);
 		consumerMock.assign(Arrays.asList(tp));
 		expect(utilsMock.getOffset(consumerMock, tp, 27768919862L, 0L)).andReturn(450L);
@@ -62,7 +77,7 @@ public class KafkaItemDatabaseServiceTest {
 	
 	@Test
 	public void testFetch_InitialRequest_HasData_LimitOverridenFromConfig() {
-		expect(utilsMock.createConsumer(config.getKafkaProperties())).andReturn(consumerMock);
+		expect(utilsMock.createConsumer(config.getConsumerKafkaProperties())).andReturn(consumerMock);
 		expect(utilsMock.getItemInfo(consumerMock, "caelum-item", "zuzba-15")).andReturn(ii);
 		consumerMock.assign(Arrays.asList(tp));
 		expect(utilsMock.getOffset(consumerMock, tp, 27768919862L, 0L)).andReturn(450L);
@@ -78,7 +93,7 @@ public class KafkaItemDatabaseServiceTest {
 	@Test
 	public void testFetch_InitialRequest_NoData() {
 		ii = new KafkaItemInfo("caelum-item", 2, "zuzba-15", 1, null, null);
-		expect(utilsMock.createConsumer(config.getKafkaProperties())).andReturn(consumerMock);
+		expect(utilsMock.createConsumer(config.getConsumerKafkaProperties())).andReturn(consumerMock);
 		expect(utilsMock.getItemInfo(consumerMock, "caelum-item", "zuzba-15")).andReturn(ii);
 		expect(utilsMock.createIteratorStub(consumerMock, ii, 4000L, 30000000000L)).andReturn(itMock);
 		control.replay();
@@ -90,7 +105,7 @@ public class KafkaItemDatabaseServiceTest {
 
 	@Test
 	public void testFetch_ContinueRequest_HasData_LimitFromRequest() {
-		expect(utilsMock.createConsumer(config.getKafkaProperties())).andReturn(consumerMock);
+		expect(utilsMock.createConsumer(config.getConsumerKafkaProperties())).andReturn(consumerMock);
 		expect(utilsMock.getItemInfo(consumerMock, "caelum-item", "zuzba-15")).andReturn(ii);
 		consumerMock.assign(Arrays.asList(tp));
 		consumerMock.seek(tp, 425000L);
@@ -104,7 +119,7 @@ public class KafkaItemDatabaseServiceTest {
 	
 	@Test
 	public void testFetch_ContinueRequest_HasData_LimitOverridenFromConfig() {
-		expect(utilsMock.createConsumer(config.getKafkaProperties())).andReturn(consumerMock);
+		expect(utilsMock.createConsumer(config.getConsumerKafkaProperties())).andReturn(consumerMock);
 		expect(utilsMock.getItemInfo(consumerMock, "caelum-item", "zuzba-15")).andReturn(ii);
 		consumerMock.assign(Arrays.asList(tp));
 		consumerMock.seek(tp, 425000L);
@@ -119,12 +134,24 @@ public class KafkaItemDatabaseServiceTest {
 	@Test
 	public void testFetch_ContinueRequest_NoData() {
 		ii = new KafkaItemInfo("caelum-item", 2, "zuzba-15", 1, null, null);
-		expect(utilsMock.createConsumer(config.getKafkaProperties())).andReturn(consumerMock);
+		expect(utilsMock.createConsumer(config.getConsumerKafkaProperties())).andReturn(consumerMock);
 		expect(utilsMock.getItemInfo(consumerMock, "caelum-item", "zuzba-15")).andReturn(ii);
 		expect(utilsMock.createIteratorStub(consumerMock, ii, 2000L, 16789266L)).andReturn(itMock);
 		control.replay();
 		
 		assertSame(itMock, service.fetch(new ItemDataRequestContinue("zuzba-15", 425000L, "xxx", 16789266L, 2000L)));
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testRegisterItem() {
+		expect(producerMock.send(new ProducerRecord<>("caelum-item", null, 162829349L, "foo",
+				new KafkaItem(4500L, (byte)4, 100L, (byte)2, ItemType.LONG_REGULAR))))
+			.andReturn(null); // does not matter
+		control.replay();
+		
+		service.registerItem(ru.prolib.caelum.core.Item.ofDecimax15("foo", 162829349L, 4500, 4, 100, 2));
 		
 		control.verify();
 	}

@@ -14,6 +14,7 @@ import ru.prolib.caelum.backnode.NodeService;
 import ru.prolib.caelum.backnode.mvc.Freemarker;
 import ru.prolib.caelum.backnode.mvc.StreamFactory;
 import ru.prolib.caelum.backnode.rest.IRestServiceBuilder;
+import ru.prolib.caelum.core.ByteUtils;
 import ru.prolib.caelum.core.IService;
 import ru.prolib.caelum.core.Periods;
 import ru.prolib.caelum.service.ICaelum;
@@ -28,7 +29,8 @@ public class JettyServerBuilder implements IRestServiceBuilder {
 	}
 	
 	protected Object createComponent(ICaelum caelum) {
-		return new NodeService(caelum, new Freemarker(), new StreamFactory(), Periods.getInstance());
+		return new NodeService(caelum, new Freemarker(), new StreamFactory(),
+				Periods.getInstance(), ByteUtils.getInstance());
 	}
 	
 	protected IService createServer(String host, int port, Object component) {

@@ -1,9 +1,14 @@
 package ru.prolib.caelum.service;
 
 import static org.junit.Assert.*;
+
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadPoolExecutor;
+
 import static org.easymock.EasyMock.*;
 import static org.hamcrest.Matchers.*;
 
+import org.easymock.Capture;
 import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Rule;
@@ -27,6 +32,12 @@ public class CaelumBuilderTest {
 	KafkaAggregatorService aggrSvcMock;
 	IItemDatabaseService itemDbSvcMock;
 	ISymbolService symbolSvcMock;
+	java.util.concurrent.ExecutorService executorMock;
+	CompositeService servicesMock;
+	IItemDatabaseServiceBuilder itemDbSvcBuilderMock;
+	IAggregatorServiceBuilder aggrSvcBuilderMock;
+	ISymbolServiceBuilder symbolSvcBuilderMock;
+	ISymbolCache symbolCacheMock;
 	CaelumBuilder service, mockedService;
 
 	@Before
@@ -35,53 +46,20 @@ public class CaelumBuilderTest {
 		aggrSvcMock = control.createMock(KafkaAggregatorService.class);
 		itemDbSvcMock = control.createMock(IItemDatabaseService.class);
 		symbolSvcMock = control.createMock(ISymbolService.class);
+		executorMock = control.createMock(java.util.concurrent.ExecutorService.class);
+		servicesMock = control.createMock(CompositeService.class);
+		itemDbSvcBuilderMock = control.createMock(IItemDatabaseServiceBuilder.class);
+		aggrSvcBuilderMock = control.createMock(IAggregatorServiceBuilder.class);
+		symbolSvcBuilderMock = control.createMock(ISymbolServiceBuilder.class);
+		symbolCacheMock = control.createMock(ISymbolCache.class);
 		service = new CaelumBuilder();
-	}
-	
-	@Test
-	public void testBuild() {
-		assertSame(service, service.withAggregatorService(aggrSvcMock));
-		assertSame(service, service.withItemDatabaseService(itemDbSvcMock));
-		assertSame(service, service.withSymbolService(symbolSvcMock));
-		
-		ICaelum actual = service.build();
-		
-		assertNotNull(actual);
-		assertThat(actual, is(instanceOf(Caelum.class)));
-		Caelum o = (Caelum) actual;
-		assertSame(aggrSvcMock, o.getAggregatorService());
-		assertSame(itemDbSvcMock, o.getItemDatabaseService());
-		assertSame(symbolSvcMock, o.getSymbolService());
-	}
-	
-	@Test
-	public void testBuild_ThrowsIfAggregatorServiceWasNotDefined() {
-		eex.expect(NullPointerException.class);
-		eex.expectMessage("Aggregator service was not defined");
-		service.withItemDatabaseService(itemDbSvcMock);
-		service.withSymbolService(symbolSvcMock);
-		
-		service.build();
-	}
-	
-	@Test
-	public void testBuild_ThrowsIfItemDatabaseServiceWasNotDefined() {
-		eex.expect(NullPointerException.class);
-		eex.expectMessage("ItemDB service was not defined");
-		service.withAggregatorService(aggrSvcMock);
-		service.withSymbolService(symbolSvcMock);
-		
-		service.build();
-	}
-
-	@Test
-	public void testBuild_ThrowsIfSymbolServiceWasNotDefined() {
-		eex.expect(NullPointerException.class);
-		eex.expectMessage("Symbol service was not defined");
-		service.withAggregatorService(aggrSvcMock);
-		service.withItemDatabaseService(itemDbSvcMock);
-		
-		service.build();
+		mockedService = partialMockBuilder(CaelumBuilder.class)
+				.addMockedMethod("createItemDatabaseServiceBuilder")
+				.addMockedMethod("createAggregatorServiceBuilder")
+				.addMockedMethod("createSymbolServiceBuilder")
+				.addMockedMethod("createExecutor")
+				.addMockedMethod("createSymbolCache")
+				.createMock();
 	}
 	
 	@Test
@@ -109,28 +87,48 @@ public class CaelumBuilderTest {
 	}
 	
 	@Test
-	public void testBuild3() throws Exception {
-		CompositeService servicesMock = control.createMock(CompositeService.class);
-		IItemDatabaseServiceBuilder itemDbSvcBuilderMock = control.createMock(IItemDatabaseServiceBuilder.class);
-		IAggregatorServiceBuilder aggrSvcBuilderMock = control.createMock(IAggregatorServiceBuilder.class);
-		ISymbolServiceBuilder symbolSvcBuilderMock = control.createMock(ISymbolServiceBuilder.class);
-		service = partialMockBuilder(CaelumBuilder.class)
-				.addMockedMethod("createItemDatabaseServiceBuilder")
-				.addMockedMethod("createAggregatorServiceBuilder")
-				.addMockedMethod("createSymbolServiceBuilder")
-				.createMock();
-		expect(service.createAggregatorServiceBuilder()).andReturn(aggrSvcBuilderMock);
-		expect(aggrSvcBuilderMock.build("foo.props", "bar.props", servicesMock)).andReturn(aggrSvcMock);
-		expect(service.createItemDatabaseServiceBuilder()).andReturn(itemDbSvcBuilderMock);
-		expect(itemDbSvcBuilderMock.build("foo.props", "bar.props", servicesMock)).andReturn(itemDbSvcMock);
-		expect(service.createSymbolServiceBuilder()).andReturn(symbolSvcBuilderMock);
-		expect(symbolSvcBuilderMock.build("foo.props", "bar.props", servicesMock)).andReturn(symbolSvcMock);
+	public void testCreateExecutor() {
+		java.util.concurrent.ExecutorService actual = service.createExecutor();
+		
+		assertNotNull(actual);
+		assertThat(actual, is(instanceOf(ThreadPoolExecutor.class)));
+	}
+	
+	@Test
+	public void testCreateSymbolCache() {
+		Capture<ExecutorService> cap = newCapture();
+		expect(servicesMock.register(capture(cap))).andReturn(servicesMock);
 		control.replay();
-		replay(service);
 		
-		ICaelum actual = service.build("foo.props", "bar.props", servicesMock);
+		ISymbolCache actual = service.createSymbolCache(symbolSvcMock, servicesMock);
 		
-		verify(service);
+		control.verify();
+		assertNotNull(actual);
+		assertThat(actual, is(instanceOf(SymbolCache.class)));
+		java.util.concurrent.ExecutorService actual_executor = cap.getValue().getExecutor();
+		assertEquals(15000L, cap.getValue().getShutdownTimeout());
+		assertThat(actual_executor, is(instanceOf(ThreadPoolExecutor.class)));
+		SymbolCache x = (SymbolCache) actual;
+		assertSame(symbolSvcMock, x.getSymbolService());
+		assertSame(actual_executor, x.getExecutor());
+		assertThat(x.getMarkers(), is(instanceOf(ConcurrentHashMap.class)));
+	}
+	
+	@Test
+	public void testBuild3() throws Exception {
+		expect(mockedService.createSymbolServiceBuilder()).andReturn(symbolSvcBuilderMock);
+		expect(symbolSvcBuilderMock.build("foo.props", "bar.props", servicesMock)).andReturn(symbolSvcMock);
+		expect(mockedService.createAggregatorServiceBuilder()).andReturn(aggrSvcBuilderMock);
+		expect(aggrSvcBuilderMock.build("foo.props", "bar.props", servicesMock)).andReturn(aggrSvcMock);
+		expect(mockedService.createItemDatabaseServiceBuilder()).andReturn(itemDbSvcBuilderMock);
+		expect(itemDbSvcBuilderMock.build("foo.props", "bar.props", servicesMock)).andReturn(itemDbSvcMock);
+		expect(mockedService.createSymbolCache(symbolSvcMock, servicesMock)).andReturn(symbolCacheMock);
+		control.replay();
+		replay(mockedService);
+		
+		ICaelum actual = mockedService.build("foo.props", "bar.props", servicesMock);
+		
+		verify(mockedService);
 		control.verify();
 		assertNotNull(actual);
 		assertThat(actual, is(instanceOf(Caelum.class)));
@@ -138,6 +136,7 @@ public class CaelumBuilderTest {
 		assertSame(aggrSvcMock, x.getAggregatorService());
 		assertSame(itemDbSvcMock, x.getItemDatabaseService());
 		assertSame(symbolSvcMock, x.getSymbolService());
+		assertSame(symbolCacheMock, x.getSymbolCache());
 	}
 
 }

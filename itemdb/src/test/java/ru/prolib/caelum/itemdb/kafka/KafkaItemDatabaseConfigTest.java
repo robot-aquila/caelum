@@ -22,6 +22,7 @@ public class KafkaItemDatabaseConfigTest {
 		assertEquals("caelum-item-db",	props.get("caelum.itemdb.kafka.group.id"));
 		assertEquals("caelum-item",		props.get("caelum.itemdb.kafka.source.topic"));
 		assertEquals("5000",			props.get("caelum.itemdb.list.items.limit"));
+		assertEquals("all",				props.get("caelum.itemdb.kafka.acks"));
 	}
 	
 	@Test
@@ -38,14 +39,23 @@ public class KafkaItemDatabaseConfigTest {
 	}
 
 	@Test
-	public void testKafkaProperties() {
-		Properties props = service.getKafkaProperties();
+	public void testGetConsumerKafkaProperties() {
+		Properties props = service.getConsumerKafkaProperties();
 		
 		assertEquals(4, props.size());
 		assertEquals("localhost:8082", props.get("bootstrap.servers"));
 		assertEquals("caelum-item-db", props.get("group.id"));
 		assertEquals("earliest", props.get("auto.offset.reset"));
 		assertEquals("false", props.get("enable.auto.commit"));
+	}
+	
+	@Test
+	public void testGetProducerKafkaProperties() {
+		Properties props = service.getProducerKafkaProperties();
+		
+		assertEquals(2, props.size());
+		assertEquals("localhost:8082", props.get("bootstrap.servers"));
+		assertEquals("all", props.get("acks"));
 	}
 	
 	@Test

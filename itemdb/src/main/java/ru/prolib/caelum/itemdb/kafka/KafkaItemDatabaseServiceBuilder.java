@@ -2,18 +2,35 @@ package ru.prolib.caelum.itemdb.kafka;
 
 import java.io.IOException;
 
+import org.apache.kafka.clients.producer.KafkaProducer;
+
 import ru.prolib.caelum.core.CompositeService;
 import ru.prolib.caelum.itemdb.IItemDatabaseService;
 import ru.prolib.caelum.itemdb.IItemDatabaseServiceBuilder;
 
 public class KafkaItemDatabaseServiceBuilder implements IItemDatabaseServiceBuilder {
+	private final KafkaUtils utils;
+	
+	public KafkaItemDatabaseServiceBuilder(KafkaUtils utils) {
+		this.utils = utils;
+	}
+	
+	public KafkaItemDatabaseServiceBuilder() {
+		this(KafkaUtils.getInstance());
+	}
+	
+	public KafkaUtils getUtils() {
+		return utils;
+	}
 	
 	protected KafkaItemDatabaseConfig createConfig() {
 		return new KafkaItemDatabaseConfig();
 	}
 	
-	protected KafkaItemDatabaseService createService(KafkaItemDatabaseConfig config) {
-		return new KafkaItemDatabaseService(config);
+	protected KafkaItemDatabaseService createService(KafkaItemDatabaseConfig config,
+			KafkaProducer<String, KafkaItem> producer)
+	{
+		return new KafkaItemDatabaseService(config, producer, utils);
 	}
 
 	@Override
@@ -22,7 +39,9 @@ public class KafkaItemDatabaseServiceBuilder implements IItemDatabaseServiceBuil
 	{
 		KafkaItemDatabaseConfig config = createConfig();
 		config.load(default_config_file, config_file);
-		return createService(config);
+		KafkaProducer<String, KafkaItem> producer = utils.createProducer(config.getProducerKafkaProperties());
+		services.register(new KafkaProducerService(producer));
+		return createService(config, producer);
 	}
 	
 	@Override

@@ -53,6 +53,7 @@ public class JettyServerBuilderTest {
 		assertNotNull(x.getFreemarker());
 		assertNotNull(x.getStreamFactory());
 		assertNotNull(x.getPeriods());
+		assertNotNull(x.getByteUtils());
 	}
 	
 	@Test
