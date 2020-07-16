@@ -12,9 +12,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import ru.prolib.caelum.aggregator.kafka.utils.WindowStoreIteratorLimited;
-import ru.prolib.caelum.aggregator.kafka.utils.WindowStoreIteratorStub;
-
 public class WindowStoreIteratorLimitedTest {
 	
 	static KeyValue<Long, Integer> KV(long time, int value) {

@@ -3,6 +3,7 @@ package ru.prolib.caelum.itemdb.kafka;
 import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.*;
 
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -55,12 +56,14 @@ public class KafkaUtilsTest {
 	public ExpectedException eex = ExpectedException.none();
 	IMocksControl control;
 	KafkaConsumer<String, KafkaItem> consumerMock;
+	Clock clockMock;
 	KafkaUtils service;
 
 	@Before
 	public void setUp() throws Exception {
 		control = createStrictControl();
 		consumerMock = control.createMock(KafkaConsumer.class);
+		clockMock = control.createMock(Clock.class);
 		service = new KafkaUtils();
 	}
 	
@@ -168,7 +171,7 @@ public class KafkaUtilsTest {
 	@Test
 	public void testCreateIterator() {
 		IItemIterator actual = service.createIterator(consumerMock,
-				new KafkaItemInfo("bug", 5, "juk", 3, 100L, 800L), 750L, 2889000187L);
+				new KafkaItemInfo("bug", 5, "juk", 3, 100L, 800L), 750L, 2889000187L, clockMock);
 		
 		assertNotNull(actual);
 		assertThat(actual, is(instanceOf(ItemIterator.class)));
@@ -180,6 +183,7 @@ public class KafkaUtilsTest {
 		Iterator<ConsumerRecord<String, KafkaItem>> it = o.getSourceIterator();
 		assertThat(it, is(instanceOf(SeamlessConsumerRecordIterator.class)));
 		assertSame(consumerMock, ((SeamlessConsumerRecordIterator<String, KafkaItem>) it).getConsumer());
+		assertSame(clockMock, ((SeamlessConsumerRecordIterator<String, KafkaItem>) it).getClock());
 	}
 	
 	@Test

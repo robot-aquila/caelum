@@ -6,8 +6,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import ru.prolib.caelum.core.ItemType;
-import ru.prolib.caelum.itemdb.kafka.KafkaItem;
-import ru.prolib.caelum.itemdb.kafka.KafkaItemDeserializer;
 
 public class KafkaItemDeserializerTest {
 	KafkaItemDeserializer service;

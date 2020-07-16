@@ -15,8 +15,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import ru.prolib.caelum.aggregator.kafka.KafkaTuple;
-import ru.prolib.caelum.aggregator.kafka.KafkaTupleAggregateIterator;
 import ru.prolib.caelum.aggregator.kafka.utils.WindowStoreIteratorStub;
 import ru.prolib.caelum.core.TupleType;
 

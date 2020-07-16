@@ -19,35 +19,7 @@
 	</dependencies>
   
     <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.6</version>
-                <configuration>
-                    <finalName>caelum-aggregator-${project.version}</finalName>
-                    <appendAssemblyId>false</appendAssemblyId>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                    <archive>
-                      <!-- manifest>
-                        <mainClass>???</mainClass>
-                      </manifest -->
-                    </archive>
-                </configuration>
-                <executions>
-                  <execution>
-                    <id>make-assembly</id>
-                    <phase>package</phase> 
-                    <goals>
-                        <goal>single</goal>
-                    </goals>
-                  </execution>
-                </executions>
-            </plugin>
-        </plugins>
-		
+        <plugins></plugins>		
     </build>
   
 </project>

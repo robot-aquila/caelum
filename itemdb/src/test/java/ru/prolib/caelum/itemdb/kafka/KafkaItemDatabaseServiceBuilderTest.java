@@ -2,6 +2,7 @@ package ru.prolib.caelum.itemdb.kafka;
 
 import static org.junit.Assert.*;
 
+import java.time.Clock;
 import java.util.Properties;
 
 import static org.easymock.EasyMock.*;
@@ -23,6 +24,7 @@ public class KafkaItemDatabaseServiceBuilderTest {
 	KafkaUtils utilsMock;
 	KafkaProducer<String, KafkaItem> producerMock;
 	CompositeService servicesMock;
+	Clock clockMock;
 	KafkaItemDatabaseServiceBuilder service, mockedService;
 
 	@Before
@@ -33,18 +35,20 @@ public class KafkaItemDatabaseServiceBuilderTest {
 		utilsMock = control.createMock(KafkaUtils.class);
 		producerMock = control.createMock(KafkaProducer.class);
 		servicesMock = control.createMock(CompositeService.class);
+		clockMock = control.createMock(Clock.class);
 		mockedService = partialMockBuilder(KafkaItemDatabaseServiceBuilder.class)
-				.withConstructor(KafkaUtils.class)
-				.withArgs(utilsMock)
+				.withConstructor(KafkaUtils.class, Clock.class)
+				.withArgs(utilsMock, clockMock)
 				.addMockedMethod("createConfig")
 				.addMockedMethod("createService")
 				.createMock();
-		service = new KafkaItemDatabaseServiceBuilder(utilsMock);
+		service = new KafkaItemDatabaseServiceBuilder(utilsMock, clockMock);
 	}
 	
 	@Test
 	public void testGetters() {
 		assertSame(utilsMock, service.getUtils());
+		assertSame(clockMock, service.getClock());
 	}
 	
 	@Test
@@ -52,6 +56,7 @@ public class KafkaItemDatabaseServiceBuilderTest {
 		service = new KafkaItemDatabaseServiceBuilder();
 		
 		assertSame(KafkaUtils.getInstance(), service.getUtils());
+		assertEquals(Clock.systemUTC(), service.getClock());
 	}
 	
 	@Test
@@ -72,6 +77,7 @@ public class KafkaItemDatabaseServiceBuilderTest {
 		assertSame(configMock, actual.getConfig());
 		assertSame(producerMock, actual.getProducer());
 		assertSame(utilsMock, actual.getUtils());
+		assertSame(clockMock, actual.getClock());
 	}
 	
 	@Test

@@ -7,8 +7,6 @@ import java.math.BigInteger;
 import org.junit.Before;
 import org.junit.Test;
 
-import ru.prolib.caelum.backnode.ValueFormatter;
-
 public class ValueFormatterTest {
 	ValueFormatter service;
 

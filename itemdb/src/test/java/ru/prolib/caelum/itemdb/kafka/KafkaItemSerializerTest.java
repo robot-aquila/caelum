@@ -5,9 +5,6 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
-import ru.prolib.caelum.itemdb.kafka.KafkaItem;
-import ru.prolib.caelum.itemdb.kafka.KafkaItemSerializer;
-
 public class KafkaItemSerializerTest {
 	KafkaItemSerializer service;
 

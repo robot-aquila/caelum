@@ -8,7 +8,6 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.junit.Before;
 import org.junit.Test;
 
-import ru.prolib.caelum.aggregator.kafka.KafkaTuple;
 import ru.prolib.caelum.core.TupleType;
 
 public class KafkaTupleTest {

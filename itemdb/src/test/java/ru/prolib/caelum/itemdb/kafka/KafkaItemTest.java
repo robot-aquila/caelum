@@ -9,7 +9,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import ru.prolib.caelum.core.ItemType;
-import ru.prolib.caelum.itemdb.kafka.KafkaItem;
 
 public class KafkaItemTest {
 	@Rule

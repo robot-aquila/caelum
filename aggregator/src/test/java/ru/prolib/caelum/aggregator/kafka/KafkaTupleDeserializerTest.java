@@ -7,8 +7,6 @@ import java.math.BigInteger;
 import org.junit.Before;
 import org.junit.Test;
 
-import ru.prolib.caelum.aggregator.kafka.KafkaTuple;
-import ru.prolib.caelum.aggregator.kafka.KafkaTupleDeserializer;
 import ru.prolib.caelum.core.TupleType;
 
 public class KafkaTupleDeserializerTest {

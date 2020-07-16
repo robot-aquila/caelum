@@ -7,8 +7,6 @@ import java.util.Properties;
 import org.junit.Before;
 import org.junit.Test;
 
-import ru.prolib.caelum.itemdb.kafka.KafkaItemDatabaseConfig;
-
 public class KafkaItemDatabaseConfigTest {
 	KafkaItemDatabaseConfig service;
 

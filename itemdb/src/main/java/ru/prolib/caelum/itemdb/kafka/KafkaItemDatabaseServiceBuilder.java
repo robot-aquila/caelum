@@ -1,6 +1,7 @@
 package ru.prolib.caelum.itemdb.kafka;
 
 import java.io.IOException;
+import java.time.Clock;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 
@@ -10,17 +11,23 @@ import ru.prolib.caelum.itemdb.IItemDatabaseServiceBuilder;
 
 public class KafkaItemDatabaseServiceBuilder implements IItemDatabaseServiceBuilder {
 	private final KafkaUtils utils;
+	private final Clock clock;
 	
-	public KafkaItemDatabaseServiceBuilder(KafkaUtils utils) {
+	public KafkaItemDatabaseServiceBuilder(KafkaUtils utils, Clock clock) {
 		this.utils = utils;
+		this.clock = clock;
 	}
 	
 	public KafkaItemDatabaseServiceBuilder() {
-		this(KafkaUtils.getInstance());
+		this(KafkaUtils.getInstance(), Clock.systemUTC());
 	}
 	
 	public KafkaUtils getUtils() {
 		return utils;
+	}
+	
+	public Clock getClock() {
+		return clock;
 	}
 	
 	protected KafkaItemDatabaseConfig createConfig() {
@@ -30,7 +37,7 @@ public class KafkaItemDatabaseServiceBuilder implements IItemDatabaseServiceBuil
 	protected KafkaItemDatabaseService createService(KafkaItemDatabaseConfig config,
 			KafkaProducer<String, KafkaItem> producer)
 	{
-		return new KafkaItemDatabaseService(config, producer, utils);
+		return new KafkaItemDatabaseService(config, producer, utils, clock);
 	}
 
 	@Override

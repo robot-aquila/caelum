@@ -1,5 +1,6 @@
 package ru.prolib.caelum.itemdb.kafka;
 
+import java.time.Clock;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -55,9 +56,9 @@ public class KafkaUtils {
 	}
 	
 	public IItemIterator createIterator(KafkaConsumer<String, KafkaItem> consumer,
-			KafkaItemInfo item_info, long limit, long end_time)
+			KafkaItemInfo item_info, long limit, long end_time, Clock clock)
 	{
-		return new ItemIterator(consumer, new SeamlessConsumerRecordIterator<>(consumer),
+		return new ItemIterator(consumer, new SeamlessConsumerRecordIterator<>(consumer, clock),
 				item_info, limit, end_time);
 	}
 	

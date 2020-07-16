@@ -10,9 +10,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import ru.prolib.caelum.aggregator.kafka.KafkaTuple;
-import ru.prolib.caelum.aggregator.kafka.KafkaTupleAggregator;
-
 public class KafkaTupleAggregatorTest {
 	@Rule
 	public ExpectedException eex = ExpectedException.none();

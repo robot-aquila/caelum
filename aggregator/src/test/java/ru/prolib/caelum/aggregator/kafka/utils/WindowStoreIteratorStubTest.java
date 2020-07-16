@@ -13,8 +13,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import ru.prolib.caelum.aggregator.kafka.utils.WindowStoreIteratorStub;
-
 public class WindowStoreIteratorStubTest {
 	@Rule
 	public ExpectedException eex = ExpectedException.none();

@@ -2,6 +2,7 @@ package ru.prolib.caelum.itemdb.kafka;
 
 import static org.junit.Assert.*;
 
+import java.time.Clock;
 import java.util.Arrays;
 
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -27,6 +28,7 @@ public class KafkaItemDatabaseServiceTest {
 	IItemIterator itMock;
 	KafkaConsumer<String, KafkaItem> consumerMock;
 	KafkaProducer<String, KafkaItem> producerMock;
+	Clock clockMock;
 	KafkaItemDatabaseConfig config;
 	KafkaItemInfo ii;
 	TopicPartition tp;
@@ -39,10 +41,11 @@ public class KafkaItemDatabaseServiceTest {
 		itMock = control.createMock(IItemIterator.class);
 		consumerMock = control.createMock(KafkaConsumer.class);
 		producerMock = control.createMock(KafkaProducer.class);
+		clockMock = control.createMock(Clock.class);
 		config = new KafkaItemDatabaseConfig();
 		ii = new KafkaItemInfo("caelum-item", 2, "zuzba-15", 1, 0L, 10000L);
 		tp = new TopicPartition("caelum-item", 1);
-		service = new KafkaItemDatabaseService(config, producerMock, utilsMock);
+		service = new KafkaItemDatabaseService(config, producerMock, utilsMock, clockMock);
 	}
 	
 	@Test
@@ -50,6 +53,7 @@ public class KafkaItemDatabaseServiceTest {
 		assertSame(config, service.getConfig());
 		assertSame(producerMock, service.getProducer());
 		assertSame(utilsMock, service.getUtils());
+		assertSame(clockMock, service.getClock());
 	}
 	
 	@Test
@@ -58,6 +62,7 @@ public class KafkaItemDatabaseServiceTest {
 		assertSame(config, service.getConfig());
 		assertSame(producerMock, service.getProducer());
 		assertSame(KafkaUtils.getInstance(), service.getUtils());
+		assertEquals(Clock.systemUTC(), service.getClock());
 	}
 	
 	@Test
@@ -67,7 +72,7 @@ public class KafkaItemDatabaseServiceTest {
 		consumerMock.assign(Arrays.asList(tp));
 		expect(utilsMock.getOffset(consumerMock, tp, 27768919862L, 0L)).andReturn(450L);
 		consumerMock.seek(tp, 450L);
-		expect(utilsMock.createIterator(consumerMock, ii, 100L, 30000000000L)).andReturn(itMock);
+		expect(utilsMock.createIterator(consumerMock, ii, 100L, 30000000000L, clockMock)).andReturn(itMock);
 		control.replay();
 		
 		assertSame(itMock, service.fetch(new ItemDataRequest("zuzba-15", 27768919862L, 30000000000L, 100L)));
@@ -82,7 +87,7 @@ public class KafkaItemDatabaseServiceTest {
 		consumerMock.assign(Arrays.asList(tp));
 		expect(utilsMock.getOffset(consumerMock, tp, 27768919862L, 0L)).andReturn(450L);
 		consumerMock.seek(tp, 450L);
-		expect(utilsMock.createIterator(consumerMock, ii, 5000L, 30000000000L)).andReturn(itMock);
+		expect(utilsMock.createIterator(consumerMock, ii, 5000L, 30000000000L, clockMock)).andReturn(itMock);
 		control.replay();
 		
 		assertSame(itMock, service.fetch(new ItemDataRequest("zuzba-15", 27768919862L, 30000000000L, 10000L)));
@@ -109,7 +114,7 @@ public class KafkaItemDatabaseServiceTest {
 		expect(utilsMock.getItemInfo(consumerMock, "caelum-item", "zuzba-15")).andReturn(ii);
 		consumerMock.assign(Arrays.asList(tp));
 		consumerMock.seek(tp, 425000L);
-		expect(utilsMock.createIterator(consumerMock, ii, 100L, 16789266L)).andReturn(itMock);
+		expect(utilsMock.createIterator(consumerMock, ii, 100L, 16789266L, clockMock)).andReturn(itMock);
 		control.replay();
 		
 		assertSame(itMock, service.fetch(new ItemDataRequestContinue("zuzba-15", 425000L, "xxx", 16789266L, 100L)));
@@ -123,7 +128,7 @@ public class KafkaItemDatabaseServiceTest {
 		expect(utilsMock.getItemInfo(consumerMock, "caelum-item", "zuzba-15")).andReturn(ii);
 		consumerMock.assign(Arrays.asList(tp));
 		consumerMock.seek(tp, 425000L);
-		expect(utilsMock.createIterator(consumerMock, ii, 5000L, 16789266L)).andReturn(itMock);
+		expect(utilsMock.createIterator(consumerMock, ii, 5000L, 16789266L, clockMock)).andReturn(itMock);
 		control.replay();
 		
 		assertSame(itMock, service.fetch(new ItemDataRequestContinue("zuzba-15", 425000L, "xxx", 16789266L, 7000L)));
