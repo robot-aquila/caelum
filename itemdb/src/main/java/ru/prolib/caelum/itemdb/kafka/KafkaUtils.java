@@ -25,14 +25,19 @@ public class KafkaUtils {
 		return instance;
 	}
 	
+	public int getSymbolPartition(String symbol, int num_partitions) {
+		byte[] key_bytes = KafkaItemSerdes.keySerde().serializer().serialize(null, symbol);
+		int partition = Utils.toPositive(Utils.murmur2(key_bytes)) % num_partitions;
+		return partition;
+	}
+	
 	public KafkaItemInfo getItemInfo(KafkaConsumer<String, KafkaItem> consumer, String topic, String symbol) {
 		Set<Integer> partitions = consumer.partitionsFor(topic)
 				.stream()
 				.map(x -> x.partition())
 				.collect(Collectors.toSet());
-		byte[] key_bytes = KafkaItemSerdes.keySerde().serializer().serialize(topic, symbol);
 		int num_partitions = partitions.size();
-		int partition = Utils.toPositive(Utils.murmur2(key_bytes)) % num_partitions;
+		int partition = getSymbolPartition(symbol, num_partitions);
 		if ( ! partitions.contains(partition) ) {
 			throw new IllegalStateException(new StringBuilder()
 					.append("Expected partition not found: topic=")

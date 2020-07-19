@@ -69,8 +69,6 @@ public class StreamItemsToJson implements StreamingOutput {
 			gen.writeFieldName("data");
 			gen.writeStartObject();
 			gen.writeFieldName("symbol");	gen.writeString(request.getSymbol());
-			gen.writeFieldName("to");		gen.writeNumber(request.getTo());
-			gen.writeFieldName("limit");	gen.writeNumber(request.getLimit());
 			gen.writeFieldName("format");	gen.writeString("std");
 			gen.writeFieldName("rows");
 			gen.writeStartArray();
@@ -88,7 +86,7 @@ public class StreamItemsToJson implements StreamingOutput {
 			gen.writeEndArray(); // end of rows
 			ItemDataResponse meta_data = iterator.getMetaData();
 			gen.writeFieldName("magic");		gen.writeString(meta_data.getMagic());
-			gen.writeFieldName("from_offset");	gen.writeNumber(meta_data.getOffset() + 1);
+			gen.writeFieldName("fromOffset");	gen.writeNumber(meta_data.getOffset() + 1);
 			gen.writeEndObject(); // end of data
 			gen.writeEndObject(); // end of envelope
 		} finally {

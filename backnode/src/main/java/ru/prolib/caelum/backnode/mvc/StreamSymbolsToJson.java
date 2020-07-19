@@ -60,8 +60,6 @@ public class StreamSymbolsToJson implements StreamingOutput {
 			gen.writeFieldName("data");
 			gen.writeStartObject();
 			gen.writeFieldName("category");		gen.writeString(request.getCategory());
-			gen.writeFieldName("afterSymbol");	gen.writeString(request.getAfterSymbol());
-			gen.writeFieldName("limit");		gen.writeNumber(request.getLimit());
 			gen.writeFieldName("rows");
 			gen.writeStartArray();
 			while ( iterator.hasNext() ) {

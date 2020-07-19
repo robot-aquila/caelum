@@ -17,7 +17,7 @@ public class FDBTestHelper implements Closeable {
 	private Subspace rootSubspace;
 	
 	public FDBTestHelper(Object subspace, String fdb_cluster_file) {
-		fdb = FDB.selectAPIVersion(520);
+		fdb = FDB.selectAPIVersion(620);
 		db = fdb_cluster_file == null ? fdb.open() : fdb.open(fdb_cluster_file);
 		rootSubspace = new Subspace(Tuple.from(subspace));
 	}

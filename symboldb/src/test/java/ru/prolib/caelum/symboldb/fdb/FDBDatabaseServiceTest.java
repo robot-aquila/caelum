@@ -66,10 +66,10 @@ public class FDBDatabaseServiceTest {
 	
 	@Test
 	public void testCreateFDB() {
-		FDB fdb = service.createFDB(520);
+		FDB fdb = service.createFDB(620);
 		
 		assertNotNull(fdb);
-		assertEquals(520, fdb.getAPIVersion());
+		assertEquals(620, fdb.getAPIVersion());
 	}
 	
 	@Test
@@ -97,7 +97,7 @@ public class FDBDatabaseServiceTest {
 	
 	@Test
 	public void testStart_WithClusterFile() throws Exception {
-		expect(mockedService.createFDB(520)).andReturn(fdbMock);
+		expect(mockedService.createFDB(620)).andReturn(fdbMock);
 		expect(mockedService.createTempFile()).andReturn(fileMock);
 		expect(fileMock.getAbsolutePath()).andStubReturn("/foo/bumbr.temp");
 		fileMock.deleteOnExit();
@@ -123,7 +123,7 @@ public class FDBDatabaseServiceTest {
 				.withConstructor(FDBSymbolService.class, String.class)
 				.withArgs(targetMock, "")
 				.createMock();
-		expect(mockedService.createFDB(520)).andReturn(fdbMock);
+		expect(mockedService.createFDB(620)).andReturn(fdbMock);
 		expect(fdbMock.open()).andReturn(dbMock);
 		targetMock.setDatabase(dbMock);
 		control.replay();
@@ -143,7 +143,7 @@ public class FDBDatabaseServiceTest {
 				.withConstructor(FDBSymbolService.class, String.class)
 				.withArgs(targetMock, null)
 				.createMock();
-		expect(mockedService.createFDB(520)).andReturn(fdbMock);
+		expect(mockedService.createFDB(620)).andReturn(fdbMock);
 		expect(fdbMock.open()).andReturn(dbMock);
 		targetMock.setDatabase(dbMock);
 		control.replay();

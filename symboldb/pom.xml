@@ -22,7 +22,7 @@
 		<dependency>
 			<groupId>org.foundationdb</groupId>
 			<artifactId>fdb-java</artifactId>
-			<version>5.2.5</version>
+			<version>6.2.22</version>
 		</dependency>
 
 	</dependencies>

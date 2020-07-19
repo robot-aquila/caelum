@@ -74,8 +74,6 @@ public class StreamItemsToJsonTest {
 				.append("   \"message\": null,")
 				.append("   \"data\": {")
 				.append("      \"symbol\": \"foo\",")
-				.append("      \"to\": 1600000,")
-				.append("      \"limit\": 500,")
 				.append("      \"format\": \"std\",")
 				.append("      \"rows\": [")
 				.append("         [ 1583830, \"2.50\", \"0.010\" ],")
@@ -83,7 +81,7 @@ public class StreamItemsToJsonTest {
 				.append("         [ 1583870, \"2.40\", \"0.015\" ]")
 				.append("      ],")
 				.append("      \"magic\": \"xxx\",")
-				.append("      \"from_offset\": 501")
+				.append("      \"fromOffset\": 501")
 				.append("   }")
 				.append("}")
 				.toString();

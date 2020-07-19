@@ -18,7 +18,8 @@ public class ItemIterator implements IItemIterator {
 	private final long limit, endTime;
 	private boolean finished = false, closed = false;
 	private ConsumerRecord<String, KafkaItem> nextRecord;
-	private long recordCount, lastOffset;
+	private long recordCount;
+	private Long lastOffset;
 	
 	public ItemIterator(KafkaConsumer<String, KafkaItem> consumer,
 			Iterator<ConsumerRecord<String, KafkaItem>> it,
@@ -87,7 +88,7 @@ public class ItemIterator implements IItemIterator {
 		
 		final String symbol = itemInfo.getSymbol();
 		final int partition = itemInfo.getPartition();
-		final long end_offset = itemInfo.getEndOffset();
+		final long end_offset = itemInfo.getEndOffset() - 1;
 		for ( ;; ) {
 			// Test for limit reached. It may breached by previous record.
 			if ( recordCount >= limit ) {
@@ -98,14 +99,16 @@ public class ItemIterator implements IItemIterator {
 				finish();
 				return false;
 			}
-			// Get the next record.
-			nextRecord = it.next();
-			lastOffset = nextRecord.offset();
-			// Test for endOffset reached. Skipping this will cause a blocking call on consumer.
-			if ( nextRecord.offset() > end_offset ) {
+			// The last offset must be checked prior moving to next record to omit
+			// possible lock while reading next record which may be out of available range
+			if ( lastOffset != null && lastOffset >= end_offset ) {
 				finish();
 				return false;
 			}
+			
+			// Get the next record.
+			nextRecord = it.next();
+			lastOffset = nextRecord.offset();
 			// Test for end time
 			if ( nextRecord.timestamp() >= endTime ) {
 				finish();
@@ -163,7 +166,7 @@ public class ItemIterator implements IItemIterator {
 		if ( closed ) {
 			throw new IllegalStateException("Iterator already closed");
 		}
-		return new ItemDataResponse(lastOffset, DigestUtils.md5Hex(new StringBuilder()
+		return new ItemDataResponse(lastOffset == null ? 0 : lastOffset, DigestUtils.md5Hex(new StringBuilder()
 				.append(itemInfo.getSymbol())
 				.append(":")
 				.append(itemInfo.getStartOffset())

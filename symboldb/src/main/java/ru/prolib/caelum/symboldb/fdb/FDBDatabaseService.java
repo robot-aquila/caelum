@@ -68,7 +68,7 @@ public class FDBDatabaseService implements IService {
 		if ( db != null ) {
 			throw new ServiceException("Service already started");
 		}
-		FDB fdb = createFDB(520);
+		FDB fdb = createFDB(620);
 		if ( fdbCluster == null || fdbCluster.length() == 0 ) {
 			db = fdb.open();			
 		} else {

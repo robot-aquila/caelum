@@ -10,7 +10,7 @@ function resetTimeTo() {
 }
 
 function fromOffsetFromBottom() {
-    elem("from_offset").value = elem("from_offset_bottom").innerHTML;
+    elem("fromOffset").value = elem("fromOffset_bottom").innerHTML;
 }
 
 function magicFromBottom() {
@@ -37,8 +37,8 @@ function magicFromBottom() {
         </tr>
         <tr>
             <td>
-                <label for="from_offset">Continue from offset:</label>
-                <input type="text" name="from_offset" id="from_offset" value="" size="12" />
+                <label for="fromOffset">Continue from offset:</label>
+                <input type="text" name="fromOffset" id="fromOffset" value="" size="12" />
                 <button type="button" onclick="fromOffsetFromBottom(); return false;">^</button>
                 <label for="magic">Magic:</label>
                 <input type="text" name="magic" id="magic" value="${magic!""}" size="32" />
@@ -82,7 +82,7 @@ function magicFromBottom() {
             <table class="noBorder" cellpadding="0" cellspacing="0">
             <tr>
                 <td align="right">Continue from offset:</td>
-                <td><div id="from_offset_bottom">${next_offset?c}</div></td>
+                <td><div id="fromOffset_bottom">${next_offset?c}</div></td>
                 <td><button type="button" onclick="fromOffsetFromBottom(); return false;">^</button></td>
             </tr>
             <tr>

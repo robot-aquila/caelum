@@ -77,6 +77,20 @@ public class KafkaUtilsTest {
 	}
 	
 	@Test
+	public void testGetSymbolPartition() {
+		// good symbols cases for 1, 2 and 4 partitions
+		assertEquals(0, service.getSymbolPartition("zoo@gap", 2));
+		assertEquals(1, service.getSymbolPartition("zoo@lol", 2));
+		assertEquals(0, service.getSymbolPartition("zoo@foo", 2));
+		assertEquals(1, service.getSymbolPartition("zoo@bar", 2));
+		
+		assertEquals(0, service.getSymbolPartition("zoo@gap", 4));
+		assertEquals(1, service.getSymbolPartition("zoo@lol", 4));
+		assertEquals(2, service.getSymbolPartition("zoo@foo", 4));
+		assertEquals(3, service.getSymbolPartition("zoo@bar", 4));
+	}
+	
+	@Test
 	public void testGetItemInfo_ThrowsIfPartitionNotExists() {
 		int num_partitions = 4;
 		int expected_partition = HASH_CODE % num_partitions;

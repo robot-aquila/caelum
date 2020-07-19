@@ -257,7 +257,7 @@ public class NodeService {
 	public Response items(
 			@QueryParam("symbol") @NotNull final String symbol,
 			@QueryParam("from") final Long from,
-			@QueryParam("from_offset") final Long from_offset,
+			@QueryParam("fromOffset") final Long from_offset,
 			@QueryParam("to") final Long to,
 			@QueryParam("limit") final Integer limit,
 			@QueryParam("magic") final String magic)
@@ -301,7 +301,7 @@ public class NodeService {
 	@Path("/symbols")
 	public Response symbols(
 			@QueryParam("category") @NotNull final String category,
-			@QueryParam("after_symbol") final String after_symbol,
+			@QueryParam("afterSymbol") final String after_symbol,
 			@QueryParam("limit") final Integer limit)
 	{
 		SymbolListRequest request = toSymbolListRequest(category, after_symbol, limit);
@@ -367,7 +367,7 @@ public class NodeService {
 			@QueryParam("from") final String str_from,
 			@QueryParam("to") final String str_to,
 			@QueryParam("limit") final Integer limit,
-			@QueryParam("from_offset") final Long offset,
+			@QueryParam("fromOffset") final Long offset,
 			@QueryParam("magic") final String magic)
 	{
 		Long from = null, to = null;

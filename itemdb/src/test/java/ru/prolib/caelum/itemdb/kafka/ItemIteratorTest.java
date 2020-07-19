@@ -113,7 +113,8 @@ public class ItemIteratorTest {
 		itData.add(CR("foo", "bar", 0, 104L, 5004L, 42L, 230L));
 		itData.add(CR("foo", "bar", 0, 105L, 5005L, 47L, 115L));
 		itData.add(CR("foo", "bar", 0, 106L, 5006L, 44L, 850L));
-		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, 100L, 103L), 5L, 10000L);
+		// last offset + 1 !!!
+		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, 100L, 104L), 5L, 10000L);
 		
 		for ( int i = 0; i < 3; i ++ ) {
 			assertTrue("At #" + i, service.hasNext());
@@ -217,7 +218,8 @@ public class ItemIteratorTest {
 		itData.add(CR("foo", "bar", 0, 104L, 5004L, 42L, 230L));
 		itData.add(CR("foo", "bar", 0, 105L, 5005L, 47L, 115L));
 		itData.add(CR("foo", "bar", 0, 106L, 5006L, 44L, 850L));
-		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, 100L, 103L), 5L, 10000L);
+		// last offset + 1 !!!
+		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, 100L, 104L), 5L, 10000L);
 		for ( int i = 0; i < 3; i ++ ) {
 			assertTrue("At #" + i, service.hasNext());
 			service.next();

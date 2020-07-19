@@ -62,8 +62,6 @@ public class StreamSymbolsToJsonTest {
 				.append("   \"message\": null,")
 				.append("   \"data\": {")
 				.append("      \"category\": \"foo\",")
-				.append("      \"afterSymbol\": \"zumba\",")
-				.append("      \"limit\": 45,")
 				.append("      \"rows\": [")
 				.append("         \"zulu\",")
 				.append("         \"charlie\",")
