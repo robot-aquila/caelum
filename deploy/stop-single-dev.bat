@@ -1,1 +1,1 @@
-docker-compose -f docker-compose-single-dev.yml -p caelum down
+docker-compose --log-level ERROR -f docker-compose-single-dev.yml -p caelum down
