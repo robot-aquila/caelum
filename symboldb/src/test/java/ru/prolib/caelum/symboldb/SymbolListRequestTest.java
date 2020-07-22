@@ -18,7 +18,15 @@ public class SymbolListRequestTest {
 	public void testCtor3() {
 		assertEquals("foo", service.getCategory());
 		assertEquals("bar", service.getAfterSymbol());
-		assertEquals(500L, service.getLimit());
+		assertEquals(Integer.valueOf(500), service.getLimit());
+	}
+	
+	@Test
+	public void testCtor3_LimitCanBeNull() {
+		service = new SymbolListRequest("foo", "foo@bar", null);
+		assertEquals("foo", service.getCategory());
+		assertEquals("foo@bar", service.getAfterSymbol());
+		assertNull(service.getLimit());
 	}
 	
 	@Test
@@ -26,7 +34,15 @@ public class SymbolListRequestTest {
 		service = new SymbolListRequest("foo", 250);
 		assertEquals("foo", service.getCategory());
 		assertNull(service.getAfterSymbol());
-		assertEquals(250L, service.getLimit());
+		assertEquals(Integer.valueOf(250), service.getLimit());
+	}
+	
+	@Test
+	public void testCtor2_LimitCanBeNull() {
+		service = new SymbolListRequest("foo", null);
+		assertEquals("foo", service.getCategory());
+		assertNull(service.getAfterSymbol());
+		assertNull(service.getLimit());
 	}
 	
 	@Test
@@ -58,5 +74,5 @@ public class SymbolListRequestTest {
 		assertFalse(service.equals(new SymbolListRequest("foo", "bar", 555)));
 		assertFalse(service.equals(new SymbolListRequest("aaa", "aaa", 555)));
 	}
-
+	
 }

@@ -1,6 +1,10 @@
 package ru.prolib.caelum.symboldb.fdb;
 
 import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -10,21 +14,32 @@ import com.apple.foundationdb.Transaction;
 import ru.prolib.caelum.symboldb.ICategoryExtractor;
 
 public class FDBTransactionRegisterSymbol extends FDBTransaction<Void> {
-	protected final String symbol;
 	protected final ICategoryExtractor catExt;
+	protected final Collection<String> symbols;
+	protected final Set<String> categories;
+	protected final Map<String, Collection<String>> symbolCategories;
 
-	public FDBTransactionRegisterSymbol(FDBSchema schema, ICategoryExtractor catExt, String symbol) {
+	public FDBTransactionRegisterSymbol(FDBSchema schema, ICategoryExtractor catExt, Collection<String> symbols) {
 		super(schema);
-		this.symbol = symbol;
 		this.catExt = catExt;
+		this.symbols = symbols;
+		categories = new LinkedHashSet<>();
+		symbolCategories = new LinkedHashMap<>();
+		for ( String symbol : symbols ) {
+			Collection<String> cats = catExt.extract(symbol);
+			categories.addAll(cats);
+			symbolCategories.put(symbol, cats);
+		}
 	}
 
 	@Override
 	public Void apply(Transaction t) {
-		Collection<String> cats = catExt.extract(symbol);
-		for ( String category : cats ) {
-			t.set(schema.getKeyCategory(category), schema.getTrueBytes());
-			t.set(schema.getKeyCategorySymbol(category, symbol), schema.getTrueBytes());
+		byte[] true_bytes = schema.getTrueBytes();
+		for ( String category : categories ) t.set(schema.getKeyCategory(category), true_bytes);
+		for ( String symbol : symbolCategories.keySet() ) {
+			for ( String category : symbolCategories.get(symbol) ) {
+				t.set(schema.getKeyCategorySymbol(category, symbol), true_bytes);
+			}
 		}
 		return null;
 	}
@@ -34,7 +49,7 @@ public class FDBTransactionRegisterSymbol extends FDBTransaction<Void> {
 		return new HashCodeBuilder(115389, 27)
 				.append(schema)
 				.append(catExt)
-				.append(symbol)
+				.append(symbols)
 				.build();
 	}
 	
@@ -50,7 +65,7 @@ public class FDBTransactionRegisterSymbol extends FDBTransaction<Void> {
 		return new EqualsBuilder()
 				.append(o.schema, schema)
 				.append(o.catExt, catExt)
-				.append(o.symbol, symbol)
+				.append(o.symbols, symbols)
 				.build();
 	}
 

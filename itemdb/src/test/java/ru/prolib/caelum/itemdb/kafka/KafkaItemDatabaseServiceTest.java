@@ -161,11 +161,11 @@ public class KafkaItemDatabaseServiceTest {
 		expect(utilsMock.createConsumer(config.getConsumerKafkaProperties())).andReturn(consumerMock);
 		expect(utilsMock.getItemInfo(consumerMock, "caelum-item", "zuzba-15")).andReturn(ii);
 		consumerMock.assign(Arrays.asList(tp));
-		consumerMock.seek(tp, 425000L);
+		consumerMock.seek(tp, 1000L);
 		expect(utilsMock.createIterator(consumerMock, ii, 100, 16789266L, clockMock)).andReturn(itMock);
 		control.replay();
 		
-		assertSame(itMock, service.fetch(new ItemDataRequestContinue("zuzba-15", 425000L, "xxx", 16789266L, 100)));
+		assertSame(itMock, service.fetch(new ItemDataRequestContinue("zuzba-15", 1000L, "xxx", 16789266L, 100)));
 		
 		control.verify();
 	}
@@ -175,11 +175,11 @@ public class KafkaItemDatabaseServiceTest {
 		expect(utilsMock.createConsumer(config.getConsumerKafkaProperties())).andReturn(consumerMock);
 		expect(utilsMock.getItemInfo(consumerMock, "caelum-item", "zuzba-15")).andReturn(ii);
 		consumerMock.assign(Arrays.asList(tp));
-		consumerMock.seek(tp, 425000L);
+		consumerMock.seek(tp, 3000L);
 		expect(utilsMock.createIterator(consumerMock, ii, 5000, 16789266L, clockMock)).andReturn(itMock);
 		control.replay();
 		
-		assertSame(itMock, service.fetch(new ItemDataRequestContinue("zuzba-15", 425000L, "xxx", 16789266L, 7000)));
+		assertSame(itMock, service.fetch(new ItemDataRequestContinue("zuzba-15", 3000L, "xxx", 16789266L, 7000)));
 		
 		control.verify();
 	}
@@ -189,11 +189,11 @@ public class KafkaItemDatabaseServiceTest {
 		expect(utilsMock.createConsumer(config.getConsumerKafkaProperties())).andReturn(consumerMock);
 		expect(utilsMock.getItemInfo(consumerMock, "caelum-item", "zuzba-15")).andReturn(ii);
 		consumerMock.assign(Arrays.asList(tp));
-		consumerMock.seek(tp, 425000L);
+		consumerMock.seek(tp, 4000L);
 		expect(utilsMock.createIterator(consumerMock, ii, 5000, 16789266L, clockMock)).andReturn(itMock);
 		control.replay();
 		
-		assertSame(itMock, service.fetch(new ItemDataRequestContinue("zuzba-15", 425000L, "xxx", 16789266L, null)));
+		assertSame(itMock, service.fetch(new ItemDataRequestContinue("zuzba-15", 4000L, "xxx", 16789266L, null)));
 		
 		control.verify();
 	}
@@ -203,11 +203,11 @@ public class KafkaItemDatabaseServiceTest {
 		expect(utilsMock.createConsumer(config.getConsumerKafkaProperties())).andReturn(consumerMock);
 		expect(utilsMock.getItemInfo(consumerMock, "caelum-item", "zuzba-15")).andReturn(ii);
 		consumerMock.assign(Arrays.asList(tp));
-		consumerMock.seek(tp, 425000L);
+		consumerMock.seek(tp, 2000L);
 		expect(utilsMock.createIterator(consumerMock, ii, 100, 16789266L, clockMock)).andReturn(itMock);
 		control.replay();
 		
-		assertSame(itMock, service.fetch(new ItemDataRequestContinue("zuzba-15", 425000L, null, 16789266L, 100)));
+		assertSame(itMock, service.fetch(new ItemDataRequestContinue("zuzba-15", 2000L, null, 16789266L, 100)));
 		
 		control.verify();
 	}
@@ -217,11 +217,11 @@ public class KafkaItemDatabaseServiceTest {
 		expect(utilsMock.createConsumer(config.getConsumerKafkaProperties())).andReturn(consumerMock);
 		expect(utilsMock.getItemInfo(consumerMock, "caelum-item", "zuzba-15")).andReturn(ii);
 		consumerMock.assign(Arrays.asList(tp));
-		consumerMock.seek(tp, 425000L);
+		consumerMock.seek(tp, 2500L);
 		expect(utilsMock.createIterator(consumerMock, ii, 100, null, clockMock)).andReturn(itMock);
 		control.replay();
 		
-		assertSame(itMock, service.fetch(new ItemDataRequestContinue("zuzba-15", 425000L, "xxx", null, 100)));
+		assertSame(itMock, service.fetch(new ItemDataRequestContinue("zuzba-15", 2500L, "xxx", null, 100)));
 		
 		control.verify();
 	}
@@ -235,6 +235,18 @@ public class KafkaItemDatabaseServiceTest {
 		control.replay();
 		
 		assertSame(itMock, service.fetch(new ItemDataRequestContinue("zuzba-15", 425000L, "xxx", 16789266L, 2000)));
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testFetch_ContinueRequest_ShouldSkipQueryIfFromOffsetIsOutOfRange() {
+		expect(utilsMock.createConsumer(config.getConsumerKafkaProperties())).andReturn(consumerMock);
+		expect(utilsMock.getItemInfo(consumerMock, "caelum-item", "bumba")).andReturn(ii);
+		expect(utilsMock.createIteratorStub(consumerMock, ii, 5000, null)).andReturn(itMock);
+		control.replay();
+		
+		assertSame(itMock, service.fetch(new ItemDataRequestContinue("bumba", 128764L, "xxx", null, null)));
 		
 		control.verify();
 	}

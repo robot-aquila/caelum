@@ -5,6 +5,7 @@ import static org.easymock.EasyMock.*;
 import static org.hamcrest.Matchers.*;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Properties;
 
 import org.easymock.Capture;
@@ -30,6 +31,11 @@ public class SymbolServiceBuilderTest {
 
 		@Override
 		public void registerSymbol(String symbol) {
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void registerSymbol(Collection<String> symbols) {
 			throw new UnsupportedOperationException();
 		}
 

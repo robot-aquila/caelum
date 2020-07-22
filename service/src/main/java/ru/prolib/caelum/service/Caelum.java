@@ -1,5 +1,7 @@
 package ru.prolib.caelum.service;
 
+import java.util.Collection;
+
 import ru.prolib.caelum.aggregator.AggregatedDataRequest;
 import ru.prolib.caelum.aggregator.IAggregatorService;
 import ru.prolib.caelum.core.ICloseableIterator;
@@ -49,6 +51,11 @@ public class Caelum implements ICaelum {
 	@Override
 	public void registerSymbol(String symbol) {
 		symbolService.registerSymbol(symbol);
+	}
+	
+	@Override
+	public void registerSymbol(Collection<String> symbols) {
+		symbolService.registerSymbol(symbols);
 	}
 
 	@Override

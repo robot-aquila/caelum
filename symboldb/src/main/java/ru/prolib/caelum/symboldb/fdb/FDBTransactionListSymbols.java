@@ -32,7 +32,8 @@ public class FDBTransactionListSymbols extends FDBTransaction<ICloseableIterator
 		byte end[] = all_symbols.end;
 		final List<String> result = new ArrayList<>();
 		final String after_symbol = request.getAfterSymbol();
-		final int limit = Math.min(request.getLimit(), maxLimit);
+		int limit = maxLimit;
+		if ( request.getLimit() != null ) limit = Math.min(request.getLimit(), maxLimit);
 		if ( after_symbol == null ) {
 			byte beg[] = all_symbols.begin;
 			AsyncIterator<KeyValue> it = t.getRange(beg, end, limit).iterator();

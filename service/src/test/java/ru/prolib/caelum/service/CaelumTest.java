@@ -3,6 +3,7 @@ package ru.prolib.caelum.service;
 import static org.junit.Assert.*;
 import static org.easymock.EasyMock.*;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import org.easymock.IMocksControl;
 import org.junit.Before;
@@ -49,11 +50,21 @@ public class CaelumTest {
 	}
 	
 	@Test
-	public void testRegisterSymbol() {
+	public void testRegisterSymbol_S() {
 		symbolSvcMock.registerSymbol("foo@bar");
 		control.replay();
 		
 		service.registerSymbol("foo@bar");
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testRegisterSymbol_L() {
+		symbolSvcMock.registerSymbol(Arrays.asList("foo", "bar"));
+		control.replay();
+		
+		service.registerSymbol(Arrays.asList("foo", "bar"));
 		
 		control.verify();
 	}

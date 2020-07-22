@@ -57,8 +57,6 @@ import ru.prolib.caelum.symboldb.SymbolUpdate;
 @Produces(MediaType.APPLICATION_JSON)
 public class NodeService {
 	static final Logger logger = LoggerFactory.getLogger(NodeService.class);
-	public static final long MAX_LIMIT = 5000L;
-	public static final int DEFAULT_LIMIT = 5000;
 	public static final Period DEFAULT_PERIOD = Period.M5;
 	
 	private final ICaelum caelum;
@@ -159,19 +157,6 @@ public class NodeService {
 		}
 	}
 	
-	private Integer validateLimit(Integer limit) {
-		if ( limit == null ) {
-			limit = DEFAULT_LIMIT;
-		}
-		if ( limit <= 0 ) {
-			throw new BadRequestException("Limit expected to be > 0 but: " + limit);
-		}
-		if ( limit > MAX_LIMIT ) {
-			throw new BadRequestException("Limit expected to be <= " + MAX_LIMIT + " but: " + limit);
-		}
-		return limit;
-	}
-	
 	/**
 	 * Validate data and build request or throw an exception in case of error.
 	 * <p>
@@ -188,7 +173,6 @@ public class NodeService {
 		from = validateFrom(from);
 		to = validateTo(to);
 		validateFromAndTo(from, to);
-		limit = validateLimit(limit);
 		return new AggregatedDataRequest(symbol, period, from, to, limit);
 	}
 	
@@ -203,7 +187,7 @@ public class NodeService {
 	}
 	
 	private SymbolListRequest toSymbolListRequest(String category, String afterSymbol, Integer limit) {
-		return new SymbolListRequest(validateCategory(category), afterSymbol, validateLimit(limit));
+		return new SymbolListRequest(validateCategory(category), afterSymbol, limit);
 	}
 	
 	private Result<Void> success() {
@@ -376,6 +360,15 @@ public class NodeService {
 		}
 		caelum.registerSymbolUpdate(new SymbolUpdate(validateSymbol(symbol), validateTime(time), tokens));
 		return success(); 
+	}
+	
+	@PUT
+	@Path("/symbol")
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	public Result<Void> symbol(@FormParam("symbol") List<String> symbols) {
+		for ( String symbol : symbols ) validateSymbol(symbol);
+		caelum.registerSymbol(symbols);
+		return success();
 	}
 	
 	@GET

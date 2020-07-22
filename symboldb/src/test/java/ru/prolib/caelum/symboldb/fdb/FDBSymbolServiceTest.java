@@ -2,6 +2,7 @@ package ru.prolib.caelum.symboldb.fdb;
 
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
 import java.util.HashMap;
 
 import static org.easymock.EasyMock.*;
@@ -49,11 +50,22 @@ public class FDBSymbolServiceTest {
 	}
 	
 	@Test
-	public void testRegisterSymbol() {
-		expect(dbMock.run(new FDBTransactionRegisterSymbol(schema, catExt, "foobar"))).andReturn(null);
+	public void testRegisterSymbol_S() {
+		expect(dbMock.run(new FDBTransactionRegisterSymbol(schema, catExt, Arrays.asList("foobar")))).andReturn(null);
 		control.replay();
 		
 		service.registerSymbol("foobar");
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testRegisterSymbol_L() {
+		expect(dbMock.run(new FDBTransactionRegisterSymbol(schema, catExt, Arrays.asList("foo@bar", "foo@pop"))))
+			.andReturn(null);
+		control.replay();
+		
+		service.registerSymbol(Arrays.asList("foo@bar", "foo@pop"));
 		
 		control.verify();
 	}

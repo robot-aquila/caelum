@@ -8,15 +8,15 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 public class SymbolListRequest {
 	private final String category;
 	private final String afterSymbol;
-	private final int limit;
+	private final Integer limit;
 	
-	public SymbolListRequest(String category, String afterSymbol, int limit) {
+	public SymbolListRequest(String category, String afterSymbol, Integer limit) {
 		this.category = category;
 		this.afterSymbol = afterSymbol;
 		this.limit = limit;
 	}
 	
-	public SymbolListRequest(String category, int limit) {
+	public SymbolListRequest(String category, Integer limit) {
 		this(category, null, limit);
 	}
 	
@@ -28,7 +28,7 @@ public class SymbolListRequest {
 		return afterSymbol;
 	}
 	
-	public int getLimit() {
+	public Integer getLimit() {
 		return limit;
 	}
 	

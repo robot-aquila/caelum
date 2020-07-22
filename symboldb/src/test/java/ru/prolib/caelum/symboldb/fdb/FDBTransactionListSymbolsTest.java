@@ -130,6 +130,25 @@ public class FDBTransactionListSymbolsTest {
 	}
 	
 	@Test
+	public void testApply_WithNullLimitInRequest() {
+		Range range_cat = space.get(Tuple.from(0x02, "cat1")).range(); 
+		expect(trMock.getRange(aryEq(range_cat.begin), aryEq(range_cat.end), eq(250))).andReturn(iterableMock);
+		expect(iterableMock.iterator()).andReturn(new AsyncIteratorStub<>(new ArrayList<>(Arrays.asList(
+				new KeyValue(space.get(Tuple.from(0x02, "cat1", "cat1@bambr")).pack(), Tuple.from(true).pack()),
+				new KeyValue(space.get(Tuple.from(0x02, "cat1", "cat1@chuwe")).pack(), Tuple.from(true).pack()),
+				new KeyValue(space.get(Tuple.from(0x02, "cat1", "cat1@garbo")).pack(), Tuple.from(true).pack())
+			))));
+		control.replay();
+		service = new FDBTransactionListSymbols(schema, new SymbolListRequest("cat1", null, null), 250);
+		
+		ICloseableIterator<String> actual = service.apply(trMock);
+		
+		control.verify();
+		IteratorStub<String> expected = new IteratorStub<>(Arrays.asList("cat1@bambr", "cat1@chuwe", "cat1@garbo"));
+		assertEquals(expected, actual);
+	}
+	
+	@Test
 	public void testHashCode() {
 		int expected = new HashCodeBuilder(1209865, 51)
 				.append(schema)

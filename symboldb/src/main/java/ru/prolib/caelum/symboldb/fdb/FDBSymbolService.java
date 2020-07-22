@@ -1,5 +1,8 @@
 package ru.prolib.caelum.symboldb.fdb;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 import com.apple.foundationdb.Database;
 
 import ru.prolib.caelum.core.ICloseableIterator;
@@ -43,7 +46,12 @@ public class FDBSymbolService implements ISymbolService {
 	
 	@Override
 	public void registerSymbol(String symbol) {
-		db.run(new FDBTransactionRegisterSymbol(schema, catExt, symbol));
+		db.run(new FDBTransactionRegisterSymbol(schema, catExt, Arrays.asList(symbol)));
+	}
+	
+	@Override
+	public void registerSymbol(Collection<String> symbols) {
+		db.run(new FDBTransactionRegisterSymbol(schema, catExt, symbols));
 	}
 
 	@Override

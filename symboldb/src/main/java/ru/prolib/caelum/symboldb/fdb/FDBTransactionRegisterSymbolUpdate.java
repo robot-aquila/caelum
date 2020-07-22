@@ -9,17 +9,23 @@ import com.apple.foundationdb.Transaction;
 import ru.prolib.caelum.symboldb.ICategoryExtractor;
 import ru.prolib.caelum.symboldb.SymbolUpdate;
 
-public class FDBTransactionRegisterSymbolUpdate extends FDBTransactionRegisterSymbol {
+public class FDBTransactionRegisterSymbolUpdate extends FDBTransaction<Void> {
+	ICategoryExtractor catExt;
 	protected final SymbolUpdate update;
 
 	public FDBTransactionRegisterSymbolUpdate(FDBSchema schema, ICategoryExtractor catExt, SymbolUpdate update) {
-		super(schema, catExt, update.getSymbol());
+		super(schema);
+		this.catExt = catExt;
 		this.update = update;
 	}
 	
 	@Override
 	public Void apply(Transaction t) {
-		super.apply(t);
+		final String symbol = update.getSymbol();
+		for ( String category : catExt.extract(symbol) ) {
+			t.set(schema.getKeyCategory(category), schema.getTrueBytes());
+			t.set(schema.getKeyCategorySymbol(category, symbol), schema.getTrueBytes());
+		}
 		KeyValue kv = schema.packSymbolUpdate(update);
 		t.set(kv.getKey(), kv.getValue());
 		return null;

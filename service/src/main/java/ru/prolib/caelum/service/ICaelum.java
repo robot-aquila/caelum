@@ -1,5 +1,7 @@
 package ru.prolib.caelum.service;
 
+import java.util.Collection;
+
 import ru.prolib.caelum.aggregator.AggregatedDataRequest;
 import ru.prolib.caelum.core.ICloseableIterator;
 import ru.prolib.caelum.core.IItem;
@@ -15,6 +17,7 @@ import ru.prolib.caelum.symboldb.SymbolUpdate;
  */
 public interface ICaelum {
 	void registerSymbol(String symbol);
+	void registerSymbol(Collection<String> symbols);
 	void registerSymbolUpdate(SymbolUpdate update);
 	void registerItem(IItem item);
 	ICloseableIterator<ITuple> fetch(AggregatedDataRequest request);

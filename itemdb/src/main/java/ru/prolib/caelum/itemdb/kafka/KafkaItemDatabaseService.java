@@ -88,7 +88,7 @@ public class KafkaItemDatabaseService implements IItemDatabaseService {
 	public IItemIterator fetch(ItemDataRequestContinue request) {
 		KafkaConsumer<String, KafkaItem> consumer = createConsumer();
 		KafkaItemInfo item_info = utils.getItemInfo(consumer, config.getSourceTopic(), request.getSymbol());
-		if ( item_info.hasData() ) {
+		if ( item_info.hasData() && request.getOffset() < item_info.getEndOffset() ) {
 			TopicPartition tp = item_info.toTopicPartition();
 			consumer.assign(Arrays.asList(tp));
 			consumer.seek(tp, request.getOffset());

@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +67,7 @@ public class FDBSymbolServiceIT {
 	@Before
 	public void setUp() throws Exception {
 		service = new FDBSymbolService(CommonCategoryExtractor.getInstance(),
-				new FDBSchema(helper.getTestSubspace()), 1000);
+				new FDBSchema(helper.getTestSubspace()), 100);
 		service.setDatabase(db);
 	}
 	
@@ -81,9 +82,24 @@ public class FDBSymbolServiceIT {
 	}
 	
 	@Test
-	public void testRegisterSymbol() {
+	public void testRegisterSymbol_S() {
 		service.registerSymbol("tukana@batari");
 		service.registerSymbol("kappa");
+		
+		db.run((t) -> {
+			// categories
+			assertArrayEquals(TB, t.get(space.get(Tuple.from(0x01, "")).pack()).join());
+			assertArrayEquals(TB, t.get(space.get(Tuple.from(0x01, "tukana")).pack()).join());
+			// symbols
+			assertArrayEquals(TB, t.get(space.get(Tuple.from(0x02, "", "kappa")).pack()).join());
+			assertArrayEquals(TB, t.get(space.get(Tuple.from(0x02, "tukana", "tukana@batari")).pack()).join());
+			return null;
+		});
+	}
+	
+	@Test
+	public void testRegisterSymbol_L() {
+		service.registerSymbol(Arrays.asList("tukana@batari", "kappa"));
 		
 		db.run((t) -> {
 			// categories
@@ -200,6 +216,26 @@ public class FDBSymbolServiceIT {
 		actual = toList(service.listSymbols(new SymbolListRequest("delta", "delta@boss", 3)));
 		
 		assertEquals(Arrays.asList("delta@buggy", "delta@gattaca", "delta@gummi"), actual);
+	}
+	
+	@Test
+	public void testListSymbols_ShouldUseDefaultLimitIsNotSpecified() throws Exception {
+		int max_limit = service.getListSymbolsMaxLimit(), total_count = max_limit + 5;
+		db.run((t) -> {
+			for ( int i = 0; i < total_count; i ++ ) {
+				t.set(space.get(Tuple.from(0x02, "delta", "delta@" + String.format("%03d", i))).pack(), TB);
+			}
+			return null;
+		});
+		
+		List<String> actual = toList(service.listSymbols(new SymbolListRequest("delta", null, null)));
+			
+		List<String> expected = new ArrayList<>();
+		for ( int i = 0; i < max_limit; i ++ ) {
+			expected.add("delta@" + String.format("%03d", i));
+		}
+		Collections.sort(expected);
+		assertEquals(expected, actual);
 	}
 	
 	@Test
