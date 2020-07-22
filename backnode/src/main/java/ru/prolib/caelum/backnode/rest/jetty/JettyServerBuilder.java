@@ -28,9 +28,9 @@ public class JettyServerBuilder implements IRestServiceBuilder {
 		return new BacknodeConfig();
 	}
 	
-	protected Object createComponent(ICaelum caelum) {
+	protected Object createComponent(ICaelum caelum, boolean testMode) {
 		return new NodeService(caelum, new Freemarker(), new StreamFactory(),
-				Periods.getInstance(), ByteUtils.getInstance());
+				Periods.getInstance(), ByteUtils.getInstance(), testMode);
 	}
 	
 	protected IService createServer(String host, int port, Object component) {
@@ -79,7 +79,8 @@ public class JettyServerBuilder implements IRestServiceBuilder {
 	public IService build(String default_config_file, String config_file, ICaelum caelum) throws IOException {
 		BacknodeConfig config = createConfig();
 		config.load(default_config_file, config_file);
-		return createServer(config.getRestHttpHost(), config.getRestHttpPort(), createComponent(caelum));
+		return createServer(config.getRestHttpHost(), config.getRestHttpPort(),
+				createComponent(caelum, config.isTestMode()));
 	}
 		
 }

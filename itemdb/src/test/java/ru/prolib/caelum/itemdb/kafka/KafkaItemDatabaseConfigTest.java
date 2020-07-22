@@ -17,7 +17,6 @@ public class KafkaItemDatabaseConfigTest {
 	
 	void verifyDefaultProperties(Properties props) {
 		assertEquals("localhost:8082",	props.get("caelum.itemdb.kafka.bootstrap.servers"));
-		assertEquals("caelum-item-db",	props.get("caelum.itemdb.kafka.group.id"));
 		assertEquals("caelum-item",		props.get("caelum.itemdb.kafka.source.topic"));
 		assertEquals("5000",			props.get("caelum.itemdb.list.items.limit"));
 		assertEquals("all",				props.get("caelum.itemdb.kafka.acks"));
@@ -40,9 +39,8 @@ public class KafkaItemDatabaseConfigTest {
 	public void testGetConsumerKafkaProperties() {
 		Properties props = service.getConsumerKafkaProperties();
 		
-		assertEquals(4, props.size());
+		assertEquals(3, props.size());
 		assertEquals("localhost:8082", props.get("bootstrap.servers"));
-		assertEquals("caelum-item-db", props.get("group.id"));
 		assertEquals("earliest", props.get("auto.offset.reset"));
 		assertEquals("false", props.get("enable.auto.commit"));
 	}
@@ -54,6 +52,14 @@ public class KafkaItemDatabaseConfigTest {
 		assertEquals(2, props.size());
 		assertEquals("localhost:8082", props.get("bootstrap.servers"));
 		assertEquals("all", props.get("acks"));
+	}
+	
+	@Test
+	public void testGetAdminClientProperties() {
+		Properties props = service.getAdminClientProperties();
+		
+		assertEquals(1, props.size());
+		assertEquals("localhost:8082", props.get("bootstrap.servers"));
 	}
 	
 	@Test

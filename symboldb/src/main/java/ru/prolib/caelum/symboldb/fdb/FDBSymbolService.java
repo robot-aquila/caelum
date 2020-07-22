@@ -66,4 +66,9 @@ public class FDBSymbolService implements ISymbolService {
 		return db.run(new FDBTransactionListSymbolUpdates(schema, symbol));
 	}
 
+	@Override
+	public void clear() {
+		db.run(new FDBTransactionClear(schema));
+	}
+
 }

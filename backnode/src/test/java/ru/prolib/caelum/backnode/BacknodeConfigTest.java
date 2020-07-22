@@ -18,6 +18,7 @@ public class BacknodeConfigTest {
 	void verifyDefaultProperties(Properties props) {
 		assertEquals("localhost", props.get("caelum.backnode.rest.http.host"));
 		assertEquals("9698", props.get("caelum.backnode.rest.http.port"));
+		assertEquals("prod", props.get("caelum.backnode.mode"));
 	}
 
 	@Test
@@ -45,6 +46,17 @@ public class BacknodeConfigTest {
 		service.getProperties().put("caelum.backnode.rest.http.port", "708");
 		
 		assertEquals(708, service.getRestHttpPort());
+	}
+	
+	@Test
+	public void testIsTestMode() {
+		assertFalse(service.isTestMode());
+		
+		service.getProperties().put("caelum.backnode.mode", "test");
+		assertTrue(service.isTestMode());
+		
+		service.getProperties().put("caelum.backnode.mode", "prod");
+		assertFalse(service.isTestMode());
 	}
 
 }

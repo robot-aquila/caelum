@@ -7,8 +7,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.DescribeTopicsResult;
+import org.apache.kafka.clients.admin.OffsetSpec;
+import org.apache.kafka.clients.admin.RecordsToDelete;
+import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.OffsetAndTimestamp;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -55,19 +63,22 @@ public class KafkaUtils {
 	}
 	
 	public IItemIterator createIteratorStub(KafkaConsumer<String, KafkaItem> consumer,
-			KafkaItemInfo item_info, long limit, long end_time)
+			KafkaItemInfo item_info, int limit, Long end_time)
 	{
 		return new ItemIterator(consumer, new IteratorStub<>(), item_info, limit, end_time);
 	}
 	
 	public IItemIterator createIterator(KafkaConsumer<String, KafkaItem> consumer,
-			KafkaItemInfo item_info, long limit, long end_time, Clock clock)
+			KafkaItemInfo item_info, int limit, Long end_time, Clock clock)
 	{
 		return new ItemIterator(consumer, new SeamlessConsumerRecordIterator<>(consumer, clock),
 				item_info, limit, end_time);
 	}
 	
-	public long getOffset(KafkaConsumer<?, ?> consumer, TopicPartition tp, long timestamp, long default_offset) {
+	public long getOffset(KafkaConsumer<?, ?> consumer, TopicPartition tp, Long timestamp, long default_offset) {
+		if ( timestamp == null ) {
+			return default_offset;
+		}
 		Map<TopicPartition, Long> m = new HashMap<>();
 		m.put(tp, timestamp);
 		OffsetAndTimestamp x = consumer.offsetsForTimes(m).get(tp);
@@ -82,6 +93,40 @@ public class KafkaUtils {
 	public KafkaProducer<String, KafkaItem> createProducer(Properties props) {
 		return new KafkaProducer<>(props, KafkaItemSerdes.keySerde().serializer(),
 				KafkaItemSerdes.itemSerde().serializer());
+	}
+	
+	public AdminClient createAdmin(Properties props) {
+		return AdminClient.create(props);
+	}
+	
+	/**
+	 * Delete all records of kafka topic.
+	 * <p>
+	 * @param admin - admin client instance
+	 * @param topic - topic
+	 * @param timeout - timeout of separate blocking operation in milliseconds
+	 * @throws IllegalStateException - an error occurred
+	 */
+	public void deleteRecords(AdminClient admin, String topic, long timeout) throws IllegalStateException {
+		try {
+			DescribeTopicsResult r = admin.describeTopics(Arrays.asList(topic));
+			TopicDescription desc = r.all().get(timeout, TimeUnit.MILLISECONDS).get(topic);
+			if ( desc != null ) {
+				List<TopicPartition> partitions = desc.partitions().stream()
+						.map((tpi) -> new TopicPartition(topic, tpi.partition()))
+						.collect(Collectors.toList());
+				Map<TopicPartition, RecordsToDelete> to_delete = admin
+					.listOffsets(partitions.stream().collect(Collectors.toMap(x->x, x->OffsetSpec.latest())))
+					.all()
+					.get(timeout, TimeUnit.MILLISECONDS)
+					.entrySet()
+					.stream()
+					.collect(Collectors.toMap(x->x.getKey(), x->RecordsToDelete.beforeOffset(x.getValue().offset())));
+				admin.deleteRecords(to_delete).all().get(timeout, TimeUnit.MILLISECONDS);
+			}
+		} catch ( TimeoutException|ExecutionException|InterruptedException e ) {
+			throw new IllegalStateException("Error deleting records from topic: " + topic, e);
+		}
 	}
 
 }

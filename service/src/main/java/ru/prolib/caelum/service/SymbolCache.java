@@ -44,6 +44,11 @@ public class SymbolCache implements ISymbolCache {
 	}
 	
 	@Override
+	public void clear() {
+		markers.clear();
+	}
+	
+	@Override
 	public int hashCode() {
 		return new HashCodeBuilder(9861653, 37)
 				.append(symbolService)

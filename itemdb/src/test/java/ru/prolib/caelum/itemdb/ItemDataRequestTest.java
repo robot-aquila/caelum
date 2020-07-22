@@ -19,11 +19,22 @@ public class ItemDataRequestTest {
 	@Test
 	public void testGetters() {
 		assertEquals("foobar", service.getSymbol());
-		assertEquals(5000L, service.getFrom());
+		assertEquals(Long.valueOf(5000L), service.getFrom());
 		assertEquals(Instant.ofEpochMilli(5000L), service.getTimeFrom());
-		assertEquals(9000L, service.getTo());
+		assertEquals(Long.valueOf(9000L), service.getTo());
 		assertEquals(Instant.ofEpochMilli(9000L), service.getTimeTo());
-		assertEquals(300L, service.getLimit());
+		assertEquals(Integer.valueOf(300), service.getLimit());
+	}
+	
+	@Test
+	public void testCtor4_NullValuesAllowedForAllParamsExceptSymbol() {
+		service = new ItemDataRequest("foobar", null, null, null);
+		assertEquals("foobar",service.getSymbol());
+		assertNull(service.getFrom());
+		assertNull(service.getTimeFrom());
+		assertNull(service.getTo());
+		assertNull(service.getTimeTo());
+		assertNull(service.getLimit());
 	}
 	
 	@Test
@@ -37,9 +48,9 @@ public class ItemDataRequestTest {
 	public void testHashCode() {
 		int expected = new HashCodeBuilder(99766117, 93)
 				.append("foobar")
-				.append(5000L)
-				.append(9000L)
-				.append(300L)
+				.append(Long.valueOf(5000L))
+				.append(Long.valueOf(9000L))
+				.append(Integer.valueOf(300))
 				.build();
 		
 		assertEquals(expected, service.hashCode());
@@ -54,12 +65,12 @@ public class ItemDataRequestTest {
 
 	@Test
 	public void testEquals() {
-		assertTrue(service.equals(new ItemDataRequest("foobar", 5000L, 9000L, 300L)));
-		assertFalse(service.equals(new ItemDataRequest("barbar", 5000L, 9000L, 300L)));
-		assertFalse(service.equals(new ItemDataRequest("foobar", 1000L, 9000L, 300L)));
-		assertFalse(service.equals(new ItemDataRequest("foobar", 5000L, 9500L, 300L)));
-		assertFalse(service.equals(new ItemDataRequest("foobar", 5000L, 9000L, 400L)));
-		assertFalse(service.equals(new ItemDataRequest("barbar", 1000L, 9500L, 400L)));
+		assertTrue(service.equals(new ItemDataRequest("foobar", 5000L, 9000L, 300)));
+		assertFalse(service.equals(new ItemDataRequest("barbar", 5000L, 9000L, 300)));
+		assertFalse(service.equals(new ItemDataRequest("foobar", 1000L, 9000L, 300)));
+		assertFalse(service.equals(new ItemDataRequest("foobar", 5000L, 9500L, 300)));
+		assertFalse(service.equals(new ItemDataRequest("foobar", 5000L, 9000L, 400)));
+		assertFalse(service.equals(new ItemDataRequest("barbar", 1000L, 9500L, 400)));
 	}
 
 }

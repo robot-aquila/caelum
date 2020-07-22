@@ -11,9 +11,10 @@ public class ItemDataRequestContinue implements IItemDataRequest {
 	private final String symbol;
 	private final long offset;
 	private final String magic;
-	private final long to, limit;
+	private final Long to;
+	private final Integer limit;
 	
-	public ItemDataRequestContinue(String symbol, long offset, String magic, long to, long limit) {
+	public ItemDataRequestContinue(String symbol, long offset, String magic, Long to, Integer limit) {
 		this.symbol = symbol;
 		this.offset = offset;
 		this.magic = magic;
@@ -35,18 +36,18 @@ public class ItemDataRequestContinue implements IItemDataRequest {
 	}
 	
 	@Override
-	public long getTo() {
+	public Long getTo() {
 		return to;
 	}
 	
 	@Override
-	public long getLimit() {
+	public Integer getLimit() {
 		return limit;
 	}
 	
 	@Override
 	public Instant getTimeTo() {
-		return Instant.ofEpochMilli(to);
+		return to == null ? null : Instant.ofEpochMilli(to);
 	}
 	
 	@Override

@@ -8,11 +8,15 @@ import java.time.Instant;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.ForbiddenException;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -54,7 +58,7 @@ import ru.prolib.caelum.symboldb.SymbolUpdate;
 public class NodeService {
 	static final Logger logger = LoggerFactory.getLogger(NodeService.class);
 	public static final long MAX_LIMIT = 5000L;
-	public static final int DEFAULT_LIMIT = 1000;
+	public static final int DEFAULT_LIMIT = 5000;
 	public static final Period DEFAULT_PERIOD = Period.M5;
 	
 	private final ICaelum caelum;
@@ -62,18 +66,21 @@ public class NodeService {
 	private final StreamFactory streamFactory;
 	private final Periods periods;
 	private final ByteUtils byteUtils;
+	private final boolean testMode;
 	
 	public NodeService(ICaelum caelum,
 			Freemarker templates,
 			StreamFactory streamFactory,
 			Periods periods,
-			ByteUtils byteUtils)
+			ByteUtils byteUtils,
+			boolean testMode)
 	{
 		this.caelum = caelum;
 		this.templates = templates;
 		this.streamFactory = streamFactory;
 		this.periods = periods;
 		this.byteUtils = byteUtils;
+		this.testMode = testMode;
 	}
 	
 	public ICaelum getCaelum() {
@@ -94,6 +101,10 @@ public class NodeService {
 	
 	public ByteUtils getByteUtils() {
 		return byteUtils;
+	}
+	
+	public boolean isTestMode() {
+		return testMode;
 	}
 	
 	private String validateSymbol(String symbol) {
@@ -161,16 +172,6 @@ public class NodeService {
 		return limit;
 	}
 	
-	private Long validateOffset(Long offset) {
-		if ( offset == null ) {
-			offset = 0L;
-		}
-		if ( offset < 0 ) {
-			throw new BadRequestException("Negative offset prohibited");
-		}
-		return offset;
-	}
-	
 	/**
 	 * Validate data and build request or throw an exception in case of error.
 	 * <p>
@@ -192,19 +193,12 @@ public class NodeService {
 	}
 	
 	private ItemDataRequest toItemDataRequest(String symbol, Long from, Long to, Integer limit) {
-		from = validateFrom(from);
-		to = validateTo(to);
-		validateFromAndTo(from, to);
-		limit = validateLimit(limit);
 		return new ItemDataRequest(symbol, from, to, limit);
 	}
 	
 	private ItemDataRequestContinue toItemDataRequestContinue(String symbol, Long offset,
 			String magic, Long to, Integer limit)
 	{
-		offset = validateOffset(offset);
-		to = validateTo(to);
-		limit = validateLimit(limit);
 		return new ItemDataRequestContinue(symbol, offset, magic, to, limit);
 	}
 	
@@ -234,6 +228,16 @@ public class NodeService {
 	@GET
 	@Path("/ping")
 	public Result<Void> ping() {
+		return success();
+	}
+	
+	@GET
+	@Path("/clear")
+	public Result<Void> clear() {
+		if ( ! isTestMode() ) {
+			throw new ForbiddenException();
+		}
+		caelum.clear();
 		return success();
 	}
 	
@@ -277,15 +281,43 @@ public class NodeService {
 	
 	@PUT
 	@Path("/item")
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	public Result<Void> item(
-			@QueryParam("symbol") @NotNull final String symbol,
-			@QueryParam("time") @NotNull final Long time,
-			@QueryParam("value") @NotNull final BigDecimal bd_value,
-			@QueryParam("volume") @NotNull final BigDecimal bd_volume)
+			@FormParam("symbol") List<String> raw_symbol,
+			@FormParam("time") List<String> raw_time,
+			@FormParam("value") List<String> raw_bd_value,
+			@FormParam("volume") List<String> raw_bd_volume)
 	{
-		caelum.registerItem(Item.ofDecimax15(validateSymbol(symbol), validateTime(time),
-				toLong(bd_value), toNumberOfDecimals(bd_value),
-				toLong(bd_volume), toNumberOfDecimals(bd_volume)));
+		int count = raw_symbol.size();
+		if ( raw_time.size() != count || raw_bd_value.size() != count || raw_bd_volume.size() != count ) {
+			throw new BadRequestException();
+		}
+		Item[] items = new Item[count];
+		for ( int i = 0; i < count; i ++ ) {
+			long time;
+			BigDecimal bd_value, bd_volume;
+			try {
+				time = validateTime(Long.parseLong(raw_time.get(i)));
+			} catch ( NumberFormatException e ) {
+				throw new BadRequestException("Illegal time at position #" + i + ": " + raw_time.get(i));
+			}
+			try {
+				bd_value = new BigDecimal(raw_bd_value.get(i));
+			} catch ( NumberFormatException e ) {
+				throw new BadRequestException("Illegal value at position #" + i + ": " + raw_bd_value.get(i));
+			}
+			try {
+				bd_volume = new BigDecimal(raw_bd_volume.get(i));
+			} catch ( NumberFormatException e ) {
+				throw new BadRequestException("Illegal volume at position #" + i + ": " + raw_bd_volume.get(i));
+			}
+			items[i] = Item.ofDecimax15(validateSymbol(raw_symbol.get(i)), validateTime(time),
+					toLong(bd_value), toNumberOfDecimals(bd_value),
+					toLong(bd_volume), toNumberOfDecimals(bd_volume));
+		}
+		for ( Item item : items ) {
+			caelum.registerItem(item);
+		}
 		return success();
 	}
 	
@@ -320,6 +352,7 @@ public class NodeService {
 	
 	@PUT
 	@Path("/symbol/update")
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	public Result<Void> symbolUpdate(@Context HttpServletRequest request) {
 		String symbol = null;
 		Long time = null;

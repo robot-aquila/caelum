@@ -30,7 +30,7 @@ public class JettyServerBuilderTest {
 		service = new JettyServerBuilder();
 		mockedService = partialMockBuilder(JettyServerBuilder.class)
 				.addMockedMethod("createConfig")
-				.addMockedMethod("createComponent", ICaelum.class)
+				.addMockedMethod("createComponent", ICaelum.class, boolean.class)
 				.addMockedMethod("createServer", String.class, int.class, Object.class)
 				.createMock();
 	}
@@ -44,7 +44,7 @@ public class JettyServerBuilderTest {
 	
 	@Test
 	public void testCreateComponent() {
-		Object actual = service.createComponent(caelumMock);
+		Object actual = service.createComponent(caelumMock, true);
 		
 		assertNotNull(actual);
 		assertThat(actual, is(instanceOf(NodeService.class)));
@@ -54,6 +54,13 @@ public class JettyServerBuilderTest {
 		assertNotNull(x.getStreamFactory());
 		assertNotNull(x.getPeriods());
 		assertNotNull(x.getByteUtils());
+		assertTrue(x.isTestMode());
+		
+		actual = service.createComponent(caelumMock, false);
+		assertNotNull(actual);
+		assertThat(actual, is(instanceOf(NodeService.class)));
+		x = (NodeService) actual;
+		assertFalse(x.isTestMode());
 	}
 	
 	@Test
@@ -80,8 +87,9 @@ public class JettyServerBuilderTest {
 		};
 		configStub.getProperties().put("caelum.backnode.rest.http.host", "bambr1");
 		configStub.getProperties().put("caelum.backnode.rest.http.port", "7281");
+		configStub.getProperties().put("caelum.backnode.mode", "prod");
 		expect(mockedService.createConfig()).andReturn(configStub);
-		expect(mockedService.createComponent(caelumMock)).andReturn(componentStub);
+		expect(mockedService.createComponent(caelumMock, false)).andReturn(componentStub);
 		expect(mockedService.createServer("bambr1", 7281, componentStub)).andReturn(serviceMock);
 		control.replay();
 		replay(mockedService);

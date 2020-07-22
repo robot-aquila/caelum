@@ -13,7 +13,7 @@ public class ItemDataRequestContinueTest {
 
 	@Before
 	public void setUp() throws Exception {
-		service = new ItemDataRequestContinue("foobar", 2500L, "xyz", 19998778762L, 300L);
+		service = new ItemDataRequestContinue("foobar", 2500L, "xyz", 19998778762L, 300);
 	}
 	
 	@Test
@@ -21,9 +21,20 @@ public class ItemDataRequestContinueTest {
 		assertEquals("foobar", service.getSymbol());
 		assertEquals(2500L, service.getOffset());
 		assertEquals("xyz", service.getMagic());
-		assertEquals(19998778762L, service.getTo());
+		assertEquals(Long.valueOf(19998778762L), service.getTo());
 		assertEquals(Instant.ofEpochMilli(19998778762L), service.getTimeTo());
-		assertEquals(300L, service.getLimit());
+		assertEquals(Integer.valueOf(300), service.getLimit());
+	}
+	
+	@Test
+	public void testCtor5_NullValuesAllowedForAllParamsExceptSymbolAndOffset() {
+		service = new ItemDataRequestContinue("foobar", 2500L, null, null, null);
+		assertEquals("foobar", service.getSymbol());
+		assertEquals(2500L, service.getOffset());
+		assertNull(service.getMagic());
+		assertNull(service.getTo());
+		assertNull(service.getTimeTo());
+		assertNull(service.getLimit());
 	}
 	
 	@Test
@@ -39,8 +50,8 @@ public class ItemDataRequestContinueTest {
 				.append("foobar")
 				.append(2500L)
 				.append("xyz")
-				.append(19998778762L)
-				.append(300L)
+				.append(Long.valueOf(19998778762L))
+				.append(Integer.valueOf(300))
 				.build();
 		
 		assertEquals(expected, service.hashCode());
@@ -55,13 +66,13 @@ public class ItemDataRequestContinueTest {
 
 	@Test
 	public void testEquals() {
-		assertTrue(service.equals(new ItemDataRequestContinue("foobar", 2500L, "xyz", 19998778762L, 300L)));
-		assertFalse(service.equals(new ItemDataRequestContinue("barbar", 2500L, "xyz", 19998778762L, 300L)));
-		assertFalse(service.equals(new ItemDataRequestContinue("foobar", 2000L, "xyz", 19998778762L, 300L)));
-		assertFalse(service.equals(new ItemDataRequestContinue("foobar", 2500L, "aaa", 19998778762L, 300L)));
-		assertFalse(service.equals(new ItemDataRequestContinue("foobar", 2500L, "xyz", 11111111111L, 300L)));
-		assertFalse(service.equals(new ItemDataRequestContinue("foobar", 2500L, "xyz", 19998778762L, 200L)));
-		assertFalse(service.equals(new ItemDataRequestContinue("barbar", 2000L, "aaa", 11111111111L, 200L)));
+		assertTrue(service.equals(new ItemDataRequestContinue("foobar", 2500L, "xyz", 19998778762L, 300)));
+		assertFalse(service.equals(new ItemDataRequestContinue("barbar", 2500L, "xyz", 19998778762L, 300)));
+		assertFalse(service.equals(new ItemDataRequestContinue("foobar", 2000L, "xyz", 19998778762L, 300)));
+		assertFalse(service.equals(new ItemDataRequestContinue("foobar", 2500L, "aaa", 19998778762L, 300)));
+		assertFalse(service.equals(new ItemDataRequestContinue("foobar", 2500L, "xyz", 11111111111L, 300)));
+		assertFalse(service.equals(new ItemDataRequestContinue("foobar", 2500L, "xyz", 19998778762L, 200)));
+		assertFalse(service.equals(new ItemDataRequestContinue("barbar", 2000L, "aaa", 11111111111L, 200)));
 	}
 
 }

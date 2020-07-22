@@ -91,5 +91,12 @@ public class Caelum implements ICaelum {
 	public ICloseableIterator<SymbolUpdate> fetchSymbolUpdates(String symbol) {
 		return symbolService.listSymbolUpdates(symbol);
 	}
+	
+	@Override
+	public void clear() {
+		symbolCache.clear();
+		symbolService.clear();
+		itemDbService.clear();
+	}
 
 }

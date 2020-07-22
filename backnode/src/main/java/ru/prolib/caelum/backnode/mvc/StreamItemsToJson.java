@@ -73,7 +73,7 @@ public class StreamItemsToJson implements StreamingOutput {
 			gen.writeFieldName("rows");
 			gen.writeStartArray();
 			
-			long total = 0, limit = request.getLimit();
+			int total = 0, limit = request.getLimit() == null ? Integer.MAX_VALUE : request.getLimit();
 			while ( iterator.hasNext() && total < limit ) {
 				IItem item = iterator.next();
 				gen.writeStartArray();

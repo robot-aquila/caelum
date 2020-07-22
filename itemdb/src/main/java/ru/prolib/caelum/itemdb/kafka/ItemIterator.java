@@ -6,16 +6,20 @@ import java.util.NoSuchElementException;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ru.prolib.caelum.core.IItem;
 import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.itemdb.ItemDataResponse;
 
 public class ItemIterator implements IItemIterator {
+	static final Logger logger = LoggerFactory.getLogger(ItemIterator.class);
 	private final KafkaConsumer<String, KafkaItem> consumer;
 	private final Iterator<ConsumerRecord<String, KafkaItem>> it;
 	private final KafkaItemInfo itemInfo;
-	private final long limit, endTime;
+	private final int limit;
+	private final Long endTime;
 	private boolean finished = false, closed = false;
 	private ConsumerRecord<String, KafkaItem> nextRecord;
 	private long recordCount;
@@ -24,7 +28,7 @@ public class ItemIterator implements IItemIterator {
 	public ItemIterator(KafkaConsumer<String, KafkaItem> consumer,
 			Iterator<ConsumerRecord<String, KafkaItem>> it,
 			KafkaItemInfo item_info,
-			long limit, long end_time)
+			int limit, Long end_time)
 	{
 		this.consumer = consumer;
 		this.it = it;
@@ -45,11 +49,11 @@ public class ItemIterator implements IItemIterator {
 		return itemInfo;
 	}
 	
-	public long getLimit() {
+	public int getLimit() {
 		return limit;
 	}
 	
-	public long getEndTime() {
+	public Long getEndTime() {
 		return endTime;
 	}
 	
@@ -107,10 +111,20 @@ public class ItemIterator implements IItemIterator {
 			}
 			
 			// Get the next record.
-			nextRecord = it.next();
+			try {
+				nextRecord = it.next();
+			} catch ( Throwable e ) {
+				throw new IllegalStateException(new StringBuilder()
+						.append("Error while getting next record:")
+						.append("itemInfo=").append(itemInfo)
+						.append(" lastOffset=").append(lastOffset)
+						.append(" limit=").append(limit)
+						.append(" endTime=").append(endTime)
+						.toString(), e);
+			}
 			lastOffset = nextRecord.offset();
 			// Test for end time
-			if ( nextRecord.timestamp() >= endTime ) {
+			if ( endTime != null && nextRecord.timestamp() >= endTime ) {
 				finish();
 				return false;
 			}
@@ -179,9 +193,9 @@ public class ItemIterator implements IItemIterator {
 	@Override
 	public void close() {
 		if ( closed == false ) {
+			consumer.close();
 			finish();
 			closed = true;
-			consumer.close();
 		}
 	}
 

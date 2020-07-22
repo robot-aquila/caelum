@@ -148,5 +148,12 @@ public class CaelumTest {
 		
 		control.verify();
 	}
+	
+	@Test
+	public void testClear() {
+		symbolCacheMock.clear();
+		symbolSvcMock.clear();
+		itemDbSvcMock.clear();
+	}
 
 }

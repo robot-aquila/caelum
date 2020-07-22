@@ -9,9 +9,10 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 public class ItemDataRequest implements IItemDataRequest {
 	private final String symbol;
-	private final long from, to, limit;
+	private final Long from, to;
+	private final Integer limit;
 	
-	public ItemDataRequest(String symbol, long from, long to, long limit) {
+	public ItemDataRequest(String symbol, Long from, Long to, Integer limit) {
 		this.symbol = symbol;
 		this.from = from;
 		this.to = to;
@@ -23,27 +24,27 @@ public class ItemDataRequest implements IItemDataRequest {
 		return symbol;
 	}
 	
-	public long getFrom() {
+	public Long getFrom() {
 		return from;
 	}
 	
 	@Override
-	public long getTo() {
+	public Long getTo() {
 		return to;
 	}
 	
 	@Override
-	public long getLimit() {
+	public Integer getLimit() {
 		return limit;
 	}
 	
 	public Instant getTimeFrom() {
-		return Instant.ofEpochMilli(from);
+		return from == null ? null : Instant.ofEpochMilli(from);
 	}
 	
 	@Override
 	public Instant getTimeTo() {
-		return Instant.ofEpochMilli(to);
+		return to == null ? null : Instant.ofEpochMilli(to);
 	}
 	
 	@Override

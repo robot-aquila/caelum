@@ -73,6 +73,16 @@ public class SymbolCacheTest {
 	}
 	
 	@Test
+	public void testClear() {
+		markers1.put("foo@bar", true);
+		markers1.put("foo@buz", true);
+
+		service.clear();
+		
+		assertEquals(0, markers1.size());
+	}
+	
+	@Test
 	public void testHashCode() {
 		int expected = new HashCodeBuilder(9861653, 37)
 				.append(symbolSvcMock1)
@@ -98,5 +108,5 @@ public class SymbolCacheTest {
 		assertFalse(service.equals(new SymbolCache(symbolSvcMock1, executorMock1, markers2)));
 		assertFalse(service.equals(new SymbolCache(symbolSvcMock2, executorMock2, markers2)));
 	}
-
+	
 }

@@ -36,6 +36,8 @@ public class KafkaItemInfoTest {
 		assertFalse(new KafkaItemInfo("xxx", 5, "zzz", 2, null, 200L).hasData());
 		assertFalse(new KafkaItemInfo("xxx", 5, "zzz", 2, 100L, null).hasData());
 		assertFalse(new KafkaItemInfo("xxx", 5, "zzz", 2, null, null).hasData());
+		assertFalse(new KafkaItemInfo("xxx", 5, "zzz", 2, 100L, 100L).hasData());
+		assertFalse(new KafkaItemInfo("xxx", 5, "zzz", 2, 200L, 100L).hasData());
 	}
 	
 	@Test

@@ -4,7 +4,7 @@ import java.time.Instant;
 
 public interface IItemDataRequest {
 	String getSymbol();
-	long getTo();
-	long getLimit();
+	Long getTo();
+	Integer getLimit();
 	Instant getTimeTo();
 }

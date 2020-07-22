@@ -48,7 +48,7 @@ public class KafkaItemInfo {
 	}
 	
 	public boolean hasData() {
-		return startOffset != null && endOffset != null;
+		return startOffset != null && endOffset != null && startOffset < endOffset;
 	}
 	
 	public TopicPartition toTopicPartition() {

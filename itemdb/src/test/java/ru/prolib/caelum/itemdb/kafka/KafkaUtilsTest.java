@@ -8,24 +8,39 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.easymock.EasyMock.*;
 
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.AdminClientConfig;
+import org.apache.kafka.clients.admin.DeleteRecordsResult;
+import org.apache.kafka.clients.admin.DescribeTopicsResult;
+import org.apache.kafka.clients.admin.KafkaAdminClient;
+import org.apache.kafka.clients.admin.ListOffsetsResult;
+import org.apache.kafka.clients.admin.ListOffsetsResult.ListOffsetsResultInfo;
+import org.apache.kafka.clients.admin.OffsetSpec;
+import org.apache.kafka.clients.admin.RecordsToDelete;
+import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.OffsetAndTimestamp;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.KafkaFuture;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.TopicPartitionInfo;
 import org.apache.kafka.common.utils.Utils;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.log4j.BasicConfigurator;
+import org.easymock.Capture;
 import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -56,6 +71,7 @@ public class KafkaUtilsTest {
 	public ExpectedException eex = ExpectedException.none();
 	IMocksControl control;
 	KafkaConsumer<String, KafkaItem> consumerMock;
+	AdminClient adminMock;
 	Clock clockMock;
 	KafkaUtils service;
 
@@ -63,6 +79,7 @@ public class KafkaUtilsTest {
 	public void setUp() throws Exception {
 		control = createStrictControl();
 		consumerMock = control.createMock(KafkaConsumer.class);
+		adminMock = control.createMock(AdminClient.class);
 		clockMock = control.createMock(Clock.class);
 		service = new KafkaUtils();
 	}
@@ -168,15 +185,32 @@ public class KafkaUtilsTest {
 	@Test
 	public void testCreateIteratorStub() {
 		IItemIterator actual = service.createIteratorStub(consumerMock,
-				new KafkaItemInfo("boo", 1, "foo", 0, 400L, 800L), 150L, 718256L);
+				new KafkaItemInfo("boo", 1, "foo", 0, 400L, 800L), 150, 718256L);
 		
 		assertNotNull(actual);
 		assertThat(actual, is(instanceOf(ItemIterator.class)));
 		ItemIterator o = (ItemIterator) actual;
 		assertSame(consumerMock, o.getConsumer());
 		assertEquals(new KafkaItemInfo("boo", 1, "foo", 0, 400L, 800L), o.getItemInfo());
-		assertEquals(150L, o.getLimit());
-		assertEquals(718256L, o.getEndTime());
+		assertEquals(150, o.getLimit());
+		assertEquals(Long.valueOf(718256L), o.getEndTime());
+		Iterator<ConsumerRecord<String, KafkaItem>> it = o.getSourceIterator();
+		assertThat(it, is(instanceOf(IteratorStub.class)));
+		assertEquals(new IteratorStub<>(), it);
+	}
+	
+	@Test
+	public void testCreateIteratorStub_ShouldBeOkIfEndTimeIsNull() {
+		IItemIterator actual = service.createIteratorStub(consumerMock,
+				new KafkaItemInfo("boo", 1, "foo", 0, 400L, 800L), 150, null);
+		
+		assertNotNull(actual);
+		assertThat(actual, is(instanceOf(ItemIterator.class)));
+		ItemIterator o = (ItemIterator) actual;
+		assertSame(consumerMock, o.getConsumer());
+		assertEquals(new KafkaItemInfo("boo", 1, "foo", 0, 400L, 800L), o.getItemInfo());
+		assertEquals(150, o.getLimit());
+		assertNull(o.getEndTime());
 		Iterator<ConsumerRecord<String, KafkaItem>> it = o.getSourceIterator();
 		assertThat(it, is(instanceOf(IteratorStub.class)));
 		assertEquals(new IteratorStub<>(), it);
@@ -185,15 +219,15 @@ public class KafkaUtilsTest {
 	@Test
 	public void testCreateIterator() {
 		IItemIterator actual = service.createIterator(consumerMock,
-				new KafkaItemInfo("bug", 5, "juk", 3, 100L, 800L), 750L, 2889000187L, clockMock);
+				new KafkaItemInfo("bug", 5, "juk", 3, 100L, 800L), 750, 2889000187L, clockMock);
 		
 		assertNotNull(actual);
 		assertThat(actual, is(instanceOf(ItemIterator.class)));
 		ItemIterator o = (ItemIterator) actual;
 		assertSame(consumerMock, o.getConsumer());
 		assertEquals(new KafkaItemInfo("bug", 5, "juk", 3, 100L, 800L), o.getItemInfo());
-		assertEquals(750L, o.getLimit());
-		assertEquals(2889000187L, o.getEndTime());
+		assertEquals(750, o.getLimit());
+		assertEquals(Long.valueOf(2889000187L), o.getEndTime());
 		Iterator<ConsumerRecord<String, KafkaItem>> it = o.getSourceIterator();
 		assertThat(it, is(instanceOf(SeamlessConsumerRecordIterator.class)));
 		assertSame(consumerMock, ((SeamlessConsumerRecordIterator<String, KafkaItem>) it).getConsumer());
@@ -201,7 +235,25 @@ public class KafkaUtilsTest {
 	}
 	
 	@Test
-	public void testGetOffset_HasResult() {
+	public void testCreateIterator_ShouldBeOkIfEndTimeIsNull() {
+		IItemIterator actual = service.createIterator(consumerMock,
+				new KafkaItemInfo("pop", 4, "gap", 1, null, null), 240, null, clockMock);
+		
+		assertNotNull(actual);
+		assertThat(actual, is(instanceOf(ItemIterator.class)));
+		ItemIterator o = (ItemIterator) actual;
+		assertSame(consumerMock, o.getConsumer());
+		assertEquals(new KafkaItemInfo("pop", 4, "gap", 1, null, null), o.getItemInfo());
+		assertEquals(240, o.getLimit());
+		assertNull(o.getEndTime());
+		Iterator<ConsumerRecord<String, KafkaItem>> it = o.getSourceIterator();
+		assertThat(it, is(instanceOf(SeamlessConsumerRecordIterator.class)));
+		assertSame(consumerMock, ((SeamlessConsumerRecordIterator<String, KafkaItem>) it).getConsumer());
+		assertSame(clockMock, ((SeamlessConsumerRecordIterator<String, KafkaItem>) it).getClock());
+	}
+	
+	@Test
+	public void testGetOffset_ShouldReturnOffsetFromKafkaIfAvailable() {
 		Map<TopicPartition, Long> map_arg = new HashMap<>();
 		map_arg.put(new TopicPartition("foo", 2), 28866612L);
 		Map<TopicPartition, OffsetAndTimestamp> map_res = new HashMap<>();
@@ -215,13 +267,22 @@ public class KafkaUtilsTest {
 	}
 	
 	@Test
-	public void testGetOffset_NoResult() {
+	public void testGetOffset_ShouldReturnDefaultOffsetIfNoOffsetFromKafkaAvailable() {
 		Map<TopicPartition, Long> map_arg = new HashMap<>();
 		map_arg.put(new TopicPartition("foo", 2), 28866612L);
 		expect(consumerMock.offsetsForTimes(map_arg)).andReturn(new HashMap<>());
 		control.replay();
 		
 		assertEquals(150L, service.getOffset(consumerMock, new TopicPartition("foo", 2), 28866612L, 150L));
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testGetOffset_ShouldReturnDefaultOffsetIfTimestampIsNull() {
+		control.replay();
+		
+		assertEquals(894L, service.getOffset(consumerMock, new TopicPartition("foo", 2), null, 894L));
 		
 		control.verify();
 	}
@@ -249,5 +310,82 @@ public class KafkaUtilsTest {
 		
 		assertNotNull(actual);
 	}
-
+	
+	@Test
+	public void testCreateAdmin() {
+		Properties conf = new Properties();
+		conf.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:8082");
+		
+		AdminClient actual = service.createAdmin(conf);
+		
+		assertNotNull(actual);
+		assertThat(actual, is(instanceOf(KafkaAdminClient.class)));
+	}
+	
+	static class MapBuilder<K, V> {
+		private final Map<K, V> result = new LinkedHashMap<>();
+		
+		public MapBuilder<K, V> put(K key, V val) {
+			result.put(key, val);
+			return this;
+		}
+		
+		public Map<K, V> build() {
+			return new LinkedHashMap<>(result);
+		}
+	}
+	
+	@Test
+	public void testDeleteRecords_NoErrors() throws Exception {
+		// 1) requesting topic partitions info
+		DescribeTopicsResult descrTopicsResMock = control.createMock(DescribeTopicsResult.class);
+		expect(adminMock.describeTopics(Arrays.asList("foobar"))).andReturn(descrTopicsResMock);
+		KafkaFuture<Map<String, TopicDescription>> futMock1 = control.createMock(KafkaFuture.class);
+		expect(descrTopicsResMock.all()).andReturn(futMock1);
+		expect(futMock1.get(10000L, TimeUnit.MILLISECONDS)).andReturn(new MapBuilder<String, TopicDescription>()
+				.put("foobar", new TopicDescription("foobar", false, Arrays.asList(
+						new TopicPartitionInfo(0, null, new ArrayList<>(), new ArrayList<>()),
+						new TopicPartitionInfo(1, null, new ArrayList<>(), new ArrayList<>()),
+						new TopicPartitionInfo(2, null, new ArrayList<>(), new ArrayList<>())
+					)))
+				.build());
+		// 2) requesting for latest offset for each partition
+		ListOffsetsResult listOffsetsResMock = control.createMock(ListOffsetsResult.class);
+		Capture<Map<TopicPartition, OffsetSpec>> cap = newCapture();
+		expect(adminMock.listOffsets(capture(cap))).andReturn(listOffsetsResMock);
+		KafkaFuture<Map<TopicPartition, ListOffsetsResultInfo>> futMock2 = control.createMock(KafkaFuture.class);
+		expect(listOffsetsResMock.all()).andReturn(futMock2);
+		ListOffsetsResultInfo offsetInfoMock1 = control.createMock(ListOffsetsResultInfo.class);
+		ListOffsetsResultInfo offsetInfoMock2 = control.createMock(ListOffsetsResultInfo.class);
+		ListOffsetsResultInfo offsetInfoMock3 = control.createMock(ListOffsetsResultInfo.class);
+		expect(futMock2.get(10000L, TimeUnit.MILLISECONDS))
+			.andReturn(new MapBuilder<TopicPartition, ListOffsetsResultInfo>()
+					.put(new TopicPartition("foobar", 0), offsetInfoMock1)
+					.put(new TopicPartition("foobar", 1), offsetInfoMock2)
+					.put(new TopicPartition("foobar", 2), offsetInfoMock3)
+				.build());
+		expect(offsetInfoMock1.offset()).andStubReturn(1798L);
+		expect(offsetInfoMock2.offset()).andStubReturn(8261L);
+		expect(offsetInfoMock3.offset()).andStubReturn(5712L);
+		// 3) deleting records for each partition
+		DeleteRecordsResult deleteResMock = control.createMock(DeleteRecordsResult.class);
+		expect(adminMock.deleteRecords(new MapBuilder<TopicPartition, RecordsToDelete>()
+				.put(new TopicPartition("foobar", 0), RecordsToDelete.beforeOffset(1798L))
+				.put(new TopicPartition("foobar", 1), RecordsToDelete.beforeOffset(8261L))
+				.put(new TopicPartition("foobar", 2), RecordsToDelete.beforeOffset(5712L))
+				.build()))
+			.andReturn(deleteResMock);
+		KafkaFuture<Void> futMock3 = control.createMock(KafkaFuture.class);
+		expect(deleteResMock.all()).andReturn(futMock3);
+		expect(futMock3.get(10000L, TimeUnit.MILLISECONDS)).andReturn(null);
+		control.replay();
+		
+		service.deleteRecords(adminMock, "foobar", 10000L);
+		
+		control.verify();
+		assertEquals("LatestSpec", cap.getValue().get(new TopicPartition("foobar", 0)).getClass().getSimpleName());
+		assertEquals("LatestSpec", cap.getValue().get(new TopicPartition("foobar", 1)).getClass().getSimpleName());
+		assertEquals("LatestSpec", cap.getValue().get(new TopicPartition("foobar", 2)).getClass().getSimpleName());
+	}
+	
 }

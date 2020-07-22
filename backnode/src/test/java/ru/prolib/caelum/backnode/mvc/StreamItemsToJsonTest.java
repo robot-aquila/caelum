@@ -43,7 +43,7 @@ public class StreamItemsToJsonTest {
 				new ItemDataResponse(500, "xxx"),
 				true
 			);
-		request = new ItemDataRequest("foo", 1580000L, 1600000L, 500L);
+		request = new ItemDataRequest("foo", 1580000L, 1600000L, 500);
 		service = new StreamItemsToJson(jsonFactory, iterator, request, formatter, clockMock);
 	}
 	
@@ -58,6 +58,41 @@ public class StreamItemsToJsonTest {
 	
 	@Test
 	public void testWrite() throws Exception {
+		expect(clockMock.millis()).andReturn(1628399L);
+		control.replay();
+		
+		service.write(output);
+		
+		control.verify();
+		String actual = output.toString("UTF8");
+		
+		String expected = new StringBuilder()
+				.append("{")
+				.append("   \"time\": 1628399,")
+				.append("   \"error\": false,")
+				.append("   \"code\": 0,")
+				.append("   \"message\": null,")
+				.append("   \"data\": {")
+				.append("      \"symbol\": \"foo\",")
+				.append("      \"format\": \"std\",")
+				.append("      \"rows\": [")
+				.append("         [ 1583830, \"2.50\", \"0.010\" ],")
+				.append("         [ 1583850, \"2.45\", \"0.020\" ],")
+				.append("         [ 1583870, \"2.40\", \"0.015\" ]")
+				.append("      ],")
+				.append("      \"magic\": \"xxx\",")
+				.append("      \"fromOffset\": 501")
+				.append("   }")
+				.append("}")
+				.toString();
+		JSONAssert.assertEquals(expected, actual, true);
+		assertTrue(iterator.closed());
+	}
+	
+	@Test
+	public void testWrite_ShouldBeOkEvenIfTimeFromAndTimeToAndLimitAreNull() throws Exception {
+		request = new ItemDataRequest("foo", null, null, null);
+		service = new StreamItemsToJson(jsonFactory, iterator, request, formatter, clockMock);
 		expect(clockMock.millis()).andReturn(1628399L);
 		control.replay();
 		

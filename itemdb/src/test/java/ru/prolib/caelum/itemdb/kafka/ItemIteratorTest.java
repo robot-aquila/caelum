@@ -14,8 +14,10 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.record.TimestampType;
+import org.apache.log4j.BasicConfigurator;
 import org.easymock.IMocksControl;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -37,6 +39,12 @@ public class ItemIteratorTest {
 		return new Item(s, t, off, new KafkaItem(val, (byte)2, vol, (byte)0, ItemType.LONG_REGULAR));
 	}
 	
+	@BeforeClass
+	public static void setUpBeforeClass() {
+		BasicConfigurator.resetConfiguration();
+		BasicConfigurator.configure();
+	}
+	
 	@Rule public ExpectedException eex = ExpectedException.none();
 	IMocksControl control;
 	KafkaConsumer<String, KafkaItem> consumerMock;
@@ -50,7 +58,7 @@ public class ItemIteratorTest {
 		consumerMock = control.createMock(KafkaConsumer.class);
 		itData = new ArrayList<>();
 		it = new IteratorStub<>(itData);
-		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, 100L, 200L), 5L, 10000L);
+		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, 100L, 200L), 5, 10000L);
 	}
 	
 	@Test
@@ -58,7 +66,8 @@ public class ItemIteratorTest {
 		assertSame(consumerMock, service.getConsumer());
 		assertEquals(it, service.getSourceIterator());
 		assertEquals(new KafkaItemInfo("foo", 2, "bar", 0, 100L, 200L), service.getItemInfo());
-		assertEquals(5L, service.getLimit());
+		assertEquals(5, service.getLimit());
+		assertEquals(Long.valueOf(10000L), service.getEndTime());
 	}
 	
 	@Test
@@ -72,7 +81,7 @@ public class ItemIteratorTest {
 	
 	@Test
 	public void testHasNext_IfHasNoData() {
-		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, null, null), 10L, 10000L);
+		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, null, null), 10, 10000L);
 		
 		assertFalse(service.hasNext());
 		assertTrue(service.finished());
@@ -81,6 +90,10 @@ public class ItemIteratorTest {
 	@Test
 	public void testHasNext_IfClosed() {
 		itData.add(CR("foo", "bar", 0, 2L, 5001L, 26L, 190L));
+		control.resetToNice();
+		expect(consumerMock.position(anyObject())).andStubReturn(100L);
+		control.replay();
+		
 		service.close();
 		
 		assertFalse(service.hasNext());
@@ -114,7 +127,7 @@ public class ItemIteratorTest {
 		itData.add(CR("foo", "bar", 0, 105L, 5005L, 47L, 115L));
 		itData.add(CR("foo", "bar", 0, 106L, 5006L, 44L, 850L));
 		// last offset + 1 !!!
-		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, 100L, 104L), 5L, 10000L);
+		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, 100L, 104L), 5, 10000L);
 		
 		for ( int i = 0; i < 3; i ++ ) {
 			assertTrue("At #" + i, service.hasNext());
@@ -132,10 +145,28 @@ public class ItemIteratorTest {
 		itData.add(CR("foo", "bar", 0, 104L, 5004L, 42L, 230L));
 		itData.add(CR("foo", "bar", 0, 105L, 5005L, 47L, 115L));
 		itData.add(CR("foo", "bar", 0, 106L, 5006L, 44L, 850L));
-		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, 100L, 200L), 5L, 5004L);
+		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, 100L, 200L), 5, 5004L);
 		
 		for ( int i = 0; i < 3; i ++ ) {
 			assertTrue("At #" + i, service.hasNext());
+			service.next();
+		}
+		assertFalse(service.hasNext());
+		assertTrue(service.finished());
+	}
+	
+	@Test
+	public void testHasNext_ShouldIgnoreEndTimeCheckingIfEndTimeIsNull() {
+		itData.add(CR("foo", "bar", 0, 101L, 5001L, 45L, 200L));
+		itData.add(CR("foo", "bar", 0, 102L, 5002L, 49L, 100L));
+		itData.add(CR("foo", "bar", 0, 103L, 5003L, 43L, 500L));
+		itData.add(CR("foo", "bar", 0, 104L, 5004L, 42L, 230L));
+		itData.add(CR("foo", "bar", 0, 105L, 5005L, 47L, 115L));
+		itData.add(CR("foo", "bar", 0, 106L, 5006L, 44L, 850L));
+		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, 100L, 1000L), 1000, null);
+
+		for ( int i = 0; i < 6; i ++ ) {
+			assertTrue("At#" + i, service.hasNext());
 			service.next();
 		}
 		assertFalse(service.hasNext());
@@ -159,6 +190,10 @@ public class ItemIteratorTest {
 	@Test
 	public void testNext_ThrowsIfClosed() {
 		itData.add(CR("foo", "bar", 0, 2L, 5001L, 26L, 190L));
+		control.resetToNice();
+		expect(consumerMock.position(anyObject())).andStubReturn(100L);
+		control.replay();
+		
 		service.close();
 		eex.expect(NoSuchElementException.class);
 		
@@ -176,7 +211,7 @@ public class ItemIteratorTest {
 	
 	@Test
 	public void testNext_ThrowsIfHasNoData() {
-		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, null, null), 10L, 10000L);
+		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, null, null), 10, 10000L);
 		eex.expect(NoSuchElementException.class);
 		
 		service.next();
@@ -219,7 +254,7 @@ public class ItemIteratorTest {
 		itData.add(CR("foo", "bar", 0, 105L, 5005L, 47L, 115L));
 		itData.add(CR("foo", "bar", 0, 106L, 5006L, 44L, 850L));
 		// last offset + 1 !!!
-		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, 100L, 104L), 5L, 10000L);
+		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, 100L, 104L), 5, 10000L);
 		for ( int i = 0; i < 3; i ++ ) {
 			assertTrue("At #" + i, service.hasNext());
 			service.next();
@@ -237,13 +272,39 @@ public class ItemIteratorTest {
 		itData.add(CR("foo", "bar", 0, 104L, 5004L, 42L, 230L));
 		itData.add(CR("foo", "bar", 0, 105L, 5005L, 47L, 115L));
 		itData.add(CR("foo", "bar", 0, 106L, 5006L, 44L, 850L));
-		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, 100L, 200L), 5L, 5004L);
+		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, 100L, 200L), 5, 5004L);
 		for ( int i = 0; i < 3; i ++ ) {
 			service.next();
 		}
 		eex.expect(NoSuchElementException.class);
 
 		service.next();
+	}
+	
+	@Test
+	public void testNext_ShouldIgnoreEndTimeCheckingIfEndTimeIsNull() {
+		itData.add(CR("foo", "bar", 0, 101L, 5001L, 45L, 200L));
+		itData.add(CR("foo", "bar", 0, 102L, 5002L, 49L, 100L));
+		itData.add(CR("foo", "bar", 0, 103L, 5003L, 43L, 500L));
+		itData.add(CR("foo", "bar", 0, 104L, 5004L, 42L, 230L));
+		itData.add(CR("foo", "bar", 0, 105L, 5005L, 47L, 115L));
+		itData.add(CR("foo", "bar", 0, 106L, 5006L, 44L, 850L));
+		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, 100L, 200L), 1000, null);
+		
+		List<IItem> actual = new ArrayList<>();
+		while ( service.hasNext() ) {
+			actual.add(service.next());
+		}
+		
+		List<IItem> expected = Arrays.asList(
+				ID("bar", 5001L, 101L, 45L, 200L),
+				ID("bar", 5002L, 102L, 49L, 100L),
+				ID("bar", 5003L, 103L, 43L, 500L),
+				ID("bar", 5004L, 104L, 42L, 230L),
+				ID("bar", 5005L, 105L, 47L, 115L),
+				ID("bar", 5006L, 106L, 44L, 850L)
+			);
+		assertEquals(expected, actual);
 	}
 	
 	@Test
@@ -262,7 +323,7 @@ public class ItemIteratorTest {
 	
 	@Test
 	public void testNext_Iterate() {
-		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, 100L, 200L), 25L, 10000L);
+		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, 100L, 200L), 25, 10000L);
 		itData.add(CR("foo", "bar", 0, 101L, 5001L, 45L, 200L));
 		itData.add(CR("foo", "bar", 0, 102L, 5002L, 49L, 100L));
 		itData.add(CR("foo", "bar", 0, 103L, 5003L, 43L, 500L));
@@ -311,7 +372,12 @@ public class ItemIteratorTest {
 		itData.add(CR("foo", "bar", 0, 102L, 5002L, 49L, 100L));
 		itData.add(CR("foo", "bar", 0, 103L, 5003L, 43L, 500L));
 		service.next();
+		control.resetToNice();
+		expect(consumerMock.position(anyObject())).andStubReturn(100L);
+		control.replay();
+		
 		service.close();
+		
 		eex.expect(IllegalStateException.class);
 		eex.expectMessage("Iterator already closed");
 		
@@ -320,8 +386,12 @@ public class ItemIteratorTest {
 	
 	@Test
 	public void testClose() {
+		consumerMock.close();
+		control.replay();
+		
 		service.close();
 		
+		control.verify();
 		assertTrue(service.closed());
 	}
 

@@ -42,6 +42,11 @@ public class ItemDatabaseServiceBuilderTest {
 			throw new UnsupportedOperationException();
 		}
 		
+		@Override
+		public void clear() {
+			throw new UnsupportedOperationException();
+		}
+		
 	}
 	
 	static class TestBuilder implements IItemDatabaseServiceBuilder {

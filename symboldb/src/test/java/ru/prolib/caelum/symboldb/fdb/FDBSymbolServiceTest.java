@@ -101,5 +101,15 @@ public class FDBSymbolServiceTest {
 		
 		control.verify();
 	}
+	
+	@Test
+	public void testClear() {
+		expect(dbMock.run(new FDBTransactionClear(schema))).andReturn(null);
+		control.replay();
+		
+		service.clear();
+		
+		control.verify();
+	}
 
 }

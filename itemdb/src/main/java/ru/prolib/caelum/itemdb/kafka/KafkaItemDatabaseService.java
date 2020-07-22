@@ -3,14 +3,15 @@ package ru.prolib.caelum.itemdb.kafka;
 import java.time.Clock;
 import java.util.Arrays;
 
+import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 
-import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.core.IItem;
 import ru.prolib.caelum.itemdb.IItemDatabaseService;
+import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.itemdb.ItemDataRequest;
 import ru.prolib.caelum.itemdb.ItemDataRequestContinue;
 import ru.prolib.caelum.itemdb.ItemDatabaseConfig;
@@ -40,12 +41,17 @@ public class KafkaItemDatabaseService implements IItemDatabaseService {
 		return utils.createConsumer(config.getConsumerKafkaProperties());
 	}
 	
-	private long getLimit(ItemDataRequest request) {
-		return Math.min(request.getLimit(), config.getInt(ItemDatabaseConfig.LIST_ITEMS_LIMIT));
+	private int getLimit(Integer requested_limit) {
+		int default_limit = config.getInt(ItemDatabaseConfig.LIST_ITEMS_LIMIT);
+		return requested_limit == null ? default_limit : Math.min(requested_limit, default_limit); 		
+	}
+	
+	private int getLimit(ItemDataRequest request) {
+		return getLimit(request.getLimit());
 	}
 
-	private long getLimit(ItemDataRequestContinue request) {
-		return Math.min(request.getLimit(), config.getInt(ItemDatabaseConfig.LIST_ITEMS_LIMIT));
+	private int getLimit(ItemDataRequestContinue request) {
+		return getLimit(request.getLimit());
 	}
 	
 	public KafkaItemDatabaseConfig getConfig() {
@@ -97,6 +103,13 @@ public class KafkaItemDatabaseService implements IItemDatabaseService {
 		producer.send(new ProducerRecord<>(config.getSourceTopic(), null, item.getTime(), item.getSymbol(),
 			new KafkaItem(item.getValue(), item.getDecimals(), item.getVolume(), item.getVolumeDecimals(),
 					item.getType())));
+	}
+
+	@Override
+	public void clear() {
+		try ( AdminClient admin = utils.createAdmin(config.getAdminClientProperties()) ) {
+			utils.deleteRecords(admin, config.getSourceTopic(), 10000L);
+		}
 	}
 
 }

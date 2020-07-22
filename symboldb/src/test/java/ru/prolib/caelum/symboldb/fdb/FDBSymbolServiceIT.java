@@ -12,7 +12,9 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.Timeout;
 
 import com.apple.foundationdb.Database;
 import com.apple.foundationdb.subspace.Subspace;
@@ -28,6 +30,8 @@ public class FDBSymbolServiceIT {
 	static Database db;
 	static Subspace space;
 	static byte[] TB;
+	
+	@ClassRule public static Timeout globalTimeout = Timeout.millis(5000);
 	
 	static Map<Integer, String> toMap(Object ...args) {
 		if ( args.length % 2 != 0 ) {
@@ -51,8 +55,7 @@ public class FDBSymbolServiceIT {
 		
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		helper = new FDBTestHelper();
-		//helper = new FDBTestHelper("fdb.cluster");
+		helper = new FDBTestHelper("fdb.cluster");
 		db = helper.getDB();
 		space = helper.getTestSubspace();
 		TB = Tuple.from(true).pack();
@@ -238,6 +241,25 @@ public class FDBSymbolServiceIT {
 				new SymbolUpdate("zet@foo", 19085471L, toMap(49, "25.95", 990, "0.0002", 1000, "unlimited"))
 			);
 		assertEquals(expected, actual);
+	}
+	
+	@Test
+	public void testClear() throws Exception {
+		service.registerSymbol("tukana@batari");
+		service.registerSymbol("kappa");
+		service.registerSymbolUpdate(new SymbolUpdate("kap@mov", 15882689L, toMap(10, "foo", 11, "bar", 12, "buz")));
+		service.registerSymbolUpdate(new SymbolUpdate("kap@alp", 16788992L, toMap(20, "alp", 30, "zip", 40, "gap")));
+		service.registerSymbolUpdate(new SymbolUpdate("kap@alp", 16911504L, toMap(21, "boo", 22, "moo", 23, "goo")));
+		service.registerSymbolUpdate(new SymbolUpdate("bar@gor", 17829914L, toMap(11, "zoo", 12, "ups", 13, "pop")));
+		
+		service.clear();
+		
+		assertEquals(Arrays.asList(), toList(service.listCategories()));
+		assertEquals(Arrays.asList(), toList(service.listSymbols(new SymbolListRequest("kap", null, 1000))));
+		assertEquals(Arrays.asList(), toList(service.listSymbols(new SymbolListRequest("bar", null, 1000))));
+		assertEquals(Arrays.asList(), toList(service.listSymbolUpdates("kap@mov")));
+		assertEquals(Arrays.asList(), toList(service.listSymbolUpdates("kap@alp")));
+		assertEquals(Arrays.asList(), toList(service.listSymbolUpdates("bar@gor")));
 	}
 
 }
