@@ -5,13 +5,11 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
@@ -23,8 +21,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 
@@ -113,7 +111,7 @@ public class NodeService {
 	}
 	
 	private String validateCategory(String category) {
-		if ( category == null || category.length() == 0 ) {
+		if ( category == null ) {
 			throw new BadRequestException("Category cannot be null");
 		}
 		return category;
@@ -316,10 +314,11 @@ public class NodeService {
 	@GET
 	@Path("/symbols")
 	public Response symbols(
-			@QueryParam("category") @NotNull final String category,
+			@QueryParam("category") String category,
 			@QueryParam("afterSymbol") final String after_symbol,
 			@QueryParam("limit") final Integer limit)
 	{
+		if ( category == null ) category = "";
 		SymbolListRequest request = toSymbolListRequest(category, after_symbol, limit);
 		return Response.status(200)
 			.entity(streamFactory.symbolsToJson(caelum.fetchSymbols(request), request))
@@ -337,17 +336,16 @@ public class NodeService {
 	@PUT
 	@Path("/symbol/update")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public Result<Void> symbolUpdate(@Context HttpServletRequest request) {
+	public Result<Void> symbolUpdate(MultivaluedMap<String, String> params) {
 		String symbol = null;
 		Long time = null;
 		Map<Integer, String> tokens = new LinkedHashMap<>();
-		Enumeration<String> param_list = request.getParameterNames();
-		while ( param_list.hasMoreElements() ) {
-			String param = param_list.nextElement(), value = request.getParameter(param);
+		for ( String param : params.keySet() ) {
+			String value = params.getFirst(param);
 			if ( "symbol".equals(param) ) {
-				symbol = request.getParameter(param);
+				symbol = value;
 			} else if ( "time".equals(param) ) {
-				time = Long.parseLong(request.getParameter(param));
+				time = Long.parseLong(value);
 			} else if ( StringUtils.isNumeric(param) ) {
 				try {
 					tokens.put(Integer.parseInt(param), value);

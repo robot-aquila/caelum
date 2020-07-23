@@ -1,4 +1,4 @@
-package ru.prolib.caelum.test;
+package ru.prolib.caelum.test.dto;
 
 public abstract class ResponseDTO {
 	public Long time;

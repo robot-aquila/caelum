@@ -1,6 +1,7 @@
 package ru.prolib.caelum.symboldb.fdb;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -36,9 +37,11 @@ public class FDBTransactionRegisterSymbol extends FDBTransaction<Void> {
 	public Void apply(Transaction t) {
 		byte[] true_bytes = schema.getTrueBytes();
 		for ( String category : categories ) t.set(schema.getKeyCategory(category), true_bytes);
-		for ( String symbol : symbolCategories.keySet() ) {
-			for ( String category : symbolCategories.get(symbol) ) {
-				t.set(schema.getKeyCategorySymbol(category, symbol), true_bytes);
+		Iterator<Map.Entry<String, Collection<String>>> it = symbolCategories.entrySet().iterator();
+		while ( it.hasNext() ) {
+			Map.Entry<String, Collection<String>> entry = it.next();
+			for ( String category : entry.getValue() ) {
+				t.set(schema.getKeyCategorySymbol(category, entry.getKey()), true_bytes);
 			}
 		}
 		return null;
