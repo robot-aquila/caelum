@@ -50,6 +50,7 @@ public class KafkaAggregatorTest {
 		config.getProperties().put(KafkaAggregatorConfig.APPLICATION_ID_PREFIX, "myApp-");
 		config.getProperties().put(KafkaAggregatorConfig.AGGREGATION_STORE_PREFIX, "myStore-");
 		config.getProperties().put(KafkaAggregatorConfig.TARGET_TOPIC_PREFIX, "myTarget-");
+		config.getProperties().put(KafkaAggregatorConfig.DEFAULT_TIMEOUT, "35193");
 		service = new KafkaAggregator(descr, config, streamsServiceMock, utilsMock);
 	}
 	
@@ -76,12 +77,12 @@ public class KafkaAggregatorTest {
 	
 	@Test
 	public void testClear_ShouldAlsoClearTargetTopicIfDefined() {
-		expect(streamsServiceMock.stopAndWaitConfirm(10000L)).andReturn(true);
+		expect(streamsServiceMock.stopAndWaitConfirm(35193L)).andReturn(true);
 		expect(utilsMock.createAdmin(config.getAdminClientProperties())).andReturn(adminMock);
-		utilsMock.deleteRecords(adminMock, "myApp-m1-myStore-m1-changelog", 10000L);
-		utilsMock.deleteRecords(adminMock, "myTarget-m1", 10000L);
+		utilsMock.deleteRecords(adminMock, "myApp-m1-myStore-m1-changelog", 35193L);
+		utilsMock.deleteRecords(adminMock, "myTarget-m1", 35193L);
 		adminMock.close();
-		expect(streamsServiceMock.startAndWaitConfirm(10000L)).andReturn(true);
+		expect(streamsServiceMock.startAndWaitConfirm(35193L)).andReturn(true);
 		control.replay();
 		
 		service.clear();
@@ -92,11 +93,11 @@ public class KafkaAggregatorTest {
 	@Test
 	public void testClear_ShouldSkipClearingTargetTopicIfNotDefined() {
 		config.getProperties().put(KafkaAggregatorConfig.TARGET_TOPIC_PREFIX, "");
-		expect(streamsServiceMock.stopAndWaitConfirm(10000L)).andReturn(true);
+		expect(streamsServiceMock.stopAndWaitConfirm(35193L)).andReturn(true);
 		expect(utilsMock.createAdmin(config.getAdminClientProperties())).andReturn(adminMock);
-		utilsMock.deleteRecords(adminMock, "myApp-m1-myStore-m1-changelog", 10000L);
+		utilsMock.deleteRecords(adminMock, "myApp-m1-myStore-m1-changelog", 35193L);
 		adminMock.close();
-		expect(streamsServiceMock.startAndWaitConfirm(10000L)).andReturn(true);
+		expect(streamsServiceMock.startAndWaitConfirm(35193L)).andReturn(true);
 		control.replay();
 		
 		service.clear();
@@ -106,7 +107,7 @@ public class KafkaAggregatorTest {
 	
 	@Test
 	public void testClear_ThrowsIfFailedToStopService() {
-		expect(streamsServiceMock.stopAndWaitConfirm(10000L)).andReturn(false);
+		expect(streamsServiceMock.stopAndWaitConfirm(35193L)).andReturn(false);
 		control.replay();
 		eex.expect(IllegalStateException.class);
 		eex.expectMessage("Failed to stop streams service: M1");

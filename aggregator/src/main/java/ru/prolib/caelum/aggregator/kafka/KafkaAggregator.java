@@ -60,7 +60,7 @@ public class KafkaAggregator implements IAggregator {
 
 	@Override
 	public void clear() {
-		final long timeout = 10000L;
+		final long timeout = config.getDefaultTimeout();
 		if ( ! streamsService.stopAndWaitConfirm(timeout) ) {
 			throw new IllegalStateException("Failed to stop streams service: " + descr.getPeriod());
 		}
