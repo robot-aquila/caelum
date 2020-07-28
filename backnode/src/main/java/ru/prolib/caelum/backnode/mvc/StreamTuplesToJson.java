@@ -73,8 +73,7 @@ public class StreamTuplesToJson implements StreamingOutput {
 			gen.writeFieldName("rows");
 			gen.writeStartArray();
 			
-			long total = 0, limit = request.getLimit();
-			while ( iterator.hasNext() && total < limit ) {
+			while ( iterator.hasNext() ) {
 				ITuple tuple = iterator.next();
 				gen.writeStartArray();
 				gen.writeNumber(tuple.getTime());
@@ -86,7 +85,6 @@ public class StreamTuplesToJson implements StreamingOutput {
 				gen.writeString(formatter.format(tuple.getVolume(), tuple.getBigVolume(),
 						tuple.getVolumeDecimals()));
 				gen.writeEndArray();
-				total ++;
 			}
 			
 			gen.writeEndArray(); // end of rows

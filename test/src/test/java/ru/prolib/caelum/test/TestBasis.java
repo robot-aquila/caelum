@@ -40,6 +40,7 @@ import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
+import ru.prolib.caelum.core.Period;
 import ru.prolib.caelum.test.dto.CategoriesResponseDTO;
 import ru.prolib.caelum.test.dto.ItemResponseDTO;
 import ru.prolib.caelum.test.dto.ItemsResponseDTO;
@@ -49,6 +50,7 @@ import ru.prolib.caelum.test.dto.SymbolResponseDTO;
 import ru.prolib.caelum.test.dto.SymbolUpdateResponseDTO;
 import ru.prolib.caelum.test.dto.SymbolUpdatesResponseDTO;
 import ru.prolib.caelum.test.dto.SymbolsResponseDTO;
+import ru.prolib.caelum.test.dto.TuplesResponseDTO;
 
 public class TestBasis {
 
@@ -120,6 +122,69 @@ public class TestBasis {
 					.append(o.symbol, symbol)
 					.append(o.time, time)
 					.append(o.value, value)
+					.append(o.volume, volume)
+					.build();
+		}
+		
+	}
+	
+	public static class Tuple {
+		final long time;
+		final BigDecimal open, high, low, close, volume;
+		
+		public Tuple(long time, BigDecimal open, BigDecimal high, BigDecimal low, BigDecimal close, BigDecimal volume) {
+			this.time = time;
+			this.open = open;
+			this.high = high;
+			this.low = low;
+			this.close = close;
+			this.volume = volume;
+		}
+		
+		public Tuple(long time, String open, String high, String low, String close, String volume) {
+			this(time, new BigDecimal(open), new BigDecimal(high), new BigDecimal(low),
+					new BigDecimal(close), new BigDecimal(volume));
+		}
+		
+		@Override
+		public String toString() {
+			return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+					.append("time", time)
+					.append("open", open)
+					.append("high", high)
+					.append("low", low)
+					.append("close", close)
+					.append("volume", volume)
+					.build();
+		}
+		
+		@Override
+		public int hashCode() {
+			return new HashCodeBuilder()
+					.append(time)
+					.append(open)
+					.append(high)
+					.append(low)
+					.append(close)
+					.append(volume)
+					.build();
+		}
+		
+		@Override
+		public boolean equals(Object other) {
+			if ( other == this ) {
+				return true;
+			}
+			if ( other == null || other.getClass() != Tuple.class ) {
+				return false;
+			}
+			Tuple o = (Tuple) other;
+			return new EqualsBuilder()
+					.append(o.time, time)
+					.append(o.open, open)
+					.append(o.high, high)
+					.append(o.low, low)
+					.append(o.close, close)
 					.append(o.volume, volume)
 					.build();
 		}
@@ -339,6 +404,11 @@ public class TestBasis {
 		assertNotNull(response.data);
 	}
 	
+	public static void assertNotError(TuplesResponseDTO response) {
+		assertNotError((ResponseDTO) response);
+		assertNotNull(response.data);
+	}
+	
 	public static void assertEqualsItemByItem(String msg, List<Item> expected, List<Item> actual) {
 		int count = Math.min(expected.size(), actual.size());
 		for ( int i = 0; i < count; i ++ ) {
@@ -366,6 +436,28 @@ public class TestBasis {
 	
 	public static List<Item> toItems(CatSym cs, List<List<Object>> rows) {
 		return toItems(cs.category, cs.symbol, rows);
+	}
+	
+	public static List<Tuple> toTuples(List<List<Object>> rows) {
+		List<Tuple> result = new ArrayList<>();
+		for ( List<Object> row : rows ) {
+			long time = 0;
+			Object raw_time = row.get(0);
+			if ( raw_time instanceof Integer ) {
+				time = (int) raw_time;
+			} else if ( raw_time instanceof Long ) {
+				time = (long) raw_time;
+			} else {
+				throw new IllegalStateException("Unsupported type: " + raw_time);
+			}
+			result.add(new Tuple(time,
+					new BigDecimal((String) row.get(1)),
+					new BigDecimal((String) row.get(2)),
+					new BigDecimal((String) row.get(3)),
+					new BigDecimal((String) row.get(4)),
+					new BigDecimal((String) row.get(5))));
+		}
+		return result;
 	}
 	
 	public static Item registerItem(Item item) {
@@ -598,6 +690,29 @@ public class TestBasis {
 	
 	protected ItemsResponseDTO apiGetItems(String symbol) {
 		return apiGetItems(getSpec(), symbol, null);
+	}
+	
+	
+	protected TuplesResponseDTO apiGetTuples(RequestSpecification spec, Period period, String symbol,
+			Integer limit, Long from, Long to)
+	{
+		spec = given()
+				.spec(spec)
+				.pathParam("period", period)
+				.param("symbol", symbol);
+		if ( limit != null ) spec = spec.param("limit", limit);
+		if ( from != null ) spec = spec.param("from", from);
+		if ( to != null ) spec = spec.param("to", to);
+		return spec.when()
+				.get("tuples/{period}")
+			.then()
+				.statusCode(200)
+				.extract()
+				.as(TuplesResponseDTO.class);
+	}
+	
+	protected TuplesResponseDTO apiGetTuples(RequestSpecification spec, Period period, String symbol) {
+		return apiGetTuples(spec, period, symbol, null, null, null);
 	}
 	
 	protected CategoriesResponseDTO apiGetCategories(RequestSpecification spec) {

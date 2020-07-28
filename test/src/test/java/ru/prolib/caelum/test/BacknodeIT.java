@@ -3,6 +3,8 @@ package ru.prolib.caelum.test;
 import static org.junit.Assert.*;
 import static org.awaitility.Awaitility.await;
 
+import java.math.BigDecimal;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,6 +31,7 @@ import org.junit.runners.MethodSorters;
 import com.sun.xml.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 
 import io.restassured.specification.RequestSpecification;
+import ru.prolib.caelum.core.Period;
 import ru.prolib.caelum.test.dto.CategoriesResponseDTO;
 import ru.prolib.caelum.test.dto.ItemResponseDTO;
 import ru.prolib.caelum.test.dto.ItemsResponseDTO;
@@ -38,6 +41,7 @@ import ru.prolib.caelum.test.dto.SymbolUpdateDTO;
 import ru.prolib.caelum.test.dto.SymbolUpdateResponseDTO;
 import ru.prolib.caelum.test.dto.SymbolUpdatesResponseDTO;
 import ru.prolib.caelum.test.dto.SymbolsResponseDTO;
+import ru.prolib.caelum.test.dto.TuplesResponseDTO;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class BacknodeIT extends TestBasis {
@@ -782,26 +786,42 @@ public class BacknodeIT extends TestBasis {
 	
 	// C9*** - Test Cases of features related to tuples
 	
-	@Ignore
 	@Test
-	public void C9001_Tuples_All() {
-		
-//		CompletableFuture<ItemsResponseDTO> x = new CompletableFuture<>();
-//		await().dontCatchUncaughtExceptions()
-//			.pollInterval(Duration.ofSeconds(10L))
-//			.atMost(Duration.ofSeconds(30)).until(() -> {
-//			ItemsResponseDTO response = apiGetItems(symbol);
-//			assertNotError(response);
-//			if ( response.data.rows.size() == 5000 ) {
-//				x.complete(response);
-//				return true;
-//			} else {
-//				return false;
-//			}
-//		});
+	public void C9001_Tuples_SimpleM1Request() throws Exception {
+		CatSym cs = newSymbol();
+		generateItems(cs, 100, 1L, 60000L, "0.01", "0.01", "1", "1");
 
-		
-		fail();
+		RequestSpecification spec = getSpecRandom();
+		CompletableFuture<TuplesResponseDTO> r = new CompletableFuture<>();
+		await().dontCatchUncaughtExceptions()
+			.pollInterval(Duration.ofSeconds(10L))
+			.atMost(Duration.ofSeconds(20))
+			.until(() -> {
+				TuplesResponseDTO response = apiGetTuples(spec, Period.M1, cs.symbol);
+				assertNotError(response);
+				if ( response.data.rows.size() == 100 ) {
+					r.complete(response);
+					return true;
+				} else {
+					return false;
+				}
+			});
+		TuplesResponseDTO response = r.get(1, TimeUnit.MINUTES);
+		assertEquals(cs.symbol, response.data.symbol);
+		assertEquals(Period.M1, response.data.period);
+		assertEquals("std", response.data.format);
+		List<Tuple> actual_rows = toTuples(response.data.rows);
+		assertEquals(100, actual_rows.size());
+		assertEquals(new Tuple(0L, "0.01", "0.01", "0.01", "0.01", "1"), actual_rows.get(0));
+		assertEquals(new Tuple(60000 * 99, "1.00", "1.00", "1.00", "1.00", "100"), actual_rows.get(99));
+		for ( int i = 0; i < 100; i ++ ) {
+			long expected_time = 60000 * i;
+			BigDecimal expected_val = new BigDecimal("0.01").multiply(new BigDecimal(i + 1));
+			BigDecimal expected_vol = BigDecimal.ONE.multiply(new BigDecimal(i + 1));
+			assertEquals("Tuple #" + i,
+				new Tuple(expected_time, expected_val, expected_val, expected_val, expected_val, expected_vol),
+				actual_rows.get(i));
+		}
 	}
 	
 	@Ignore

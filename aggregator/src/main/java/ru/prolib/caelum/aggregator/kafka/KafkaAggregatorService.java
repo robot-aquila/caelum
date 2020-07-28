@@ -1,5 +1,6 @@
 package ru.prolib.caelum.aggregator.kafka;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 
@@ -15,6 +16,7 @@ import ru.prolib.caelum.core.Period;
 import ru.prolib.caelum.core.Periods;
 
 public class KafkaAggregatorService implements IAggregatorService {
+	public static final long MAX_TIME = Long.MAX_VALUE;
 	
 	static Instant T(long time) {
 		return Instant.ofEpochMilli(time);
@@ -52,27 +54,48 @@ public class KafkaAggregatorService implements IAggregatorService {
 		return maxLimit;
 	}
 	
+	private int getLimit(AggregatedDataRequest request) {
+		Integer limit = request.getLimit();
+		if ( limit == null ) {
+			return maxLimit;
+		} else {
+			return Math.min(maxLimit, limit);
+		}
+	}
+	
+	private long getTime(Long requested_time, long default_time) {
+		return requested_time == null ? default_time : requested_time;
+	}
+	
+	private Duration getDuration(Period period) {
+		return periods.getIntradayDuration(period);
+	}
+	
 	@Override
 	public ICloseableIterator<ITuple> fetch(AggregatedDataRequest request) {
 		final String symbol = request.getSymbol();
 		final Period period = request.getPeriod();
 		KafkaAggregatorEntry entry = registry.getByPeriod(period);
 		long period_millis = periods.getIntradayDuration(period).toMillis();
-		long from_align = request.getFrom() / period_millis, to_align = request.getTo() / period_millis;
-		if ( request.getTo() % period_millis > 0 ) {
+		long req_from = getTime(request.getFrom(), 0), req_to = getTime(request.getTo(), MAX_TIME);
+		long from_align = req_from / period_millis, to_align = req_to / period_millis;
+		if ( req_to % period_millis > 0 ) {
 			to_align ++;
 		}
-		Instant from = T(from_align * period_millis), to = T(to_align * period_millis).minusMillis(1);
+		long to_aligned = to_align * period_millis - 1;
+		long from_aligned = from_align * period_millis;
+		if ( to_aligned < 0 ) {
+			to_aligned = MAX_TIME;
+		}
+		Instant from = T(from_aligned), to = T(to_aligned);
 		WindowStoreIterator<KafkaTuple> it = null;
 		if ( entry == null ) {
 			entry = registry.findSuitableAggregatorToRebuildOnFly(period);
-			it = new KafkaTupleAggregateIterator(entry.getStore().fetch(symbol, from, to),
-					periods.getIntradayDuration(period));
+			it = new KafkaTupleAggregateIterator(entry.getStore().fetch(symbol, from, to), getDuration(period));
 		} else {
 			it = entry.getStore().fetch(symbol, from, to);
 		}
-		return new TupleIterator(symbol,
-				new WindowStoreIteratorLimited<KafkaTuple>(it, Math.min(maxLimit, request.getLimit())));
+		return new TupleIterator(symbol, new WindowStoreIteratorLimited<KafkaTuple>(it, getLimit(request)));
 	}
 
 	@Override

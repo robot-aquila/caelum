@@ -22,11 +22,22 @@ public class AggregatedDataRequestTest {
 	public void testGetters() {
 		assertEquals("foobar", service.getSymbol());
 		assertEquals(Period.H1, service.getPeriod());
-		assertEquals(2000L, service.getFrom());
-		assertEquals(5000L, service.getTo());
-		assertEquals(500, service.getLimit());
+		assertEquals(Long.valueOf(2000L), service.getFrom());
+		assertEquals(Long.valueOf(5000L), service.getTo());
+		assertEquals(Integer.valueOf(500), service.getLimit());
 		assertEquals(Instant.ofEpochMilli(2000L), service.getTimeFrom());
 		assertEquals(Instant.ofEpochMilli(5000L), service.getTimeTo());
+	}
+	
+	@Test
+	public void testCtor_NullParamsAllowed() {
+		service = new AggregatedDataRequest("barbar", Period.M15, null, null, null);
+		assertEquals("barbar", service.getSymbol());
+		assertEquals(Period.M15, service.getPeriod());
+		assertNull(service.getFrom());
+		assertNull(service.getTimeFrom());
+		assertNull(service.getTimeTo());
+		assertNull(service.getTimeTo());
 	}
 	
 	@Test

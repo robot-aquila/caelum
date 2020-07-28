@@ -132,25 +132,21 @@ public class NodeService {
 	}
 	
 	private Long validateFrom(Long from) {
-		if ( from == null ) {
-			from = 0L;
-		} else if ( from < 0 ) {
+		if ( from != null && from < 0 ) {
 			throw new BadRequestException("Time from expected to be >= 0 but: " + from);
 		}
 		return from;
 	}
 	
 	private Long validateTo(Long to) {
-		if ( to == null ) {
-			to = System.currentTimeMillis();
-		} else if ( to < 0 ) {
+		if ( to != null && to < 0 ) {
 			throw new BadRequestException("Time to expected to be >= 0 but: " + to);
 		}
 		return to;
 	}
 	
 	private void validateFromAndTo(Long from, Long to) {
-		if ( to <= from ) {
+		if ( from != null && to != null && to <= from ) {
 			throw new BadRequestException("Time to expected to be > time from but: from=" + from + " to=" + to);
 		}
 	}
