@@ -15,6 +15,8 @@ import org.junit.Test;
 
 import ru.prolib.caelum.core.CompositeService;
 import ru.prolib.caelum.itemdb.IItemDatabaseService;
+import ru.prolib.caelum.itemdb.kafka.utils.KafkaProducerService;
+import ru.prolib.caelum.itemdb.kafka.utils.KafkaUtils;
 
 @SuppressWarnings("unchecked")
 public class KafkaItemDatabaseServiceBuilderTest {

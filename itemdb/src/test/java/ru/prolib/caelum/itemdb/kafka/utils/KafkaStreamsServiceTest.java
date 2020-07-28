@@ -1,4 +1,4 @@
-package ru.prolib.caelum.aggregator.kafka.utils;
+package ru.prolib.caelum.itemdb.kafka.utils;
 
 import static org.junit.Assert.*;
 import static org.easymock.EasyMock.*;

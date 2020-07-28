@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class Periods {
-	private static final Periods instance = new Periods();
 	private static final Map<Period, Duration> durationMap;
 	private static final Map<Period, List<Period>> hierarchyMap;
 	
@@ -55,10 +54,6 @@ public class Periods {
 			fmap.put(period, periodsToFill(period));
 		}
 		hierarchyMap = Collections.unmodifiableMap(fmap);
-	}
-	
-	public static Periods getInstance() {
-		return instance;
 	}
 
 	public Duration getIntradayDuration(Period period) {

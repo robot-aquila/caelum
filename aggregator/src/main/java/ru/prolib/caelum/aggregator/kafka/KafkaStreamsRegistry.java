@@ -8,21 +8,17 @@ import org.apache.kafka.streams.KafkaStreams;
 import ru.prolib.caelum.core.Period;
 import ru.prolib.caelum.core.Periods;
 
-public class KafkaAggregatorRegistry {
+public class KafkaStreamsRegistry {
 	private final Periods periods;
 	private final Map<Period, KafkaAggregatorEntry> entryByPeriod;
 
-	KafkaAggregatorRegistry(Periods periods, Map<Period, KafkaAggregatorEntry> entry_by_period) {
+	KafkaStreamsRegistry(Periods periods, Map<Period, KafkaAggregatorEntry> entry_by_period) {
 		this.periods = periods;
 		this.entryByPeriod = entry_by_period;
 	}
 	
-	public KafkaAggregatorRegistry(Periods periods) {
+	public KafkaStreamsRegistry(Periods periods) {
 		this(periods, new ConcurrentHashMap<>());
-	}
-	
-	public KafkaAggregatorRegistry() {
-		this(Periods.getInstance());
 	}
 	
 	public Periods getPeriods() {
@@ -33,6 +29,12 @@ public class KafkaAggregatorRegistry {
 		return entryByPeriod;
 	}
 	
+	/**
+	 * Register streams of specified descriptor.
+	 * <p>
+	 * @param descr - streams descriptor
+	 * @param streams - streams instance
+	 */
 	public void register(KafkaAggregatorDescr descr, KafkaStreams streams) {
 		switch ( descr.getType() ) {
 		case ITEM:
@@ -44,6 +46,15 @@ public class KafkaAggregatorRegistry {
 		KafkaAggregatorEntry entry = new KafkaAggregatorEntry(descr, streams);
 		// That actually doesn't matter who's exactly will provide the data
 		entryByPeriod.put(descr.getPeriod(), entry);
+	}
+	
+	/**
+	 * Deregister streams of the specified descriptor.
+	 * <p>
+	 * @param descr - streams descriptor
+	 */
+	public void deregister(KafkaAggregatorDescr descr) {
+		entryByPeriod.remove(descr.getPeriod());
 	}
 	
 	public KafkaAggregatorEntry getByPeriod(Period period) {

@@ -1,62 +1,91 @@
 package ru.prolib.caelum.aggregator.kafka;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.kafka.streams.Topology;
 
+import ru.prolib.caelum.aggregator.IAggregator;
 import ru.prolib.caelum.aggregator.IAggregatorService;
 import ru.prolib.caelum.aggregator.IAggregatorServiceBuilder;
 import ru.prolib.caelum.core.CompositeService;
+import ru.prolib.caelum.core.Periods;
+import ru.prolib.caelum.itemdb.kafka.utils.KafkaUtils;
 
 public class KafkaAggregatorServiceBuilder implements IAggregatorServiceBuilder {
-	private final KafkaAggregatorStreamBuilder streamBuilder;
+	private final KafkaAggregatorBuilder builder;
 	
-	public KafkaAggregatorServiceBuilder(KafkaAggregatorStreamBuilder streamBuilder) {
-		this.streamBuilder = streamBuilder;
+	public KafkaAggregatorServiceBuilder(KafkaAggregatorBuilder builder) {
+		this.builder = builder;
 	}
 	
 	public KafkaAggregatorServiceBuilder() {
-		this(new KafkaAggregatorStreamBuilder());
+		this(new KafkaAggregatorBuilder());
+	}
+	
+	protected Periods createPeriods() {
+		return new Periods();
+	}
+	
+	protected KafkaUtils createUtils() {
+		return KafkaUtils.getInstance();
 	}
 
-	protected KafkaAggregatorConfig createConfig() {
-		return new KafkaAggregatorConfig();
+	protected KafkaAggregatorConfig createConfig(Periods periods) {
+		return new KafkaAggregatorConfig(periods);
+	}
+	
+	protected KafkaAggregatorTopologyBuilder createTopologyBuilder() {
+		return new KafkaAggregatorTopologyBuilder();
+	}
+	
+	protected KafkaStreamsRegistry createStreamsRegistry(Periods periods) {
+		return new KafkaStreamsRegistry(periods);
 	}
 
 	@Override
 	public IAggregatorService build(String default_config_file, String config_file, CompositeService services)
 			throws IOException
 	{
-		KafkaAggregatorConfig config = createConfig();
+		final Periods periods = createPeriods();
+		KafkaAggregatorConfig config = createConfig(periods);
 		config.load(default_config_file, config_file);
-		KafkaAggregatorService service = new KafkaAggregatorService(config.getListTuplesLimit());
-		KafkaAggregatorRegistry registry = service.getRegistry();
+		KafkaStreamsRegistry streams_registry = createStreamsRegistry(periods);
 		Set<String> aggregation_period_list = new LinkedHashSet<>(Arrays.asList(StringUtils.splitByWholeSeparator(
 				config.getString(KafkaAggregatorConfig.AGGREGATION_PERIOD), ","))
 			.stream()
 			.map(String::trim)
 			.collect(Collectors.toList()));
+		builder.withServices(services)
+			.withStreamsRegistry(streams_registry)
+			.withTopologyBuilder(createTopologyBuilder())
+			.withUtils(createUtils());
+		List<IAggregator> aggregator_list = new ArrayList<>();
 		for ( String aggregation_period : aggregation_period_list ) {
-			KafkaAggregatorConfig aggregator_config = createConfig();
+			KafkaAggregatorConfig aggregator_config = createConfig(periods);
 			aggregator_config.getProperties().putAll(config.getProperties());
 			aggregator_config.getProperties().put(KafkaAggregatorConfig.AGGREGATION_PERIOD, aggregation_period);
-			Topology topology = streamBuilder.createItemAggregatorTopology(aggregator_config);
-			services.register(streamBuilder.buildItemAggregatorStreamsService(registry, topology, aggregator_config));
+			aggregator_list.add(builder.withConfig(aggregator_config).build());
 		}
+		KafkaAggregatorService service = new KafkaAggregatorService(
+				periods,
+				streams_registry,
+				aggregator_list,
+				config.getListTuplesLimit());
 		return service;
 	}
 	
 	@Override
 	public int hashCode() {
 		return new HashCodeBuilder(59710737, 15)
-				.append(streamBuilder)
+				.append(builder)
 				.build();
 	}
 	
@@ -70,7 +99,7 @@ public class KafkaAggregatorServiceBuilder implements IAggregatorServiceBuilder 
 		}
 		KafkaAggregatorServiceBuilder o = (KafkaAggregatorServiceBuilder) other;
 		return new EqualsBuilder()
-				.append(o.streamBuilder, streamBuilder)
+				.append(o.builder, builder)
 				.build();
 	}
 

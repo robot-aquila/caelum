@@ -30,7 +30,7 @@ public class JettyServerBuilder implements IRestServiceBuilder {
 	
 	protected Object createComponent(ICaelum caelum, boolean testMode) {
 		return new NodeService(caelum, new Freemarker(), new StreamFactory(),
-				Periods.getInstance(), ByteUtils.getInstance(), testMode);
+				new Periods(), ByteUtils.getInstance(), testMode);
 	}
 	
 	protected IService createServer(String host, int port, Object component) {

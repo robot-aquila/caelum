@@ -15,6 +15,7 @@ import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.itemdb.ItemDataRequest;
 import ru.prolib.caelum.itemdb.ItemDataRequestContinue;
 import ru.prolib.caelum.itemdb.ItemDatabaseConfig;
+import ru.prolib.caelum.itemdb.kafka.utils.KafkaUtils;
 
 public class KafkaItemDatabaseService implements IItemDatabaseService {
 	private final KafkaItemDatabaseConfig config;

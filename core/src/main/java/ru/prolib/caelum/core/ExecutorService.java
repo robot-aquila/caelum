@@ -1,4 +1,4 @@
-package ru.prolib.caelum.service;
+package ru.prolib.caelum.core;
 
 import java.util.concurrent.TimeUnit;
 
@@ -6,9 +6,6 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import ru.prolib.caelum.core.IService;
-import ru.prolib.caelum.core.ServiceException;
 
 public class ExecutorService implements IService {
 	private static final Logger logger = LoggerFactory.getLogger(ExecutorService.class);

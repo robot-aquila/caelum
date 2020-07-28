@@ -5,6 +5,8 @@ import static ru.prolib.caelum.core.Period.*;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
 
 import org.apache.kafka.streams.state.ReadOnlyWindowStore;
 import org.apache.kafka.streams.state.WindowStoreIterator;
@@ -16,6 +18,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import ru.prolib.caelum.aggregator.AggregatedDataRequest;
+import ru.prolib.caelum.aggregator.IAggregator;
 import ru.prolib.caelum.aggregator.kafka.utils.WindowStoreIteratorLimited;
 import ru.prolib.caelum.aggregator.kafka.utils.WindowStoreIteratorStub;
 import ru.prolib.caelum.core.ICloseableIterator;
@@ -35,28 +38,34 @@ public class KafkaAggregatorServiceTest {
 	
 	IMocksControl control;
 	Periods periods;
-	KafkaAggregatorRegistry registryMock;
+	KafkaStreamsRegistry registryMock;
 	ReadOnlyWindowStore<String, KafkaTuple> storeMock;
 	WindowStoreIterator<KafkaTuple> itMock, itStub;
 	KafkaAggregatorEntry entryMock;
+	IAggregator aggrMock1, aggrMock2;
+	List<IAggregator> aggregators;
 	KafkaAggregatorService service;
 
 	@Before
 	public void setUp() throws Exception {
 		control = createStrictControl();
-		periods = Periods.getInstance();
-		registryMock = control.createMock(KafkaAggregatorRegistry.class);
+		periods = new Periods();
+		registryMock = control.createMock(KafkaStreamsRegistry.class);
 		storeMock = control.createMock(ReadOnlyWindowStore.class);
 		itMock = control.createMock(WindowStoreIterator.class);
 		itStub = new WindowStoreIteratorStub<>();
 		entryMock = control.createMock(KafkaAggregatorEntry.class);
-		service = new KafkaAggregatorService(periods, registryMock, 5000);
+		aggrMock1 = control.createMock(IAggregator.class);
+		aggrMock2 = control.createMock(IAggregator.class);
+		aggregators = Arrays.asList(aggrMock1, aggrMock2);
+		service = new KafkaAggregatorService(periods, registryMock, aggregators, 5000);
 	}
 	
 	@Test
 	public void testGetters() {
 		assertSame(periods, service.getPeriods());
 		assertSame(registryMock, service.getRegistry());
+		assertEquals(Arrays.asList(aggrMock1, aggrMock2), service.getAggregatorList());
 		assertEquals(5000, service.getMaxLimit());
 	}
 	

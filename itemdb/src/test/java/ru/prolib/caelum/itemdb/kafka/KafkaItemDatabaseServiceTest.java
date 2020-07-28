@@ -21,6 +21,7 @@ import ru.prolib.caelum.core.ItemType;
 import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.itemdb.ItemDataRequest;
 import ru.prolib.caelum.itemdb.ItemDataRequestContinue;
+import ru.prolib.caelum.itemdb.kafka.utils.KafkaUtils;
 
 @SuppressWarnings("unchecked")
 public class KafkaItemDatabaseServiceTest {

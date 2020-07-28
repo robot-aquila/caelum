@@ -11,11 +11,23 @@
 	<properties></properties>
   
 	<dependencies>
-		<dependency>
-			<groupId>ru.prolib.caelum</groupId>
-			<artifactId>caelum-itemdb</artifactId>
-			<version>0.1.0</version>
-		</dependency>
+        <dependency>
+            <groupId>ru.prolib.caelum</groupId>
+            <artifactId>caelum-itemdb</artifactId>
+            <version>0.1.0</version>
+        </dependency>
+        <dependency>
+	       <groupId>ru.prolib.caelum</groupId>
+	       <artifactId>caelum-itemdb</artifactId>
+	       <version>0.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-streams-test-utils</artifactId>
+            <version>2.5.0</version>
+            <scope>test</scope>
+        </dependency>
+		
 	</dependencies>
   
     <build>

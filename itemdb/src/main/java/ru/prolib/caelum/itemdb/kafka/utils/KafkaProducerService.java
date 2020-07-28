@@ -1,4 +1,4 @@
-package ru.prolib.caelum.itemdb.kafka;
+package ru.prolib.caelum.itemdb.kafka.utils;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;

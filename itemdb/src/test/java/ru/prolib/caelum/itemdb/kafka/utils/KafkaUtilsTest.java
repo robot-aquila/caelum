@@ -1,4 +1,4 @@
-package ru.prolib.caelum.itemdb.kafka;
+package ru.prolib.caelum.itemdb.kafka.utils;
 
 import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.*;
@@ -38,7 +38,11 @@ import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.TopicPartitionInfo;
 import org.apache.kafka.common.utils.Utils;
+import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyValue;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.Topology;
 import org.apache.log4j.BasicConfigurator;
 import org.easymock.Capture;
 import org.easymock.IMocksControl;
@@ -48,8 +52,15 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import ru.prolib.caelum.core.AbstractConfig;
+import ru.prolib.caelum.core.IService;
 import ru.prolib.caelum.core.IteratorStub;
 import ru.prolib.caelum.itemdb.IItemIterator;
+import ru.prolib.caelum.itemdb.kafka.ItemIterator;
+import ru.prolib.caelum.itemdb.kafka.KafkaItem;
+import ru.prolib.caelum.itemdb.kafka.KafkaItemInfo;
+import ru.prolib.caelum.itemdb.kafka.KafkaItemSerdes;
+import ru.prolib.caelum.itemdb.kafka.SeamlessConsumerRecordIterator;
 
 @SuppressWarnings("unchecked")
 public class KafkaUtilsTest {
@@ -72,6 +83,7 @@ public class KafkaUtilsTest {
 	IMocksControl control;
 	KafkaConsumer<String, KafkaItem> consumerMock;
 	AdminClient adminMock;
+	KafkaStreams streamsMock;
 	Clock clockMock;
 	KafkaUtils service;
 
@@ -80,6 +92,7 @@ public class KafkaUtilsTest {
 		control = createStrictControl();
 		consumerMock = control.createMock(KafkaConsumer.class);
 		adminMock = control.createMock(AdminClient.class);
+		streamsMock = control.createMock(KafkaStreams.class);
 		clockMock = control.createMock(Clock.class);
 		service = new KafkaUtils();
 	}
@@ -320,6 +333,30 @@ public class KafkaUtilsTest {
 		
 		assertNotNull(actual);
 		assertThat(actual, is(instanceOf(KafkaAdminClient.class)));
+	}
+	
+	@Test
+	public void testCreateStreams() {
+		StreamsBuilder sb = new StreamsBuilder();
+		sb.stream("test-input").to("target-stream");
+		Topology topology = sb.build();
+		Properties conf = new Properties();
+		conf.put(StreamsConfig.APPLICATION_ID_CONFIG, "test-app");
+		conf.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:8082");
+		
+		KafkaStreams actual = service.createStreams(topology, conf);
+		
+		assertNotNull(actual);
+	}
+	
+	@Test
+	public void testCreateStreamsService() {
+		AbstractConfig configMock = control.createMock(AbstractConfig.class);
+		
+		IService actual = service.createStreamsService(streamsMock, "foo", configMock);
+		
+		IService expected = new KafkaStreamsService(streamsMock, "foo", configMock);
+		assertEquals(expected, actual);
 	}
 	
 	static class MapBuilder<K, V> {

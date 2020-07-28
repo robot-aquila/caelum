@@ -1,4 +1,5 @@
 package ru.prolib.caelum.aggregator.kafka;
+
 import static org.junit.Assert.*;
 
 import java.time.Duration;
@@ -8,24 +9,34 @@ import org.junit.Before;
 import org.junit.Test;
 
 import ru.prolib.caelum.core.Period;
+import ru.prolib.caelum.core.Periods;
 import ru.prolib.caelum.itemdb.kafka.KafkaItemSerdes;
 
 public class KafkaAggregatorConfigTest {
+	Periods periods;
 	KafkaAggregatorConfig service;
 	
 	@Before
 	public void setUp() throws Exception {
-		service = new KafkaAggregatorConfig();
+		periods = new Periods();
+		service = new KafkaAggregatorConfig(periods);
 	}
-
+	
 	void verifyDefaultProperties(Properties props) {
 		assertEquals("caelum-item-aggregator-",	props.get("caelum.aggregator.kafka.pfx.application.id"));
 		assertEquals("caelum-tuple-store-",		props.get("caelum.aggregator.kafka.pfx.aggregation.store"));
 		assertEquals("caelum-tuple-",			props.get("caelum.aggregator.kafka.pfx.target.topic"));
 		assertEquals("localhost:8082",			props.get("caelum.aggregator.kafka.bootstrap.servers"));
 		assertEquals("caelum-item",				props.get("caelum.aggregator.kafka.source.topic"));
-		assertEquals("M1,H1",						props.get("caelum.aggregator.aggregation.period"));
+		assertEquals("99",						props.get("caelum.aggregator.kafka.max.errors"));
+		assertEquals("15000",					props.get("caelum.aggregator.kafka.default.timeout"));
+		assertEquals("M1,H1",					props.get("caelum.aggregator.aggregation.period"));
 		assertEquals("5000",					props.get("caelum.aggregator.list.tuples.limit"));
+	}
+	
+	@Test
+	public void testGetters() {
+		assertSame(periods, service.getPeriods());
 	}
 	
 	@Test
@@ -112,6 +123,28 @@ public class KafkaAggregatorConfigTest {
 		assertEquals("191.15.34.5:19987", props.get("bootstrap.servers"));
 		assertEquals(KafkaItemSerdes.keySerde().getClass(), props.get("default.key.serde"));
 		assertEquals(KafkaItemSerdes.itemSerde().getClass(), props.get("default.value.serde"));
+	}
+	
+	@Test
+	public void testGetMaxErrors() {
+		service.getProperties().put("caelum.aggregator.kafka.max.errors", "256");
+		
+		assertEquals(256, service.getMaxErrors());
+	}
+	
+	@Test
+	public void testGetDefaultTimeout() {
+		service.getProperties().put("caelum.aggregator.kafka.default.timeout", "20000");
+		
+		assertEquals(20000L, service.getDefaultTimeout());
+	}
+	
+	@Test
+	public void testGetAdminClientProperties() {
+		Properties props = service.getAdminClientProperties();
+		
+		assertEquals(1, props.size());
+		assertEquals("localhost:8082", props.get("bootstrap.servers"));
 	}
 
 }

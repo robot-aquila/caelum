@@ -7,6 +7,7 @@ import java.util.concurrent.Executors;
 import ru.prolib.caelum.aggregator.AggregatorServiceBuilder;
 import ru.prolib.caelum.aggregator.IAggregatorServiceBuilder;
 import ru.prolib.caelum.core.CompositeService;
+import ru.prolib.caelum.core.ExecutorService;
 import ru.prolib.caelum.itemdb.IItemDatabaseServiceBuilder;
 import ru.prolib.caelum.itemdb.ItemDatabaseServiceBuilder;
 import ru.prolib.caelum.symboldb.ISymbolService;

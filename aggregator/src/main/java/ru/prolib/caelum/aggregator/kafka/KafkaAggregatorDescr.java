@@ -6,10 +6,9 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import ru.prolib.caelum.aggregator.AggregatorType;
-import ru.prolib.caelum.aggregator.IAggregatorDescr;
 import ru.prolib.caelum.core.Period;
 
-public class KafkaAggregatorDescr implements IAggregatorDescr {
+public class KafkaAggregatorDescr {
 	protected final AggregatorType type;
 	protected final Period period;
 	protected final String source, target, storeName;
@@ -31,12 +30,10 @@ public class KafkaAggregatorDescr implements IAggregatorDescr {
 		this.storeName = store_name;
 	}
 	
-	@Override
 	public AggregatorType getType() {
 		return type;
 	}
 	
-	@Override
 	public Period getPeriod() {
 		return period;
 	}

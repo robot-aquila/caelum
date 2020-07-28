@@ -1,11 +1,12 @@
 package ru.prolib.caelum.aggregator.kafka;
 
 import java.time.Instant;
+import java.util.List;
 
-import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.state.WindowStoreIterator;
 
 import ru.prolib.caelum.aggregator.AggregatedDataRequest;
+import ru.prolib.caelum.aggregator.IAggregator;
 import ru.prolib.caelum.aggregator.IAggregatorService;
 import ru.prolib.caelum.aggregator.kafka.utils.WindowStoreIteratorLimited;
 import ru.prolib.caelum.core.ICloseableIterator;
@@ -20,29 +21,31 @@ public class KafkaAggregatorService implements IAggregatorService {
 	}
 	
 	private final Periods periods;
-	private final KafkaAggregatorRegistry registry;
+	private final KafkaStreamsRegistry registry;
+	private final List<IAggregator> aggregatorList;
 	private final int maxLimit;
 	
-	KafkaAggregatorService(Periods periods, KafkaAggregatorRegistry registry, int maxLimit) {
+	KafkaAggregatorService(Periods periods,
+			KafkaStreamsRegistry registry,
+			List<IAggregator> aggregatorList,
+			int maxLimit)
+	{
 		this.periods = periods;
 		this.registry = registry;
+		this.aggregatorList = aggregatorList;
 		this.maxLimit = maxLimit;
-	}
-	
-	public KafkaAggregatorService(Periods periods, int maxLimit) {
-		this(periods, new KafkaAggregatorRegistry(periods), maxLimit);
-	}
-	
-	public KafkaAggregatorService(int maxLimit) {
-		this(Periods.getInstance(), maxLimit);
 	}
 	
 	public Periods getPeriods() {
 		return periods;
 	}
 	
-	public KafkaAggregatorRegistry getRegistry() {
+	public KafkaStreamsRegistry getRegistry() {
 		return registry;
+	}
+	
+	public List<IAggregator> getAggregatorList() {
+		return aggregatorList;
 	}
 	
 	public int getMaxLimit() {
@@ -70,10 +73,6 @@ public class KafkaAggregatorService implements IAggregatorService {
 		}
 		return new TupleIterator(symbol,
 				new WindowStoreIteratorLimited<KafkaTuple>(it, Math.min(maxLimit, request.getLimit())));
-	}
-	
-	public void register(KafkaAggregatorDescr descr, KafkaStreams streams) {
-		registry.register(descr, streams);
 	}
 
 }

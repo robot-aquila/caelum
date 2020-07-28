@@ -21,14 +21,14 @@ import org.junit.rules.ExpectedException;
 import ru.prolib.caelum.core.Period;
 import ru.prolib.caelum.core.Periods;
 
-public class KafkaAggregatorRegistryTest {
+public class KafkaStreamsRegistryTest {
 	@Rule public ExpectedException eex = ExpectedException.none();
 	IMocksControl control;
 	KafkaAggregatorDescr descr1, descr2, descr3;
 	KafkaStreams streamsMock1, streamsMock2, streamsMock3;
 	Periods periodsMock;
 	Map<Period, KafkaAggregatorEntry> byPeriod;
-	KafkaAggregatorRegistry service;
+	KafkaStreamsRegistry service;
 
 	@Before
 	public void setUp() throws Exception {
@@ -41,7 +41,7 @@ public class KafkaAggregatorRegistryTest {
 		streamsMock3 = control.createMock(KafkaStreams.class);
 		byPeriod = new HashMap<>();
 		periodsMock = control.createMock(Periods.class);
-		service = new KafkaAggregatorRegistry(periodsMock, byPeriod);
+		service = new KafkaStreamsRegistry(periodsMock, byPeriod);
 	}
 	
 	@Test
@@ -52,16 +52,8 @@ public class KafkaAggregatorRegistryTest {
 	
 	@Test
 	public void testCtor1() {
-		service = new KafkaAggregatorRegistry(periodsMock);
+		service = new KafkaStreamsRegistry(periodsMock);
 		assertSame(periodsMock, service.getPeriods());
-		assertNotNull(service.getEntryByPeriodMap());
-		assertThat(service.getEntryByPeriodMap(), is(instanceOf(ConcurrentHashMap.class)));
-	}
-	
-	@Test
-	public void testCtor0() {
-		service = new KafkaAggregatorRegistry();
-		assertSame(Periods.getInstance(), service.getPeriods());
 		assertNotNull(service.getEntryByPeriodMap());
 		assertThat(service.getEntryByPeriodMap(), is(instanceOf(ConcurrentHashMap.class)));
 	}
@@ -114,6 +106,25 @@ public class KafkaAggregatorRegistryTest {
 		control.replay();
 		
 		service.findSuitableAggregatorToRebuildOnFly(D1);
+	}
+	
+	@Test
+	public void testDeregister() {
+		byPeriod.put(M1, new KafkaAggregatorEntry(descr1, streamsMock1));
+		byPeriod.put(M5, new KafkaAggregatorEntry(descr2, streamsMock2));
+		control.replay();
+		
+		service.deregister(descr1);
+		assertNull(byPeriod.get(M1));
+		
+		service.deregister(descr2);
+		assertNull(byPeriod.get(M5));
+		
+		service.deregister(descr3);
+		assertNull(byPeriod.get(M10));
+		
+		control.verify();
+		assertEquals(0, byPeriod.size());
 	}
 
 }

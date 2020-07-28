@@ -17,7 +17,7 @@ public class PeriodsTest {
 
 	@Before
 	public void setUp() throws Exception {
-		service = Periods.getInstance();
+		service = new Periods();
 	}
 	
 	@Test

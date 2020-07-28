@@ -2,66 +2,105 @@ package ru.prolib.caelum.aggregator.kafka;
 
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
 import java.util.Properties;
 
 import static org.easymock.EasyMock.*;
 import static org.hamcrest.Matchers.*;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.kafka.streams.Topology;
 import org.easymock.Capture;
 import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 
+import ru.prolib.caelum.aggregator.IAggregator;
 import ru.prolib.caelum.aggregator.IAggregatorService;
 import ru.prolib.caelum.core.CompositeService;
-import ru.prolib.caelum.core.IService;
+import ru.prolib.caelum.core.Periods;
+import ru.prolib.caelum.itemdb.kafka.utils.KafkaUtils;
 
 public class KafkaAggregatorServiceBuilderTest {
 	IMocksControl control;
-	KafkaAggregatorStreamBuilder streamBuilderMock;
+	Periods periods;
+	KafkaAggregatorBuilder builderMock;
 	CompositeService servicesMock;
 	KafkaAggregatorConfig config1, config2, config3, config4;
-	Topology topologyMock1, topologyMock2, topologyMock3;
-	IService serviceMock1, serviceMock2, serviceMock3;
+	IAggregator aggregatorMock1, aggregatorMock2, aggregatorMock3;
+	KafkaStreamsRegistry streamsRegistryMock;
+	KafkaAggregatorTopologyBuilder topologyBuilderMock;
+	KafkaUtils utilsMock;
 	KafkaAggregatorServiceBuilder service, mockedService;
 
 	@Before
 	public void setUp() throws Exception {
+		periods = new Periods();
 		control = createStrictControl();
-		streamBuilderMock = control.createMock(KafkaAggregatorStreamBuilder.class);
+		builderMock = control.createMock(KafkaAggregatorBuilder.class);
 		servicesMock = control.createMock(CompositeService.class);
-		config1 = new KafkaAggregatorConfig();
-		config2 = new KafkaAggregatorConfig();
-		config3 = new KafkaAggregatorConfig();
-		config4 = new KafkaAggregatorConfig();
-		topologyMock1 = control.createMock(Topology.class);
-		topologyMock2 = control.createMock(Topology.class);
-		topologyMock3 = control.createMock(Topology.class);
-		serviceMock1 = control.createMock(IService.class);
-		serviceMock2 = control.createMock(IService.class);
-		serviceMock3 = control.createMock(IService.class);
-		service = new KafkaAggregatorServiceBuilder(streamBuilderMock);
+		config1 = new KafkaAggregatorConfig(periods);
+		config2 = new KafkaAggregatorConfig(periods);
+		config3 = new KafkaAggregatorConfig(periods);
+		config4 = new KafkaAggregatorConfig(periods);
+		aggregatorMock1 = control.createMock(IAggregator.class);
+		aggregatorMock2 = control.createMock(IAggregator.class);
+		aggregatorMock3 = control.createMock(IAggregator.class);
+		streamsRegistryMock = control.createMock(KafkaStreamsRegistry.class);
+		topologyBuilderMock = control.createMock(KafkaAggregatorTopologyBuilder.class);
+		utilsMock = control.createMock(KafkaUtils.class);
+		service = new KafkaAggregatorServiceBuilder(builderMock);
 		mockedService = partialMockBuilder(KafkaAggregatorServiceBuilder.class)
-				.addMockedMethod("createConfig")
-				.withConstructor(KafkaAggregatorStreamBuilder.class)
-				.withArgs(streamBuilderMock)
+				.withConstructor(KafkaAggregatorBuilder.class)
+				.addMockedMethod("createPeriods")
+				.addMockedMethod("createUtils")
+				.addMockedMethod("createConfig", Periods.class)
+				.addMockedMethod("createStreamsRegistry", Periods.class)
+				.addMockedMethod("createTopologyBuilder")
+				.withArgs(builderMock)
 				.createMock();
 	}
 	
 	@Test
-	public void testCreateConfig() {
-		KafkaAggregatorConfig actual = service.createConfig();
+	public void testCreatePeriods() {
+		Periods actual = service.createPeriods();
 		
 		assertNotNull(actual);
 	}
 	
 	@Test
+	public void testCreateUtils() {
+		KafkaUtils actual = service.createUtils();
+		
+		assertSame(KafkaUtils.getInstance(), actual);
+	}
+	
+	@Test
+	public void testCreateConfig() {
+		KafkaAggregatorConfig actual = service.createConfig(periods);
+		
+		assertNotNull(actual);
+		assertSame(periods, actual.getPeriods());
+	}
+	
+	@Test
+	public void testCreateTopologyBuilder() {
+		KafkaAggregatorTopologyBuilder actual = service.createTopologyBuilder();
+		
+		assertNotNull(actual);
+	}
+	
+	@Test
+	public void testCreateStreamsRegistry() {
+		KafkaStreamsRegistry actual = service.createStreamsRegistry(periods);
+		
+		assertNotNull(actual);
+		assertSame(periods, actual.getPeriods());
+	}
+	
+	@Test
 	public void testBuild() throws Exception {
 		Capture<String> capArg1 = newCapture(), capArg2 = newCapture();
-		Capture<KafkaAggregatorRegistry> capReg1 = newCapture(), capReg2 = newCapture(), capReg3 = newCapture();
-		config1 = new KafkaAggregatorConfig() {
+		config1 = new KafkaAggregatorConfig(periods) {
 			@Override
 			public void load(String default_config_file, String config_file) {
 				capArg1.setValue(default_config_file);
@@ -71,25 +110,27 @@ public class KafkaAggregatorServiceBuilderTest {
 		// duplicates should be ignored
 		config1.getProperties().put("caelum.aggregator.aggregation.period", " M1, M5, H1, M1, H1, M5, M5");
 		config1.getProperties().put("caelum.aggregator.list.tuples.limit", "400");
-		expect(mockedService.createConfig()).andReturn(config1);
+		expect(mockedService.createPeriods()).andReturn(periods);
+		expect(mockedService.createConfig(periods)).andReturn(config1);
+		expect(mockedService.createStreamsRegistry(periods)).andReturn(streamsRegistryMock);
+		expect(mockedService.createTopologyBuilder()).andReturn(topologyBuilderMock);
+		expect(mockedService.createUtils()).andReturn(utilsMock);
+		expect(builderMock.withServices(servicesMock)).andReturn(builderMock);
+		expect(builderMock.withStreamsRegistry(streamsRegistryMock)).andReturn(builderMock);
+		expect(builderMock.withTopologyBuilder(topologyBuilderMock)).andReturn(builderMock);
+		expect(builderMock.withUtils(utilsMock)).andReturn(builderMock);
 		// create M1 aggregator
-		expect(mockedService.createConfig()).andReturn(config2);
-		expect(streamBuilderMock.createItemAggregatorTopology(config2)).andReturn(topologyMock1);
-		expect(streamBuilderMock.buildItemAggregatorStreamsService(capture(capReg1), same(topologyMock1), same(config2)))
-			.andReturn(serviceMock1);
-		expect(servicesMock.register(serviceMock1)).andReturn(servicesMock);
+		expect(mockedService.createConfig(periods)).andReturn(config2);
+		expect(builderMock.withConfig(config2)).andReturn(builderMock);
+		expect(builderMock.build()).andReturn(aggregatorMock1);
 		// create M5 aggregator
-		expect(mockedService.createConfig()).andReturn(config3);
-		expect(streamBuilderMock.createItemAggregatorTopology(config3)).andReturn(topologyMock2);
-		expect(streamBuilderMock.buildItemAggregatorStreamsService(capture(capReg2), same(topologyMock2), same(config3)))
-			.andReturn(serviceMock2);
-		expect(servicesMock.register(serviceMock2)).andReturn(servicesMock);
+		expect(mockedService.createConfig(periods)).andReturn(config3);
+		expect(builderMock.withConfig(config3)).andReturn(builderMock);
+		expect(builderMock.build()).andReturn(aggregatorMock2);
 		// create H1 aggregator
-		expect(mockedService.createConfig()).andReturn(config4);
-		expect(streamBuilderMock.createItemAggregatorTopology(config4)).andReturn(topologyMock3);
-		expect(streamBuilderMock.buildItemAggregatorStreamsService(capture(capReg3), same(topologyMock3), same(config4)))
-			.andReturn(serviceMock3);
-		expect(servicesMock.register(serviceMock3)).andReturn(servicesMock);
+		expect(mockedService.createConfig(periods)).andReturn(config4);
+		expect(builderMock.withConfig(config4)).andReturn(builderMock);
+		expect(builderMock.build()).andReturn(aggregatorMock3);
 		control.replay();
 		replay(mockedService);
 		
@@ -99,12 +140,10 @@ public class KafkaAggregatorServiceBuilderTest {
 		control.verify();
 		assertThat(actual, is(instanceOf(KafkaAggregatorService.class)));
 		KafkaAggregatorService x = (KafkaAggregatorService) actual;
+		assertEquals(Arrays.asList(aggregatorMock1, aggregatorMock2, aggregatorMock3), x.getAggregatorList());
 		assertEquals(400, x.getMaxLimit());
 		assertEquals("kappa.props", capArg1.getValue());
 		assertEquals("beta.props", capArg2.getValue());
-		assertSame(x.getRegistry(), capReg1.getValue());
-		assertSame(x.getRegistry(), capReg2.getValue());
-		assertSame(x.getRegistry(), capReg3.getValue());
 		Properties expected_props = new Properties();
 		expected_props.putAll(config1.getProperties());
 		expected_props.put("caelum.aggregator.aggregation.period", "M1");
@@ -116,9 +155,19 @@ public class KafkaAggregatorServiceBuilderTest {
 	}
 	
 	@Test
+	public void testBuild_SmallIntegrationTest() throws Exception {
+		service = new KafkaAggregatorServiceBuilder();
+		CompositeService services = new CompositeService();
+		
+		IAggregatorService actual = service.build(KafkaAggregatorConfig.DEFAULT_CONFIG_FILE, null, services);
+		
+		assertNotNull(actual);
+	}
+	
+	@Test
 	public void testHashCode() {
 		int expected = new HashCodeBuilder(59710737, 15)
-				.append(streamBuilderMock)
+				.append(builderMock)
 				.build();
 		
 		assertEquals(expected, service.hashCode());
@@ -127,10 +176,10 @@ public class KafkaAggregatorServiceBuilderTest {
 	@Test
 	public void testEquals() {
 		assertTrue(service.equals(service));
-		assertTrue(service.equals(new KafkaAggregatorServiceBuilder(streamBuilderMock)));
+		assertTrue(service.equals(new KafkaAggregatorServiceBuilder(builderMock)));
 		assertFalse(service.equals(null));
 		assertFalse(service.equals(this));
-		assertFalse(service.equals(new KafkaAggregatorServiceBuilder(new KafkaAggregatorStreamBuilder())));
+		assertFalse(service.equals(new KafkaAggregatorServiceBuilder(new KafkaAggregatorBuilder())));
 	}
 
 }

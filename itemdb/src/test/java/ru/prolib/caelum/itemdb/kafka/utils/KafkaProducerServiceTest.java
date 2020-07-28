@@ -1,4 +1,4 @@
-package ru.prolib.caelum.itemdb.kafka;
+package ru.prolib.caelum.itemdb.kafka.utils;
 
 import static org.junit.Assert.*;
 import static org.easymock.EasyMock.*;
@@ -8,6 +8,8 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
+
+import ru.prolib.caelum.itemdb.kafka.KafkaItem;
 
 @SuppressWarnings("unchecked")
 public class KafkaProducerServiceTest {

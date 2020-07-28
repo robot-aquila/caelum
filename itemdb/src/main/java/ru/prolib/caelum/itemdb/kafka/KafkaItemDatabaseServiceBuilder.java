@@ -8,6 +8,8 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import ru.prolib.caelum.core.CompositeService;
 import ru.prolib.caelum.itemdb.IItemDatabaseService;
 import ru.prolib.caelum.itemdb.IItemDatabaseServiceBuilder;
+import ru.prolib.caelum.itemdb.kafka.utils.KafkaProducerService;
+import ru.prolib.caelum.itemdb.kafka.utils.KafkaUtils;
 
 public class KafkaItemDatabaseServiceBuilder implements IItemDatabaseServiceBuilder {
 	private final KafkaUtils utils;

@@ -1,4 +1,4 @@
-package ru.prolib.caelum.itemdb.kafka;
+package ru.prolib.caelum.itemdb.kafka.utils;
 
 import java.time.Clock;
 import java.util.Arrays;
@@ -22,11 +22,23 @@ import org.apache.kafka.clients.consumer.OffsetAndTimestamp;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.utils.Utils;
+import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.Topology;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import ru.prolib.caelum.core.AbstractConfig;
+import ru.prolib.caelum.core.IService;
 import ru.prolib.caelum.core.IteratorStub;
 import ru.prolib.caelum.itemdb.IItemIterator;
+import ru.prolib.caelum.itemdb.kafka.ItemIterator;
+import ru.prolib.caelum.itemdb.kafka.KafkaItem;
+import ru.prolib.caelum.itemdb.kafka.KafkaItemInfo;
+import ru.prolib.caelum.itemdb.kafka.KafkaItemSerdes;
+import ru.prolib.caelum.itemdb.kafka.SeamlessConsumerRecordIterator;
 
 public class KafkaUtils {
+	private static final Logger logger = LoggerFactory.getLogger(KafkaUtils.class);
 	private static final KafkaUtils instance = new KafkaUtils();
 	
 	public static KafkaUtils getInstance() {
@@ -99,6 +111,14 @@ public class KafkaUtils {
 		return AdminClient.create(props);
 	}
 	
+	public KafkaStreams createStreams(Topology topology, Properties props) {
+		return new KafkaStreams(topology, props);
+	}
+	
+	public IService createStreamsService(KafkaStreams streams, String serviceName, AbstractConfig config) {
+		return new KafkaStreamsService(streams, serviceName, config);
+	}
+	
 	/**
 	 * Delete all records of kafka topic.
 	 * <p>
@@ -108,6 +128,7 @@ public class KafkaUtils {
 	 * @throws IllegalStateException - an error occurred
 	 */
 	public void deleteRecords(AdminClient admin, String topic, long timeout) throws IllegalStateException {
+		logger.warn("Clearing topic: {}", topic);
 		try {
 			DescribeTopicsResult r = admin.describeTopics(Arrays.asList(topic));
 			TopicDescription desc = r.all().get(timeout, TimeUnit.MILLISECONDS).get(topic);
