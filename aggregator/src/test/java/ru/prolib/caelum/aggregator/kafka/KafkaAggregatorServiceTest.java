@@ -168,5 +168,16 @@ public class KafkaAggregatorServiceTest {
 				new KafkaTupleAggregateIterator(itStub, Duration.ofHours(1)), 700L));
 		assertEquals(expected, actual);
 	}
+	
+	@Test
+	public void testClear() {
+		aggrMock1.clear();
+		aggrMock2.clear();
+		control.replay();
+		
+		service.clear();
+		
+		control.verify();
+	}
 
 }

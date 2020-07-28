@@ -5,4 +5,5 @@ import ru.prolib.caelum.core.ITuple;
 
 public interface IAggregatorService {
 	ICloseableIterator<ITuple> fetch(AggregatedDataRequest request);
+	void clear();
 }

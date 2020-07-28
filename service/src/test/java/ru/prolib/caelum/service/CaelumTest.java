@@ -165,6 +165,7 @@ public class CaelumTest {
 		symbolCacheMock.clear();
 		symbolSvcMock.clear();
 		itemDbSvcMock.clear();
+		aggrSvcMock.clear();
 	}
 
 }

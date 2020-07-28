@@ -31,6 +31,11 @@ public class AggregatorServiceBuilderTest {
 		public ICloseableIterator<ITuple> fetch(AggregatedDataRequest request) {
 			throw new UnsupportedOperationException();
 		}
+
+		@Override
+		public void clear() {
+			throw new UnsupportedOperationException();
+		}
 		
 	}
 	

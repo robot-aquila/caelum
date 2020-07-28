@@ -104,6 +104,7 @@ public class Caelum implements ICaelum {
 		symbolCache.clear();
 		symbolService.clear();
 		itemDbService.clear();
+		aggrService.clear();
 	}
 
 }

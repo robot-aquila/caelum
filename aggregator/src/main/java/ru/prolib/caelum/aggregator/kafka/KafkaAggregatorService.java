@@ -75,4 +75,11 @@ public class KafkaAggregatorService implements IAggregatorService {
 				new WindowStoreIteratorLimited<KafkaTuple>(it, Math.min(maxLimit, request.getLimit())));
 	}
 
+	@Override
+	public void clear() {
+		for ( IAggregator aggregator : aggregatorList ) {
+			aggregator.clear();
+		}
+	}
+
 }
