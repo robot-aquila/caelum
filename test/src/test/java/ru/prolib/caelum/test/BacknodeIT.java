@@ -8,30 +8,23 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static io.restassured.RestAssured.*;
-import static io.restassured.matcher.RestAssuredMatchers.*;
 import static org.hamcrest.Matchers.*;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
-import com.sun.xml.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
-
 import io.restassured.specification.RequestSpecification;
-import ru.prolib.caelum.core.Period;
 import ru.prolib.caelum.test.dto.CategoriesResponseDTO;
 import ru.prolib.caelum.test.dto.ItemResponseDTO;
 import ru.prolib.caelum.test.dto.ItemsResponseDTO;
@@ -461,13 +454,28 @@ public class BacknodeIT extends TestBasis {
 	}
 
 	@Test
-	public void C1063_Items_TwoConsecutiveCallsShouldGiveSameResult() {
+	public void C1063_Items_TwoConsecutiveCallsShouldGiveSameResult() throws Exception {
 		CatSym cs = newSymbol();
 		generateItems(cs, 4000);
 
 		for ( RequestSpecification spec : getSpecAll() ) {
+			CompletableFuture<ItemsResponseDTO> r = new CompletableFuture<>();
+			await().dontCatchUncaughtExceptions()
+				.pollInterval(Duration.ofSeconds(5L))
+				.atMost(Duration.ofSeconds(20))
+				.until(() -> {
+					ItemsResponseDTO response = apiGetItems(spec, cs.symbol, 3000);
+					assertNotError(response);
+					if ( response.data.rows.size() == 3000 ) {
+						r.complete(response);
+						return true;
+					} else {
+						return false;
+					}
+				});
+			
 			ItemsResponseDTO response1, response2;
-			assertNotError(response1 = apiGetItems(spec, cs.symbol, 3000));
+			assertNotError(response1 = r.get(1, TimeUnit.SECONDS));
 			assertNotError(response2 = apiGetItems(spec, cs.symbol, 3000));
 			
 			assertEquals(3000, response1.data.rows.size());
@@ -797,7 +805,7 @@ public class BacknodeIT extends TestBasis {
 			.pollInterval(Duration.ofSeconds(10L))
 			.atMost(Duration.ofSeconds(20))
 			.until(() -> {
-				TuplesResponseDTO response = apiGetTuples(spec, Period.M1, cs.symbol);
+				TuplesResponseDTO response = apiGetTuples(spec, "M1", cs.symbol);
 				assertNotError(response);
 				if ( response.data.rows.size() == 100 ) {
 					r.complete(response);
@@ -808,7 +816,7 @@ public class BacknodeIT extends TestBasis {
 			});
 		TuplesResponseDTO response = r.get(1, TimeUnit.MINUTES);
 		assertEquals(cs.symbol, response.data.symbol);
-		assertEquals(Period.M1, response.data.period);
+		assertEquals("M1", response.data.period);
 		assertEquals("std", response.data.format);
 		List<Tuple> actual_rows = toTuples(response.data.rows);
 		assertEquals(100, actual_rows.size());
@@ -824,118 +832,225 @@ public class BacknodeIT extends TestBasis {
 		}
 	}
 	
-	@Ignore
 	@Test
-	public void C9002_Tuples_FromTimeToTimeAndLimit() {
-		fail();
+	public void C9002_Tuples_FromTimeToTime() throws Exception {
+		CatSym cs = newSymbol();
+		generateItems(cs, 100, 1L, 60000L, "0.01", "0.01", "1", "1");
+		
+		RequestSpecification spec = getSpecRandom();
+		CompletableFuture<TuplesResponseDTO> r = new CompletableFuture<>();
+		await().dontCatchUncaughtExceptions()
+			.pollInterval(Duration.ofSeconds(10L))
+			.atMost(Duration.ofSeconds(20))
+			.until(() -> {
+				TuplesResponseDTO response = apiGetTuples(spec, "M1", cs.symbol, null, 1200000L, 4800000L);
+				assertNotError(response);
+				if ( response.data.rows.size() == 60 ) {
+					r.complete(response);
+					return true;
+				} else {
+					return false;
+				}
+			});
+		TuplesResponseDTO response = r.get(1, TimeUnit.MINUTES);
+		assertEquals(cs.symbol, response.data.symbol);
+		assertEquals("M1", response.data.period);
+		assertEquals("std", response.data.format);
+		List<Tuple> actual_rows = toTuples(response.data.rows);
+		assertEquals(60, actual_rows.size());
+		assertEquals(new Tuple(1200000, "0.21", "0.21", "0.21", "0.21", "21"), actual_rows.get(0));
+		assertEquals(new Tuple(4740000, "0.80", "0.80", "0.80", "0.80", "80"), actual_rows.get(59));
+		BigDecimal init_val = new BigDecimal("0.21"), init_vol = new BigDecimal("21"),
+				delt_val = new BigDecimal("0.01"), delt_vol = BigDecimal.ONE;
+		List<Tuple> expected_rows = new ArrayList<>();
+		for ( int i = 0; i < 60; i ++ ) {
+			BigDecimal mult = new BigDecimal(i);
+			BigDecimal val = delt_val.multiply(mult).add(init_val);
+			expected_rows.add(new Tuple(1200000 + 60000 * i,
+					val, val, val, val, delt_vol.multiply(mult).add(init_vol)));
+		}
+		assertEquals(expected_rows, actual_rows);
 	}
 	
-	@Ignore
 	@Test
-	public void C9003_Tuples_AllM1() {
-		fail();
+	public void C9003_Tuples_LimitHasHigherPriorityThanTimeTo() throws Exception {
+		CatSym cs = newSymbol();
+		generateItems(cs, 100, 1L, 60000L, "0.01", "0.01", "1", "1");
+		
+		RequestSpecification spec = getSpecRandom();
+		CompletableFuture<TuplesResponseDTO> r = new CompletableFuture<>();
+		await().dontCatchUncaughtExceptions()
+			.pollInterval(Duration.ofSeconds(5L))
+			.atMost(Duration.ofSeconds(20))
+			.until(() -> {
+				TuplesResponseDTO response = apiGetTuples(spec, "M1", cs.symbol, 20, 1200000L, 4800000L);
+				assertNotError(response);
+				if ( response.data.rows.size() == 20 ) {
+					r.complete(response);
+					return true;
+				} else {
+					return false;
+				}
+			});
+		TuplesResponseDTO response = r.get(1, TimeUnit.MINUTES);
+		assertEquals(cs.symbol, response.data.symbol);
+		assertEquals("M1", response.data.period);
+		assertEquals("std", response.data.format);
+		List<Tuple> actual_rows = toTuples(response.data.rows);
+		assertEquals(20, actual_rows.size());
+		assertEquals(new Tuple(1200000, "0.21", "0.21", "0.21", "0.21", "21"), actual_rows.get(0));
+		assertEquals(new Tuple(2340000, "0.40", "0.40", "0.40", "0.40", "40"), actual_rows.get(19));
+		BigDecimal init_val = new BigDecimal("0.21"), init_vol = new BigDecimal("21"),
+				delt_val = new BigDecimal("0.01"), delt_vol = BigDecimal.ONE;
+		List<Tuple> expected_rows = new ArrayList<>();
+		for ( int i = 0; i < 20; i ++ ) {
+			BigDecimal mult = new BigDecimal(i);
+			BigDecimal val = delt_val.multiply(mult).add(init_val);
+			expected_rows.add(new Tuple(1200000 + 60000 * i,
+					val, val, val, val, delt_vol.multiply(mult).add(init_vol)));
+		}
+		assertEquals(expected_rows, actual_rows);
 	}
 	
-	@Ignore
 	@Test
-	public void C9004_Tuples_AllM2() {
-		fail();
+	public void C9004_Tuples_ShouldUseMaxLimitIfRequestedLimitIsGreaterThanMaxLimit() throws Exception {
+		CatSym cs = newSymbol();
+		generateItems(cs, 7000, 1L, 60000L, "0.01", "0.01", "1", "1");
+		
+		RequestSpecification spec = getSpecRandom();
+		CompletableFuture<TuplesResponseDTO> r = new CompletableFuture<>();
+		await().dontCatchUncaughtExceptions()
+			.pollInterval(Duration.ofSeconds(5L))
+			.atMost(Duration.ofSeconds(20))
+			.until(() -> {
+				TuplesResponseDTO response = apiGetTuples(spec, "M1", cs.symbol, 6000, null, null);
+				assertNotError(response);
+				if ( response.data.rows.size() == 5000 ) {
+					r.complete(response);
+					return true;
+				} else {
+					return false;
+				}
+			});
+		TuplesResponseDTO response = r.get(1, TimeUnit.MINUTES);
+		assertEquals(cs.symbol, response.data.symbol);
+		assertEquals("M1", response.data.period);
+		assertEquals("std", response.data.format);
+		List<Tuple> actual_rows = toTuples(response.data.rows);
+		assertEquals(5000, actual_rows.size());
+		assertEquals(new Tuple(        0,  "0.01",  "0.01",  "0.01",  "0.01",  "1"), actual_rows.get(0));
+		assertEquals(new Tuple(299940000, "50.00", "50.00", "50.00", "50.00", "5000"), actual_rows.get(4999));
+		BigDecimal init_val = new BigDecimal("0.01"), init_vol = BigDecimal.ONE,
+				delt_val = new BigDecimal("0.01"), delt_vol = BigDecimal.ONE;
+		List<Tuple> expected_rows = new ArrayList<>();
+		for ( int i = 0; i < 5000; i ++ ) {
+			BigDecimal mult = new BigDecimal(i);
+			BigDecimal val = delt_val.multiply(mult).add(init_val);
+			expected_rows.add(new Tuple(60000 * i, val, val, val, val, delt_vol.multiply(mult).add(init_vol)));
+		}
+		assertEquals(expected_rows, actual_rows);
 	}
 	
-	@Ignore
 	@Test
-	public void C9005_Tuples_AllM3() {
-		fail();
+	public void C9005_Tuples_AnyBacknodeShouldProvideDataAssociatedWithAnySymbol() throws Exception {
+		Map<Integer, List<CatSym>> part_symbols = newSymbolsOfDifferentPartitions(4);
+		Iterator<Map.Entry<Integer, List<CatSym>>> it = part_symbols.entrySet().iterator();
+		List<CatSym> cs_list = new ArrayList<>();
+		while ( it.hasNext() ) {
+			Map.Entry<Integer, List<CatSym>> entry = it.next();
+			cs_list.addAll(entry.getValue());
+		}
+		generateItems(cs_list, 7000, 1L, 60000L, "0.01", "0.01", "1", "1");
+		
+		BigDecimal init_val = new BigDecimal("10.01"), init_vol = new BigDecimal(1001),
+				delt_val = new BigDecimal("0.01"), delt_vol = BigDecimal.ONE;
+		List<Tuple> expected_rows = new ArrayList<>();
+		for ( int i = 0; i < 5000; i ++ ) {
+			BigDecimal mult = new BigDecimal(i);
+			BigDecimal val = delt_val.multiply(mult).add(init_val);
+			expected_rows.add(new Tuple(60000 * i + 60000000, val, val, val, val, delt_vol.multiply(mult).add(init_vol)));
+		}
+		for ( RequestSpecification spec : getSpecAll() ) {
+			for ( CatSym cs : cs_list ) {
+				CompletableFuture<TuplesResponseDTO> r = new CompletableFuture<>();
+				await().dontCatchUncaughtExceptions()
+					.pollInterval(Duration.ofSeconds(5L))
+					.atMost(Duration.ofSeconds(20))
+					.until(() -> {
+						TuplesResponseDTO response = apiGetTuples(spec, "M1", cs.symbol, null, 60000000L, null);
+						assertNotError(response);
+						if ( response.data.rows.size() == 5000 ) {
+							r.complete(response);
+							return true;
+						} else {
+							return false;
+						}
+					});
+				TuplesResponseDTO response = r.get(1, TimeUnit.MINUTES);
+				assertEquals(cs.symbol, response.data.symbol);
+				assertEquals("M1", response.data.period);
+				assertEquals("std", response.data.format);
+				List<Tuple> actual_rows = toTuples(response.data.rows);
+				assertEquals(expected_rows, actual_rows);
+			}
+		}
 	}
 	
-	@Ignore
 	@Test
-	public void C9006_Tuples_AllM5() {
-		fail();
-	}
-	
-	@Ignore
-	@Test
-	public void C9007_Tuples_AllM6() {
-		fail();
-	}
-	
-	@Ignore
-	@Test
-	public void C9008_Tuples_AllM10() {
-		fail();
-	}
-	
-	@Ignore
-	@Test
-	public void C9009_Tuples_AllM12() {
-		fail();
-	}
-	
-	@Ignore
-	@Test
-	public void C9010_Tuples_AllM15() {
-		fail();
-	}
-	
-	@Ignore
-	@Test
-	public void C9011_Tuples_AllM20() {
-		fail();
-	}
-	
-	@Ignore
-	@Test
-	public void C9012_Tuples_AllM30() {
-		fail();
-	}
-	
-	@Ignore
-	@Test
-	public void C9013_Tuples_AllH1() {
-		fail();
-	}
-	
-	@Ignore
-	@Test
-	public void C9014_Tuples_AllH2() {
-		fail();
-	}
-	
-	@Ignore
-	@Test
-	public void C9015_Tuples_AllH3() {
-		fail();
-	}
-	
-	@Ignore
-	@Test
-	public void C9016_Tuples_AllH4() {
-		fail();
-	}
-	
-	@Ignore
-	@Test
-	public void C9017_Tuples_AllH6() {
-		fail();
-	}
-	
-	@Ignore
-	@Test
-	public void C9018_Tuples_AllH8() {
-		fail();
-	}
-	
-	@Ignore
-	@Test
-	public void C9019_Tuples_AllH12() {
-		fail();
-	}
-	
-	@Ignore
-	@Test
-	public void C9020_Tuples_AllD1() {
-		fail();
+	public void C9006_Tuples_AnyBacknodeShouldProvideDataOfAllPeriods() throws Exception {
+		Map<String, Duration> map = new LinkedHashMap<>();
+		map.put("M1", Duration.ofMinutes(1));
+		map.put("M2", Duration.ofMinutes(2));
+		map.put("M3", Duration.ofMinutes(3));
+		map.put("M5", Duration.ofMinutes(5));
+		map.put("M6", Duration.ofMinutes(6));
+		map.put("M10", Duration.ofMinutes(10));
+		map.put("M12", Duration.ofMinutes(12));
+		map.put("M15", Duration.ofMinutes(15));
+		map.put("M20", Duration.ofMinutes(20));
+		map.put("M30", Duration.ofMinutes(30));
+		map.put("H1", Duration.ofHours(1));
+		map.put("H2", Duration.ofHours(2));
+		map.put("H3", Duration.ofHours(3));
+		map.put("H4", Duration.ofHours(4));
+		map.put("H6", Duration.ofHours(6));
+		map.put("H8", Duration.ofHours(8));
+		map.put("H12", Duration.ofHours(12));
+		map.put("D1", Duration.ofDays(1));
+		CatSym cs = newSymbol();
+		long time_delta = 30000;
+		int total_items = 5 * 24 * 60 * 60000 / (int)time_delta;
+		generateItems(cs, total_items, 1, time_delta, "0.01", "0.01", "1", "1");
+
+		for ( String period : map.keySet() ) {
+			List<Tuple> expected_rows = registeredItemsToTuples(cs, map.get(period).toMillis());
+			if ( expected_rows.size() > 5000 ) { 
+				expected_rows = expected_rows.subList(0, 5000);
+			}
+			for ( RequestSpecification spec : getSpecAll() ) {
+				int expected_count = expected_rows.size();
+				CompletableFuture<TuplesResponseDTO> r = new CompletableFuture<>();
+				await().dontCatchUncaughtExceptions()
+					.pollInterval(Duration.ofSeconds(5L))
+					.atMost(Duration.ofSeconds(20))
+					.until(() -> {
+						TuplesResponseDTO response = apiGetTuples(spec, period, cs.symbol);
+						assertNotError(response);
+						if ( response.data.rows.size() == expected_count ) {
+							r.complete(response);
+							return true;
+						} else {
+							return false;
+						}
+					});
+				TuplesResponseDTO response = r.get(1, TimeUnit.MINUTES);
+				assertEquals(cs.symbol, response.data.symbol);
+				assertEquals(period, response.data.period);
+				assertEquals("std", response.data.format);
+				List<Tuple> actual_rows = toTuples(response.data.rows);
+				assertEqualsTupleByTuple(period, expected_rows, actual_rows);
+			}
+		}
 	}
 
 }

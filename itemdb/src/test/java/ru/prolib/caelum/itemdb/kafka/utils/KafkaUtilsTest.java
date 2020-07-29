@@ -7,11 +7,13 @@ import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -23,6 +25,7 @@ import org.apache.kafka.clients.admin.DeleteRecordsResult;
 import org.apache.kafka.clients.admin.DescribeTopicsResult;
 import org.apache.kafka.clients.admin.KafkaAdminClient;
 import org.apache.kafka.clients.admin.ListOffsetsResult;
+import org.apache.kafka.clients.admin.ListTopicsResult;
 import org.apache.kafka.clients.admin.ListOffsetsResult.ListOffsetsResultInfo;
 import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.clients.admin.RecordsToDelete;
@@ -374,6 +377,12 @@ public class KafkaUtilsTest {
 	
 	@Test
 	public void testDeleteRecords_NoErrors() throws Exception {
+		// 0) check topic exists
+		ListTopicsResult listTopicsResMock = control.createMock(ListTopicsResult.class);
+		expect(adminMock.listTopics()).andReturn(listTopicsResMock);
+		KafkaFuture<Set<String>> futMock0 = control.createMock(KafkaFuture.class);
+		expect(listTopicsResMock.names()).andReturn(futMock0);
+		expect(futMock0.get(10000L, TimeUnit.MILLISECONDS)).andReturn(new HashSet<>(Arrays.asList("foobar")));
 		// 1) requesting topic partitions info
 		DescribeTopicsResult descrTopicsResMock = control.createMock(DescribeTopicsResult.class);
 		expect(adminMock.describeTopics(Arrays.asList("foobar"))).andReturn(descrTopicsResMock);
@@ -423,6 +432,21 @@ public class KafkaUtilsTest {
 		assertEquals("LatestSpec", cap.getValue().get(new TopicPartition("foobar", 0)).getClass().getSimpleName());
 		assertEquals("LatestSpec", cap.getValue().get(new TopicPartition("foobar", 1)).getClass().getSimpleName());
 		assertEquals("LatestSpec", cap.getValue().get(new TopicPartition("foobar", 2)).getClass().getSimpleName());
+	}
+	
+	@Test
+	public void testDeleteRecords_ShouldSkipIfTopicNotFound() throws Exception {
+		// 0) check topic exists
+		ListTopicsResult listTopicsResMock = control.createMock(ListTopicsResult.class);
+		expect(adminMock.listTopics()).andReturn(listTopicsResMock);
+		KafkaFuture<Set<String>> futMock0 = control.createMock(KafkaFuture.class);
+		expect(listTopicsResMock.names()).andReturn(futMock0);
+		expect(futMock0.get(10000L, TimeUnit.MILLISECONDS)).andReturn(new HashSet<>(Arrays.asList("foo", "bar")));
+		control.replay();
+		
+		service.deleteRecords(adminMock, "foobar", 10000L);
+		
+		control.verify();
 	}
 	
 }

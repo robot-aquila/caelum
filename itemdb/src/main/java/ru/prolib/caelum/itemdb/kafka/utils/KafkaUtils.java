@@ -130,6 +130,10 @@ public class KafkaUtils {
 	public void deleteRecords(AdminClient admin, String topic, long timeout) throws IllegalStateException {
 		logger.warn("Clearing topic: {}", topic);
 		try {
+			if ( ! admin.listTopics().names().get(timeout, TimeUnit.MILLISECONDS).contains(topic) ) {
+				logger.warn("Skip deleting records. No topic found: {}", topic);
+				return;
+			}
 			DescribeTopicsResult r = admin.describeTopics(Arrays.asList(topic));
 			TopicDescription desc = r.all().get(timeout, TimeUnit.MILLISECONDS).get(topic);
 			if ( desc != null ) {

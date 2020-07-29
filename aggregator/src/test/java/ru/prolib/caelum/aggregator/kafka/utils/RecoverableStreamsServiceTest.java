@@ -517,9 +517,24 @@ public class RecoverableStreamsServiceTest {
 				Arrays.asList(AggregatorState.CREATED, AggregatorState.PENDING),
 				Arrays.asList(AggregatorState.RUNNING, AggregatorState.STARTING, AggregatorState.ERROR),
 				1000L)).andReturn(true);
+		expect(trackerMock.waitForStateChange(AggregatorState.RUNNING, 1000L)).andReturn(true);
 		control.replay();
 
 		assertTrue(service.startAndWaitConfirm(1000L));
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testStartAndWaitConfirm_ShouldSkipWaitingForRunningStateIfFirstPhaseFailed() {
+		expect(trackerMock.getMode()).andReturn(RUNNING);
+		expect(trackerMock.waitForStateChange(
+				Arrays.asList(AggregatorState.CREATED, AggregatorState.PENDING),
+				Arrays.asList(AggregatorState.RUNNING, AggregatorState.STARTING, AggregatorState.ERROR),
+				2000L)).andReturn(false);
+		control.replay();
+
+		assertFalse(service.startAndWaitConfirm(2000L));
 		
 		control.verify();
 	}

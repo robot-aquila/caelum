@@ -40,7 +40,6 @@ import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
-import ru.prolib.caelum.core.Period;
 import ru.prolib.caelum.test.dto.CategoriesResponseDTO;
 import ru.prolib.caelum.test.dto.ItemResponseDTO;
 import ru.prolib.caelum.test.dto.ItemsResponseDTO;
@@ -417,6 +416,14 @@ public class TestBasis {
 		assertEquals(msg + ": list size mismatch", expected.size(), actual.size());
 	}
 	
+	public static void assertEqualsTupleByTuple(String msg, List<Tuple> expected, List<Tuple> actual) {
+		int count = Math.min(expected.size(), actual.size());
+		for ( int i = 0; i < count; i ++ ) {
+			assertEquals(msg + ": tuple mismatch #" + i, expected.get(i), actual.get(i));
+		}
+		assertEquals(msg + ": list size mismatch", expected.size(), actual.size());
+	}
+	
 	public static List<Item> toItems(String category, String symbol, List<List<Object>> rows) {
 		List<Item> result = new ArrayList<>();
 		for ( List<Object> row : rows ) {
@@ -503,6 +510,37 @@ public class TestBasis {
 	
 	public static List<Item> registeredItems(CatSym cs) {
 		return registeredItems(cs.category, cs.symbol);
+	}
+	
+	public static List<Tuple> registeredItemsToTuples(CatSym cs, long period_millis) {
+		Map<Long, Tuple> tuple_map = new HashMap<>();
+		for ( Item item : registeredItems(cs) ) {
+			long tuple_time = item.time / period_millis * period_millis;
+			Tuple tuple = tuple_map.get(tuple_time);
+			if ( tuple == null ) {
+				tuple = new Tuple(tuple_time,
+						item.value,
+						item.value,
+						item.value,
+						item.value,
+						item.volume);
+			} else {
+				tuple = new Tuple(tuple_time,
+						tuple.open,
+						tuple.high.max(item.value),
+						tuple.low.min(item.value),
+						item.value,
+						tuple.volume.add(item.volume));
+			}
+			tuple_map.put(tuple_time, tuple);
+		}
+		List<Long> tuple_times = new ArrayList<>(tuple_map.keySet());
+		Collections.sort(tuple_times);
+		List<Tuple> result = new ArrayList<>();
+		for ( Long time : tuple_times ) {
+			result.add(tuple_map.get(time));
+		}
+		return result;
 	}
 	
 	public static List<String> registeredCategories() {
@@ -693,7 +731,7 @@ public class TestBasis {
 	}
 	
 	
-	protected TuplesResponseDTO apiGetTuples(RequestSpecification spec, Period period, String symbol,
+	protected TuplesResponseDTO apiGetTuples(RequestSpecification spec, String period, String symbol,
 			Integer limit, Long from, Long to)
 	{
 		spec = given()
@@ -711,7 +749,7 @@ public class TestBasis {
 				.as(TuplesResponseDTO.class);
 	}
 	
-	protected TuplesResponseDTO apiGetTuples(RequestSpecification spec, Period period, String symbol) {
+	protected TuplesResponseDTO apiGetTuples(RequestSpecification spec, String period, String symbol) {
 		return apiGetTuples(spec, period, symbol, null, null, null);
 	}
 	
@@ -849,6 +887,58 @@ public class TestBasis {
 		InitialAndDelta id_value = randomInitialAndDelta(), id_volume = randomInitialAndDelta();
 		generateItems(cs.category, cs.symbol, total_items, start_time, time_delta,
 				id_value.initial, id_value.delta, id_volume.initial, id_volume.delta);
+	}
+	
+	/**
+	 * Generate items for set of symbols.
+	 * <p>
+	 * This method is optimized to send items using batch mode without breaching time of aggregation windows.
+	 * The sequences of items will be same for different symbols. 
+	 * <p>
+	 * @param cs_list - list of symbols
+	 * @param total_items - total number of items to generate per symbol
+	 * @param start_time - initial timestamp
+	 * @param time_delta - timestamp change
+	 * @param start_value - initial item value
+	 * @param value_delta - value change
+	 * @param start_volume - initial item volume
+	 * @param volume_delta - volume change
+	 */
+	protected void generateItems(Collection<CatSym> cs_list, int total_items,
+			long start_time, long time_delta,
+			BigDecimal start_value, BigDecimal value_delta,
+			BigDecimal start_volume, BigDecimal volume_delta)
+	{
+		
+		long time = start_time;
+		BigDecimal value = start_value, volume = start_volume;
+		List<Item> items = new ArrayList<>();
+		int batch_size = 500;
+		for ( int i = 0; i < total_items; i ++ ) {
+			for ( CatSym cs : cs_list ) {
+				items.add(registerItem(cs.category, cs.symbol, time, value, volume));
+			}
+			if ( items.size() >= batch_size ) {
+				assertNotError(apiPutItem(getSpecRandom(), items));
+				items.clear();
+			}
+			time += time_delta;
+			value = value.add(value_delta);
+			volume = volume.add(volume_delta);
+		}
+		if ( items.size() > 0 ) {
+			assertNotError(apiPutItem(getSpecRandom(), items));
+		}
+	}
+	
+	protected void generateItems(Collection<CatSym> cs_list, int total_items,
+			long start_time, long time_delta,
+			String start_value, String value_delta,
+			String start_volume, String volume_delta)
+	{
+		generateItems(cs_list, total_items, start_time, time_delta,
+				new BigDecimal(start_value), new BigDecimal(value_delta),
+				new BigDecimal(start_volume), new BigDecimal(volume_delta));
 	}
 	
 	public void setUp() {

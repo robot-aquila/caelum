@@ -408,10 +408,14 @@ public class RecoverableStreamsService implements IRecoverableStreamsService,
 	@Override
 	public boolean startAndWaitConfirm(long timeout) {
 		start();
-		return state.waitForStateChange(
+		if ( ! state.waitForStateChange(
 				Arrays.asList(AggregatorState.CREATED, AggregatorState.PENDING),
 				Arrays.asList(AggregatorState.RUNNING, AggregatorState.STARTING, AggregatorState.ERROR),
-				timeout);
+				timeout) )
+		{
+			return false;
+		}
+		return state.waitForStateChange(AggregatorState.RUNNING, timeout);
 	}
 
 	@Override
