@@ -1,5 +1,7 @@
 package ru.prolib.caelum.aggregator.kafka;
 
+import java.util.concurrent.locks.Lock;
+
 import ru.prolib.caelum.aggregator.AggregatorType;
 import ru.prolib.caelum.aggregator.IAggregator;
 import ru.prolib.caelum.aggregator.kafka.utils.IRecoverableStreamsService;
@@ -16,6 +18,7 @@ public class KafkaAggregatorBuilder {
 		private KafkaAggregatorConfig config;
 		private KafkaStreamsRegistry streamsRegistry;
 		private CompositeService services;
+		private Lock cleanUpMutex;
 		
 		public Objects setUtils(KafkaUtils utils) {
 			this.utils = utils;
@@ -39,6 +42,11 @@ public class KafkaAggregatorBuilder {
 		
 		public Objects setServices(CompositeService services) {
 			this.services = services;
+			return this;
+		}
+		
+		public Objects setCleanUpMutex(Lock mutex) {
+			this.cleanUpMutex = mutex;
 			return this;
 		}
 		
@@ -75,6 +83,13 @@ public class KafkaAggregatorBuilder {
 				throw new IllegalStateException("Services was not defined");
 			}
 			return services;
+		}
+		
+		public Lock getCleanUpMutex() {
+			if ( cleanUpMutex == null ) {
+				throw new IllegalStateException("CleanUp mutex was not defined");
+			}
+			return cleanUpMutex;
 		}
 		
 	}
@@ -114,6 +129,11 @@ public class KafkaAggregatorBuilder {
 		return this;
 	}
 	
+	public KafkaAggregatorBuilder withCleanUpMutex(Lock mutex) {
+		objects.setCleanUpMutex(mutex);
+		return this;
+	}
+	
 	protected Thread createThread(String name, Runnable runnable) {
 		return new Thread(runnable, name);
 	}
@@ -124,6 +144,7 @@ public class KafkaAggregatorBuilder {
 				objects.getTopologyBuilder(),
 				objects.getConfig(),
 				objects.getStreamsRegistry(),
+				objects.getCleanUpMutex(),
 				objects.getUtils()),
 			objects.getConfig().getMaxErrors());	
 	}

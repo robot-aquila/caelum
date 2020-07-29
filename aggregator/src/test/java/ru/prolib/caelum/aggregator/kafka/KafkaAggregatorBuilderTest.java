@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.*;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
 
 import static org.easymock.EasyMock.*;
 
@@ -38,6 +39,7 @@ public class KafkaAggregatorBuilderTest {
 	RecoverableStreamsService streamsServiceMock;
 	Thread threadMock;
 	IAggregator aggregatorMock;
+	Lock mutexMock;
 	Objects objects;
 	KafkaAggregatorBuilder service, mockedService;
 	KafkaAggregatorDescr descr;
@@ -52,6 +54,7 @@ public class KafkaAggregatorBuilderTest {
 		servicesMock = control.createMock(CompositeService.class);
 		streamsServiceMock = control.createMock(RecoverableStreamsService.class);
 		aggregatorMock = control.createMock(IAggregator.class);
+		mutexMock = control.createMock(Lock.class);
 		objects = new Objects();
 		service = new KafkaAggregatorBuilder(objects);
 		descr = new KafkaAggregatorDescr(AggregatorType.ITEM, Period.M6, "source", "taerget", "store");
@@ -74,7 +77,7 @@ public class KafkaAggregatorBuilderTest {
 	
 	@Test
 	public void testObjects_GetUtils() {
-		objects.setUtils(utils);
+		assertSame(objects, objects.setUtils(utils));
 		
 		assertSame(utils, objects.getUtils());
 	}
@@ -89,7 +92,7 @@ public class KafkaAggregatorBuilderTest {
 	
 	@Test
 	public void testObjects_GetTopologyBuilder() {
-		objects.setTopologyBuilder(topologyBuilderMock);
+		assertSame(objects, objects.setTopologyBuilder(topologyBuilderMock));
 		
 		assertSame(topologyBuilderMock, objects.getTopologyBuilder());
 	}
@@ -104,7 +107,7 @@ public class KafkaAggregatorBuilderTest {
 	
 	@Test
 	public void testObjects_GetConfig() {
-		objects.setConfig(config);
+		assertSame(objects, objects.setConfig(config));
 		
 		assertSame(config, objects.getConfig());
 	}
@@ -119,7 +122,7 @@ public class KafkaAggregatorBuilderTest {
 	
 	@Test
 	public void testObjects_GetStreamsRegistry() {
-		objects.setStreamsRegistry(registryMock);
+		assertSame(objects, objects.setStreamsRegistry(registryMock));
 
 		assertSame(registryMock, objects.getStreamsRegistry());
 	}
@@ -134,9 +137,24 @@ public class KafkaAggregatorBuilderTest {
 	
 	@Test
 	public void testObjects_GetServices() {
-		objects.setServices(servicesMock);
+		assertSame(objects, objects.setServices(servicesMock));
 		
 		assertSame(servicesMock, objects.getServices());
+	}
+	
+	@Test
+	public void testObjects_GetCleanUpMutex_ShouldThrowsIfNotDefined() {
+		eex.expect(IllegalStateException.class);
+		eex.expectMessage("CleanUp mutex was not defined");
+		
+		objects.getCleanUpMutex();
+	}
+	
+	@Test
+	public void testObjects_GetCleanUpMutex() {
+		assertSame(objects, objects.setCleanUpMutex(mutexMock));
+		
+		assertSame(mutexMock, objects.getCleanUpMutex());
 	}
 	
 	@Test
@@ -175,6 +193,13 @@ public class KafkaAggregatorBuilderTest {
 	}
 	
 	@Test
+	public void testWithCleanUoMutex() {
+		assertSame(service, service.withCleanUpMutex(mutexMock));
+		
+		assertSame(mutexMock, objects.getCleanUpMutex());
+	}
+	
+	@Test
 	public void testCreateThread() throws Exception {
 		CountDownLatch finished = new CountDownLatch(1);
 		Runnable r = () -> {
@@ -194,6 +219,7 @@ public class KafkaAggregatorBuilderTest {
 		objects.setTopologyBuilder(topologyBuilderMock)
 			.setConfig(config)
 			.setStreamsRegistry(registryMock)
+			.setCleanUpMutex(mutexMock)
 			.setUtils(utils);
 		config.getProperties().put("caelum.aggregator.kafka.max.errors", "1000");
 		
@@ -206,6 +232,7 @@ public class KafkaAggregatorBuilderTest {
 		assertSame(topologyBuilderMock, ctrl.getTopologyBuilder());
 		assertSame(config, ctrl.getConfig());
 		assertSame(registryMock, ctrl.getStreamsRegistry());
+		assertSame(mutexMock, ctrl.getCleanUpMutex());
 		assertSame(utils, ctrl.getUtils());
 	}
 	

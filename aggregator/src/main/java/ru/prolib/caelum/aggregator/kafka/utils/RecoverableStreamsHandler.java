@@ -3,6 +3,7 @@ package ru.prolib.caelum.aggregator.kafka.utils;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
 
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KafkaStreams.State;
@@ -31,27 +32,31 @@ public class RecoverableStreamsHandler implements IRecoverableStreamsHandler, Ka
 	private final AtomicReference<IRecoverableStreamsHandlerListener> listener;
 	private final String serviceName;
 	private final long shutdownTimeout;
+	private final Lock cleanUpMutex;
 	private final AtomicInteger state;
 	
 	RecoverableStreamsHandler(KafkaStreams streams,
 			AtomicReference<IRecoverableStreamsHandlerListener> listener,
 			String serviceName,
 			long shutdownTimeout,
+			Lock cleanUpMutex,
 			AtomicInteger state)
 	{
 		this.streams = streams;
 		this.listener = listener;
 		this.serviceName = serviceName;
 		this.shutdownTimeout = shutdownTimeout;
+		this.cleanUpMutex = cleanUpMutex;
 		this.state = state;
 	}
 	
 	public RecoverableStreamsHandler(KafkaStreams streams,
 			IRecoverableStreamsHandlerListener listener,
 			String serviceName,
-			long shutdownTimeout)
+			long shutdownTimeout,
+			Lock cleanUpMutex)
 	{
-		this(streams, new AtomicReference<>(listener), serviceName, shutdownTimeout, new AtomicInteger());
+		this(streams, new AtomicReference<>(listener), serviceName, shutdownTimeout, cleanUpMutex, new AtomicInteger());
 	}
 	
 	public KafkaStreams getStreams() {
@@ -68,6 +73,10 @@ public class RecoverableStreamsHandler implements IRecoverableStreamsHandler, Ka
 	
 	public long getShutdownTimeout() {
 		return shutdownTimeout;
+	}
+	
+	public Lock getCleanUpMutex() {
+		return cleanUpMutex;
 	}
 	
 	@Override
@@ -132,7 +141,12 @@ public class RecoverableStreamsHandler implements IRecoverableStreamsHandler, Ka
 	@Override
 	public void start() {
 		streams.setStateListener(this);
-		streams.cleanUp();
+		cleanUpMutex.lock();
+		try {
+			streams.cleanUp();
+		} finally {
+			cleanUpMutex.unlock();
+		}
 		streams.start();
 	}
 

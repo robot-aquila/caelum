@@ -1,6 +1,9 @@
 package ru.prolib.caelum.aggregator.kafka;
 
 import static org.junit.Assert.*;
+
+import java.util.concurrent.locks.Lock;
+
 import static org.hamcrest.Matchers.*;
 
 import org.apache.kafka.streams.KafkaStreams;
@@ -29,6 +32,7 @@ public class KafkaStreamsControllerTest {
 	IRecoverableStreamsHandlerListener listenerMock;
 	RecoverableStreamsHandler handlerMock;
 	KafkaStreams streamsMock;
+	Lock mutexMock;
 	KafkaAggregatorConfig config;
 	KafkaAggregatorDescr descr;
 	Periods periods;
@@ -44,11 +48,12 @@ public class KafkaStreamsControllerTest {
 		listenerMock = control.createMock(IRecoverableStreamsHandlerListener.class);
 		handlerMock = control.createMock(RecoverableStreamsHandler.class);
 		streamsMock = control.createMock(KafkaStreams.class);
+		mutexMock = control.createMock(Lock.class);
 		config = new KafkaAggregatorConfig(periods = new Periods());
 		config.getProperties().put("caelum.aggregator.aggregation.period", "M15");
 		config.getProperties().put("caelum.aggregator.kafka.default.timeout", "30000");
 		descr = new KafkaAggregatorDescr(AggregatorType.ITEM, Period.M15, "foo", "bar", "foo-store");
-		service = new KafkaStreamsController(descr, builderMock, config, registryMock, utilsMock);
+		service = new KafkaStreamsController(descr, builderMock, config, registryMock, mutexMock, utilsMock);
 	}
 	
 	@Test
@@ -57,6 +62,7 @@ public class KafkaStreamsControllerTest {
 		assertSame(builderMock, service.getTopologyBuilder());
 		assertSame(config, service.getConfig());
 		assertSame(registryMock, service.getStreamsRegistry());
+		assertSame(mutexMock, service.getCleanUpMutex());
 		assertSame(utilsMock, service.getUtils());
 	}
 	
@@ -76,6 +82,7 @@ public class KafkaStreamsControllerTest {
 		assertEquals("aggregator-m15", x.getServiceName());
 		assertSame(listenerMock, x.getStateListener());
 		assertEquals(30000L, x.getShutdownTimeout());
+		assertSame(mutexMock, x.getCleanUpMutex());
 	}
 	
 	@Test

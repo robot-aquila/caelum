@@ -3,6 +3,7 @@ package ru.prolib.caelum.aggregator.kafka;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import org.apache.kafka.streams.state.WindowStoreIterator;
 
@@ -26,16 +27,19 @@ public class KafkaAggregatorService implements IAggregatorService {
 	private final KafkaStreamsRegistry registry;
 	private final List<IAggregator> aggregatorList;
 	private final int maxLimit;
+	private final boolean clearAggregatorsInParallel;
 	
 	KafkaAggregatorService(Periods periods,
 			KafkaStreamsRegistry registry,
 			List<IAggregator> aggregatorList,
-			int maxLimit)
+			int maxLimit,
+			boolean clearAggregatorsInParallel)
 	{
 		this.periods = periods;
 		this.registry = registry;
 		this.aggregatorList = aggregatorList;
 		this.maxLimit = maxLimit;
+		this.clearAggregatorsInParallel = clearAggregatorsInParallel;
 	}
 	
 	public Periods getPeriods() {
@@ -52,6 +56,10 @@ public class KafkaAggregatorService implements IAggregatorService {
 	
 	public int getMaxLimit() {
 		return maxLimit;
+	}
+	
+	public boolean isClearAggregatorsInParallel() {
+		return clearAggregatorsInParallel;
 	}
 	
 	private int getLimit(AggregatedDataRequest request) {
@@ -97,11 +105,25 @@ public class KafkaAggregatorService implements IAggregatorService {
 		}
 		return new TupleIterator(symbol, new WindowStoreIteratorLimited<KafkaTuple>(it, getLimit(request)));
 	}
+	
+	protected CompletableFuture<Void> createClear(IAggregator aggregator) {
+		return CompletableFuture.runAsync(() -> aggregator.clear());
+	}
 
 	@Override
 	public void clear() {
-		for ( IAggregator aggregator : aggregatorList ) {
-			aggregator.clear();
+		// There is some kind problem with accessing files while streams cleanUp in Windows
+		if ( clearAggregatorsInParallel  ) {
+			int count = aggregatorList.size();
+			CompletableFuture<?> f[] = new CompletableFuture<?>[count];
+			for ( int i = 0; i < count; i ++ ) {
+				f[i] = createClear(aggregatorList.get(i));
+			}
+			CompletableFuture.allOf(f).join();
+		} else {
+			for ( IAggregator aggregator : aggregatorList ) {
+				aggregator.clear();
+			}
 		}
 	}
 

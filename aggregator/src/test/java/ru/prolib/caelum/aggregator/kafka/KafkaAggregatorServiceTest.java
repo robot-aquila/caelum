@@ -7,6 +7,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.kafka.streams.state.ReadOnlyWindowStore;
 import org.apache.kafka.streams.state.WindowStoreIterator;
@@ -48,7 +50,7 @@ public class KafkaAggregatorServiceTest {
 	KafkaAggregatorEntry entryMock;
 	IAggregator aggrMock1, aggrMock2;
 	List<IAggregator> aggregators;
-	KafkaAggregatorService service;
+	KafkaAggregatorService service, mockedService;
 	AggregatedDataRequest request;
 
 	@Before
@@ -64,7 +66,12 @@ public class KafkaAggregatorServiceTest {
 		aggrMock1 = control.createMock(IAggregator.class);
 		aggrMock2 = control.createMock(IAggregator.class);
 		aggregators = Arrays.asList(aggrMock1, aggrMock2);
-		service = new KafkaAggregatorService(periods, registryMock, aggregators, 5000);
+		service = new KafkaAggregatorService(periods, registryMock, aggregators, 5000, false);
+		mockedService = partialMockBuilder(KafkaAggregatorService.class)
+				.withConstructor(Periods.class, KafkaStreamsRegistry.class, List.class, int.class, boolean.class)
+				.withArgs(periods, registryMock, aggregators, 500, true)
+				.addMockedMethod("createClear", IAggregator.class)
+				.createMock();
 	}
 	
 	@Test
@@ -268,11 +275,41 @@ public class KafkaAggregatorServiceTest {
 				new KafkaTupleAggregateIterator(itStub, Duration.ofHours(1)), 5000L));
 		assertEquals(expected, actual);
 	}
+	
+	@Test
+	public void testCreateClear() throws Exception {
+		aggrMock1.clear();
+		control.replay();
+		
+		CompletableFuture<Void> actual = service.createClear(aggrMock1);
+		
+		assertNotNull(actual);
+		actual.get(1, TimeUnit.SECONDS);
+		control.verify();
+	}
 
 	@Test
-	public void testClear() {
+	public void testClear_ShouldUseFuturesIfParallelismIsEnabled() {
+		CompletableFuture<Void> f1 = new CompletableFuture<>(), f2 = new CompletableFuture<>();
+		expect(mockedService.createClear(aggrMock1)).andReturn(f1);
+		expect(mockedService.createClear(aggrMock2)).andReturn(f2);
+		replay(mockedService);
+		control.replay();
+		new Thread(() -> { f1.complete(null); f2.complete(null); }).start();
+		
+		mockedService.clear();
+		
+		control.verify();
+		verify(mockedService);
+	}
+	
+	@Test
+	public void testClear_ShouldClearAggregatorsConsecutivelyInCurrentThreadIfParallelismIsDisabled() {
+		final Thread expected_thread = Thread.currentThread();
 		aggrMock1.clear();
+		expectLastCall().andAnswer(() -> { assertSame(expected_thread, Thread.currentThread()); return null; });
 		aggrMock2.clear();
+		expectLastCall().andAnswer(() -> { assertSame(expected_thread, Thread.currentThread()); return null; });
 		control.replay();
 		
 		service.clear();

@@ -6,6 +6,8 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -49,6 +51,10 @@ public class KafkaAggregatorServiceBuilder implements IAggregatorServiceBuilder 
 	protected KafkaStreamsRegistry createStreamsRegistry(Periods periods) {
 		return new KafkaStreamsRegistry(periods);
 	}
+	
+	protected Lock createLock() {
+		return new ReentrantLock();
+	}
 
 	@Override
 	public IAggregatorService build(String default_config_file, String config_file, CompositeService services)
@@ -66,6 +72,7 @@ public class KafkaAggregatorServiceBuilder implements IAggregatorServiceBuilder 
 		builder.withServices(services)
 			.withStreamsRegistry(streams_registry)
 			.withTopologyBuilder(createTopologyBuilder())
+			.withCleanUpMutex(createLock())
 			.withUtils(createUtils());
 		List<IAggregator> aggregator_list = new ArrayList<>();
 		for ( String aggregation_period : aggregation_period_list ) {
@@ -78,7 +85,8 @@ public class KafkaAggregatorServiceBuilder implements IAggregatorServiceBuilder 
 				periods,
 				streams_registry,
 				aggregator_list,
-				config.getListTuplesLimit());
+				config.getListTuplesLimit(),
+				false);
 		return service;
 	}
 	

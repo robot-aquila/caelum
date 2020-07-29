@@ -4,6 +4,8 @@ import static org.junit.Assert.*;
 
 import java.util.Arrays;
 import java.util.Properties;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.easymock.EasyMock.*;
 import static org.hamcrest.Matchers.*;
@@ -30,6 +32,7 @@ public class KafkaAggregatorServiceBuilderTest {
 	KafkaStreamsRegistry streamsRegistryMock;
 	KafkaAggregatorTopologyBuilder topologyBuilderMock;
 	KafkaUtils utilsMock;
+	Lock mutexMock;
 	KafkaAggregatorServiceBuilder service, mockedService;
 
 	@Before
@@ -48,6 +51,7 @@ public class KafkaAggregatorServiceBuilderTest {
 		streamsRegistryMock = control.createMock(KafkaStreamsRegistry.class);
 		topologyBuilderMock = control.createMock(KafkaAggregatorTopologyBuilder.class);
 		utilsMock = control.createMock(KafkaUtils.class);
+		mutexMock = control.createMock(Lock.class);
 		service = new KafkaAggregatorServiceBuilder(builderMock);
 		mockedService = partialMockBuilder(KafkaAggregatorServiceBuilder.class)
 				.withConstructor(KafkaAggregatorBuilder.class)
@@ -56,6 +60,7 @@ public class KafkaAggregatorServiceBuilderTest {
 				.addMockedMethod("createConfig", Periods.class)
 				.addMockedMethod("createStreamsRegistry", Periods.class)
 				.addMockedMethod("createTopologyBuilder")
+				.addMockedMethod("createLock")
 				.withArgs(builderMock)
 				.createMock();
 	}
@@ -98,6 +103,14 @@ public class KafkaAggregatorServiceBuilderTest {
 	}
 	
 	@Test
+	public void testCreateLock() {
+		Lock actual = service.createLock();
+		
+		assertNotNull(actual);
+		assertThat(actual, is(instanceOf(ReentrantLock.class)));
+	}
+	
+	@Test
 	public void testBuild() throws Exception {
 		Capture<String> capArg1 = newCapture(), capArg2 = newCapture();
 		config1 = new KafkaAggregatorConfig(periods) {
@@ -114,10 +127,12 @@ public class KafkaAggregatorServiceBuilderTest {
 		expect(mockedService.createConfig(periods)).andReturn(config1);
 		expect(mockedService.createStreamsRegistry(periods)).andReturn(streamsRegistryMock);
 		expect(mockedService.createTopologyBuilder()).andReturn(topologyBuilderMock);
+		expect(mockedService.createLock()).andReturn(mutexMock);
 		expect(mockedService.createUtils()).andReturn(utilsMock);
 		expect(builderMock.withServices(servicesMock)).andReturn(builderMock);
 		expect(builderMock.withStreamsRegistry(streamsRegistryMock)).andReturn(builderMock);
 		expect(builderMock.withTopologyBuilder(topologyBuilderMock)).andReturn(builderMock);
+		expect(builderMock.withCleanUpMutex(mutexMock)).andReturn(builderMock);
 		expect(builderMock.withUtils(utilsMock)).andReturn(builderMock);
 		// create M1 aggregator
 		expect(mockedService.createConfig(periods)).andReturn(config2);
@@ -142,6 +157,7 @@ public class KafkaAggregatorServiceBuilderTest {
 		KafkaAggregatorService x = (KafkaAggregatorService) actual;
 		assertEquals(Arrays.asList(aggregatorMock1, aggregatorMock2, aggregatorMock3), x.getAggregatorList());
 		assertEquals(400, x.getMaxLimit());
+		assertFalse(x.isClearAggregatorsInParallel());
 		assertEquals("kappa.props", capArg1.getValue());
 		assertEquals("beta.props", capArg2.getValue());
 		Properties expected_props = new Properties();

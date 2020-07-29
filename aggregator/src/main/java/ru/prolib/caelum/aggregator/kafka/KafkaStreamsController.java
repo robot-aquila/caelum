@@ -1,5 +1,7 @@
 package ru.prolib.caelum.aggregator.kafka;
 
+import java.util.concurrent.locks.Lock;
+
 import ru.prolib.caelum.aggregator.kafka.utils.IRecoverableStreamsController;
 import ru.prolib.caelum.aggregator.kafka.utils.IRecoverableStreamsHandler;
 import ru.prolib.caelum.aggregator.kafka.utils.IRecoverableStreamsHandlerListener;
@@ -12,17 +14,20 @@ public class KafkaStreamsController implements IRecoverableStreamsController {
 	private final KafkaAggregatorConfig config;
 	private final KafkaStreamsRegistry registry;
 	private final KafkaUtils utils;
+	private final Lock cleanUpMutex;
 	
 	public KafkaStreamsController(KafkaAggregatorDescr descr,
 			KafkaAggregatorTopologyBuilder builder,
 			KafkaAggregatorConfig config,
 			KafkaStreamsRegistry registry,
+			Lock cleanUpMutex,
 			KafkaUtils utils)
 	{
 		this.descr = descr;
 		this.builder = builder;
 		this.config = config;
 		this.registry = registry;
+		this.cleanUpMutex = cleanUpMutex;
 		this.utils = utils;
 	}
 	
@@ -42,6 +47,10 @@ public class KafkaStreamsController implements IRecoverableStreamsController {
 		return registry;
 	}
 	
+	public Lock getCleanUpMutex() {
+		return cleanUpMutex;
+	}
+	
 	public KafkaUtils getUtils() {
 		return utils;
 	}
@@ -52,7 +61,8 @@ public class KafkaStreamsController implements IRecoverableStreamsController {
 				utils.createStreams(builder.buildTopology(config), config.getKafkaProperties()),
 				listener,
 				"aggregator-" + config.getAggregationPeriodCode().toLowerCase(),
-				config.getDefaultTimeout());
+				config.getDefaultTimeout(),
+				cleanUpMutex);
 	}
 	
 	@Override

@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
 
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.log4j.BasicConfigurator;
@@ -27,6 +28,7 @@ public class RecoverableStreamsHandlerTest {
 	IMocksControl control;
 	KafkaStreams streamsMock;
 	IRecoverableStreamsHandlerListener listenerMock;
+	Lock mutexMock;
 	AtomicInteger state;
 	AtomicReference<IRecoverableStreamsHandlerListener> listenerRef;
 	RecoverableStreamsHandler service;
@@ -36,17 +38,19 @@ public class RecoverableStreamsHandlerTest {
 		control = createStrictControl();
 		streamsMock = control.createMock(KafkaStreams.class);
 		listenerMock = control.createMock(IRecoverableStreamsHandlerListener.class);
+		mutexMock = control.createMock(Lock.class);
 		listenerRef = new AtomicReference<>(listenerMock);
 		state = new AtomicInteger();
-		service = new RecoverableStreamsHandler(streamsMock, listenerRef, "foo", 5000, state);
+		service = new RecoverableStreamsHandler(streamsMock, listenerRef, "foo", 5000, mutexMock, state);
 	}
 	
 	@Test
-	public void testCtor5() {
+	public void testCtor6() {
 		assertSame(streamsMock, service.getStreams());
 		assertSame(listenerMock, service.getStateListener());
 		assertEquals("foo", service.getServiceName());
 		assertEquals(5000L, service.getShutdownTimeout());
+		assertSame(mutexMock, service.getCleanUpMutex());
 		assertFalse(service.started());
 		assertFalse(service.recoverableError());
 		assertFalse(service.unrecoverableError());
@@ -54,12 +58,13 @@ public class RecoverableStreamsHandlerTest {
 	}
 	
 	@Test
-	public void testCtor4() {
-		service = new RecoverableStreamsHandler(streamsMock, listenerMock, "foo", 5000);
+	public void testCtor5() {
+		service = new RecoverableStreamsHandler(streamsMock, listenerMock, "foo", 5000, mutexMock);
 		assertSame(streamsMock, service.getStreams());
 		assertSame(listenerMock, service.getStateListener());
 		assertEquals("foo", service.getServiceName());
 		assertEquals(5000L, service.getShutdownTimeout());
+		assertSame(mutexMock, service.getCleanUpMutex());
 		assertFalse(service.started());
 		assertFalse(service.recoverableError());
 		assertFalse(service.unrecoverableError());
@@ -312,7 +317,9 @@ public class RecoverableStreamsHandlerTest {
 	@Test
 	public void testStart() {
 		streamsMock.setStateListener(service);
+		mutexMock.lock();
 		streamsMock.cleanUp();
+		mutexMock.unlock();
 		streamsMock.start();
 		control.replay();
 		
