@@ -6,5 +6,5 @@ public interface IItemDatabaseService {
 	void registerItem(IItem item);
 	IItemIterator fetch(ItemDataRequest request);
 	IItemIterator fetch(ItemDataRequestContinue request);
-	void clear();
+	void clear(boolean global);
 }

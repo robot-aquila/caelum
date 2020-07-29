@@ -131,7 +131,7 @@ public class BacknodeIT extends TestBasis {
 	}
 	
 	@Test
-	public void C1005_PutItem_ShouldRegisterSymbols() {
+	public void C1005_PutItem_ShouldRegisterSymbols() throws Exception {
 		long time = 10000L;
 		for ( CatSym cs : newSymbols(5, 10) ) {
 			apiPutItem(getSpecRandom(), registerItem(cs, time ++));
@@ -139,7 +139,22 @@ public class BacknodeIT extends TestBasis {
 		
 		for ( RequestSpecification spec : getSpecAll() ) {
 			for ( String category : registeredCategories() ) {
-				SymbolsResponseDTO response = apiGetSymbols(spec, category);
+				final List<String> expected_symbols = registeredSymbols(category);
+				CompletableFuture<SymbolsResponseDTO> r = new CompletableFuture<>();
+				await().dontCatchUncaughtExceptions()
+					.pollInterval(Duration.ofSeconds(5L))
+					.atMost(Duration.ofSeconds(20))
+					.until(() -> {
+						SymbolsResponseDTO response = apiGetSymbols(spec, category);
+						assertNotError(response);
+						if ( response.data.rows.size() == expected_symbols.size() ) {
+							r.complete(response);
+							return true;
+						} else {
+							return false;
+						}
+					});
+				SymbolsResponseDTO response = r.get(1, TimeUnit.SECONDS);
 				
 				assertNotError(response);
 				assertEquals(registeredSymbols(category), response.data.rows);

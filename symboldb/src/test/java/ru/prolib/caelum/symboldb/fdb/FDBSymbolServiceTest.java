@@ -115,11 +115,20 @@ public class FDBSymbolServiceTest {
 	}
 	
 	@Test
-	public void testClear() {
+	public void testClear_ShouldClearIfGlobal() {
 		expect(dbMock.run(new FDBTransactionClear(schema))).andReturn(null);
 		control.replay();
 		
-		service.clear();
+		service.clear(true);
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testClear_ShouldSkipIfLocal() {
+		control.replay();
+		
+		service.clear(false);
 		
 		control.verify();
 	}

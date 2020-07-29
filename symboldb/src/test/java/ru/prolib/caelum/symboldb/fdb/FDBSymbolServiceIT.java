@@ -280,7 +280,7 @@ public class FDBSymbolServiceIT {
 	}
 	
 	@Test
-	public void testClear() throws Exception {
+	public void testClear_ShouldClearIfGlobal() throws Exception {
 		service.registerSymbol("tukana@batari");
 		service.registerSymbol("kappa");
 		service.registerSymbolUpdate(new SymbolUpdate("kap@mov", 15882689L, toMap(10, "foo", 11, "bar", 12, "buz")));
@@ -288,7 +288,7 @@ public class FDBSymbolServiceIT {
 		service.registerSymbolUpdate(new SymbolUpdate("kap@alp", 16911504L, toMap(21, "boo", 22, "moo", 23, "goo")));
 		service.registerSymbolUpdate(new SymbolUpdate("bar@gor", 17829914L, toMap(11, "zoo", 12, "ups", 13, "pop")));
 		
-		service.clear();
+		service.clear(true);
 		
 		assertEquals(Arrays.asList(), toList(service.listCategories()));
 		assertEquals(Arrays.asList(), toList(service.listSymbols(new SymbolListRequest("kap", null, 1000))));
@@ -296,6 +296,23 @@ public class FDBSymbolServiceIT {
 		assertEquals(Arrays.asList(), toList(service.listSymbolUpdates("kap@mov")));
 		assertEquals(Arrays.asList(), toList(service.listSymbolUpdates("kap@alp")));
 		assertEquals(Arrays.asList(), toList(service.listSymbolUpdates("bar@gor")));
+	}
+	
+	@Test
+	public void testClear_ShouldSkipIfLocal() throws Exception {
+		service.registerSymbol("tukana@batari");
+		service.registerSymbol("kappa");
+		service.registerSymbolUpdate(new SymbolUpdate("kap@mov", 15882689L, toMap(10, "foo", 11, "bar", 12, "buz")));
+		service.registerSymbolUpdate(new SymbolUpdate("kap@alp", 16788992L, toMap(20, "alp", 30, "zip", 40, "gap")));
+		service.registerSymbolUpdate(new SymbolUpdate("kap@alp", 16911504L, toMap(21, "boo", 22, "moo", 23, "goo")));
+		service.registerSymbolUpdate(new SymbolUpdate("bar@gor", 17829914L, toMap(11, "zoo", 12, "ups", 13, "pop")));
+		
+		service.clear(false);
+
+		assertEquals(Arrays.asList("", "bar", "kap", "tukana"), toList(service.listCategories()));
+		assertEquals(Arrays.asList("bar@gor"), toList(service.listSymbols(new SymbolListRequest("bar", null, 1000))));
+		assertEquals(Arrays.asList("kap@alp", "kap@mov"),
+				toList(service.listSymbols(new SymbolListRequest("kap", null, 1000))));
 	}
 
 }

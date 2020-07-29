@@ -13,6 +13,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ru.prolib.caelum.aggregator.IAggregator;
 import ru.prolib.caelum.aggregator.IAggregatorService;
@@ -22,6 +24,7 @@ import ru.prolib.caelum.core.Periods;
 import ru.prolib.caelum.itemdb.kafka.utils.KafkaUtils;
 
 public class KafkaAggregatorServiceBuilder implements IAggregatorServiceBuilder {
+	private static final Logger logger = LoggerFactory.getLogger(KafkaAggregatorServiceBuilder.class);
 	private final KafkaAggregatorBuilder builder;
 	
 	public KafkaAggregatorServiceBuilder(KafkaAggregatorBuilder builder) {
@@ -63,6 +66,10 @@ public class KafkaAggregatorServiceBuilder implements IAggregatorServiceBuilder 
 		final Periods periods = createPeriods();
 		KafkaAggregatorConfig config = createConfig(periods);
 		config.load(default_config_file, config_file);
+		boolean is_parallel_clear = config.isParallelClear();
+		config.print(logger);
+		logger.debug("isParallelClear: {}", is_parallel_clear);
+		
 		KafkaStreamsRegistry streams_registry = createStreamsRegistry(periods);
 		Set<String> aggregation_period_list = new LinkedHashSet<>(Arrays.asList(StringUtils.splitByWholeSeparator(
 				config.getString(KafkaAggregatorConfig.AGGREGATION_PERIOD), ","))
@@ -86,7 +93,7 @@ public class KafkaAggregatorServiceBuilder implements IAggregatorServiceBuilder 
 				streams_registry,
 				aggregator_list,
 				config.getListTuplesLimit(),
-				false);
+				is_parallel_clear);
 		return service;
 	}
 	

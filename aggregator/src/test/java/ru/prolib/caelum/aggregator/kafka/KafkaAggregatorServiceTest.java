@@ -70,7 +70,7 @@ public class KafkaAggregatorServiceTest {
 		mockedService = partialMockBuilder(KafkaAggregatorService.class)
 				.withConstructor(Periods.class, KafkaStreamsRegistry.class, List.class, int.class, boolean.class)
 				.withArgs(periods, registryMock, aggregators, 500, true)
-				.addMockedMethod("createClear", IAggregator.class)
+				.addMockedMethod("createClear", IAggregator.class, boolean.class)
 				.createMock();
 	}
 	
@@ -278,10 +278,10 @@ public class KafkaAggregatorServiceTest {
 	
 	@Test
 	public void testCreateClear() throws Exception {
-		aggrMock1.clear();
+		aggrMock1.clear(true);
 		control.replay();
 		
-		CompletableFuture<Void> actual = service.createClear(aggrMock1);
+		CompletableFuture<Void> actual = service.createClear(aggrMock1, true);
 		
 		assertNotNull(actual);
 		actual.get(1, TimeUnit.SECONDS);
@@ -291,13 +291,13 @@ public class KafkaAggregatorServiceTest {
 	@Test
 	public void testClear_ShouldUseFuturesIfParallelismIsEnabled() {
 		CompletableFuture<Void> f1 = new CompletableFuture<>(), f2 = new CompletableFuture<>();
-		expect(mockedService.createClear(aggrMock1)).andReturn(f1);
-		expect(mockedService.createClear(aggrMock2)).andReturn(f2);
+		expect(mockedService.createClear(aggrMock1, false)).andReturn(f1);
+		expect(mockedService.createClear(aggrMock2, false)).andReturn(f2);
 		replay(mockedService);
 		control.replay();
 		new Thread(() -> { f1.complete(null); f2.complete(null); }).start();
 		
-		mockedService.clear();
+		mockedService.clear(false);
 		
 		control.verify();
 		verify(mockedService);
@@ -306,13 +306,13 @@ public class KafkaAggregatorServiceTest {
 	@Test
 	public void testClear_ShouldClearAggregatorsConsecutivelyInCurrentThreadIfParallelismIsDisabled() {
 		final Thread expected_thread = Thread.currentThread();
-		aggrMock1.clear();
+		aggrMock1.clear(true);
 		expectLastCall().andAnswer(() -> { assertSame(expected_thread, Thread.currentThread()); return null; });
-		aggrMock2.clear();
+		aggrMock2.clear(true);
 		expectLastCall().andAnswer(() -> { assertSame(expected_thread, Thread.currentThread()); return null; });
 		control.replay();
 		
-		service.clear();
+		service.clear(true);
 		
 		control.verify();
 	}

@@ -3,6 +3,7 @@ package ru.prolib.caelum.aggregator.kafka;
 import java.time.Duration;
 import java.util.Properties;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.streams.StreamsConfig;
 
@@ -19,6 +20,7 @@ public class KafkaAggregatorConfig extends AggregatorConfig {
 	public static final String SOURCE_TOPIC				= "caelum.aggregator.kafka.source.topic";
 	public static final String MAX_ERRORS				= "caelum.aggregator.kafka.max.errors";
 	public static final String DEFAULT_TIMEOUT			= "caelum.aggregator.kafka.default.timeout";
+	public static final String FORCE_PARALLEL_CLEAR		= "caelum.aggregator.kafka.force.parallel.clear";
 
 	private final Periods periods;
 	
@@ -41,6 +43,7 @@ public class KafkaAggregatorConfig extends AggregatorConfig {
 		props.put(SOURCE_TOPIC, "caelum-item");
 		props.put(MAX_ERRORS, "99");
 		props.put(DEFAULT_TIMEOUT, "15000");
+		props.put(FORCE_PARALLEL_CLEAR, "");
 	}
 	
 	private String getSuffix() {
@@ -88,6 +91,14 @@ public class KafkaAggregatorConfig extends AggregatorConfig {
 	
 	public long getDefaultTimeout() {
 		return getInt(DEFAULT_TIMEOUT);
+	}
+	
+	protected boolean isOsUnix() {
+		return SystemUtils.IS_OS_UNIX;
+	}
+	
+	public boolean isParallelClear() {
+		return getBoolean(FORCE_PARALLEL_CLEAR, isOsUnix());
 	}
 	
 	public Properties getKafkaProperties() {

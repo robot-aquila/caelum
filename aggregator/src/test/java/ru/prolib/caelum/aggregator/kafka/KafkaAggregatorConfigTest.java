@@ -1,10 +1,12 @@
 package ru.prolib.caelum.aggregator.kafka;
 
 import static org.junit.Assert.*;
+import static org.easymock.EasyMock.*;
 
 import java.time.Duration;
 import java.util.Properties;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -14,12 +16,17 @@ import ru.prolib.caelum.itemdb.kafka.KafkaItemSerdes;
 
 public class KafkaAggregatorConfigTest {
 	Periods periods;
-	KafkaAggregatorConfig service;
+	KafkaAggregatorConfig service, mockedService;
 	
 	@Before
 	public void setUp() throws Exception {
 		periods = new Periods();
 		service = new KafkaAggregatorConfig(periods);
+		mockedService = partialMockBuilder(KafkaAggregatorConfig.class)
+				.withConstructor(Periods.class)
+				.withArgs(periods)
+				.addMockedMethod("isOsUnix")
+				.createMock();
 	}
 	
 	void verifyDefaultProperties(Properties props) {
@@ -32,6 +39,7 @@ public class KafkaAggregatorConfigTest {
 		assertEquals("15000",					props.get("caelum.aggregator.kafka.default.timeout"));
 		assertEquals("M1,H1",					props.get("caelum.aggregator.aggregation.period"));
 		assertEquals("5000",					props.get("caelum.aggregator.list.tuples.limit"));
+		assertEquals("",						props.get("caelum.aggregator.kafka.force.parallel.clear"));
 	}
 	
 	@Test
@@ -145,6 +153,33 @@ public class KafkaAggregatorConfigTest {
 		
 		assertEquals(1, props.size());
 		assertEquals("localhost:8082", props.get("bootstrap.servers"));
+	}
+
+	@Test
+	public void testIsOsUnix() {
+		assertEquals(SystemUtils.IS_OS_UNIX, service.isOsUnix());
+	}
+	
+	@Test
+	public void testIsParallelClear() {
+		expect(mockedService.isOsUnix())
+			.andReturn(true).andReturn(false)
+			.andReturn(true).andReturn(false)
+			.andReturn(true).andReturn(false);
+		replay(mockedService);
+		
+		assertTrue(mockedService.isParallelClear());
+		assertFalse(mockedService.isParallelClear());
+		
+		mockedService.getProperties().put("caelum.aggregator.kafka.force.parallel.clear", "0");
+		assertFalse(mockedService.isParallelClear());
+		assertFalse(mockedService.isParallelClear());
+		
+		mockedService.getProperties().put("caelum.aggregator.kafka.force.parallel.clear", "1");
+		assertTrue(mockedService.isParallelClear());
+		assertTrue(mockedService.isParallelClear());
+		
+		verify(mockedService);
 	}
 
 }

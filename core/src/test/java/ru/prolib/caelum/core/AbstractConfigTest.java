@@ -4,7 +4,9 @@ import static org.junit.Assert.*;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 public class AbstractConfigTest {
 	
@@ -27,6 +29,7 @@ public class AbstractConfigTest {
 		
 	}
 
+	@Rule public ExpectedException eex = ExpectedException.none();
 	TestConfig service;
 	
 	@Before
@@ -101,6 +104,47 @@ public class AbstractConfigTest {
 		assertEquals("Hello, World!", service.getString(TestConfig.PROPERTY1));
 		assertEquals(42, service.getInt(TestConfig.PROPERTY2));
 		assertEquals("true", service.getString(TestConfig.PROPERTY3));
+	}
+	
+	@Test
+	public void testGetBoolean() {
+		assertNull(service.getBoolean("tumbe"));
+		assertEquals(true, service.getBoolean("tumbe", true));
+		assertEquals(false, service.getBoolean("tumbe", false));
+
+		service.getProperties().put("tumbe", "");
+		assertNull(service.getBoolean("tumbe"));
+		assertEquals(true, service.getBoolean("tumbe", true));
+		assertEquals(false, service.getBoolean("tumbe", false));
+		
+		service.getProperties().put("tumbe", "1");
+		assertEquals(true, service.getBoolean("tumbe"));
+		assertEquals(true, service.getBoolean("tumbe", true));
+		assertEquals(true, service.getBoolean("tumbe", false));
+		
+		service.getProperties().put("tumbe", "true");
+		assertEquals(true, service.getBoolean("tumbe"));
+		assertEquals(true, service.getBoolean("tumbe", true));
+		assertEquals(true, service.getBoolean("tumbe", false));
+		
+		service.getProperties().put("tumbe", "0");
+		assertEquals(false, service.getBoolean("tumbe"));
+		assertEquals(false, service.getBoolean("tumbe", true));
+		assertEquals(false, service.getBoolean("tumbe", false));
+		
+		service.getProperties().put("tumbe", "false");
+		assertEquals(false, service.getBoolean("tumbe"));
+		assertEquals(false, service.getBoolean("tumbe", true));
+		assertEquals(false, service.getBoolean("tumbe", false));
+	}
+	
+	@Test
+	public void testGetBoolean_ShouldThrowIfUnsupportedValue() {
+		service.getProperties().put("tumbe", "solution");
+		eex.expect(IllegalArgumentException.class);
+		eex.expectMessage("Expected boolean type of key: tumbe but value is: solution");
+		
+		service.getBoolean("tumbe");
 	}
 
 }

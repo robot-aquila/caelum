@@ -11,5 +11,5 @@ public interface ISymbolService {
 	ICloseableIterator<String> listCategories();
 	ICloseableIterator<String> listSymbols(SymbolListRequest request);
 	ICloseableIterator<SymbolUpdate> listSymbolUpdates(String symbol);
-	void clear();
+	void clear(boolean global);
 }

@@ -100,11 +100,11 @@ public class Caelum implements ICaelum {
 	}
 	
 	@Override
-	public void clear() {
+	public void clear(boolean global) {
 		symbolCache.clear();
-		symbolService.clear();
-		itemDbService.clear();
-		aggrService.clear();
+		symbolService.clear(global);
+		itemDbService.clear(global);
+		aggrService.clear(global);
 	}
 
 }

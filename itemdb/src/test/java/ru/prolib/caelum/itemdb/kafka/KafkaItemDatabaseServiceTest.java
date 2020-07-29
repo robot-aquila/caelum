@@ -265,13 +265,22 @@ public class KafkaItemDatabaseServiceTest {
 	}
 	
 	@Test
-	public void testClear() {
+	public void testClear_ShouldClearIfGlobal() {
 		expect(utilsMock.createAdmin(config.getAdminClientProperties())).andReturn(adminMock);
 		utilsMock.deleteRecords(adminMock, "caelum-item", 10000L);
 		adminMock.close();
 		control.replay();
 		
-		service.clear();
+		service.clear(true);
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testClear_ShouldSkipIfLocal() {
+		control.replay();
+		
+		service.clear(false);
 		
 		control.verify();
 	}

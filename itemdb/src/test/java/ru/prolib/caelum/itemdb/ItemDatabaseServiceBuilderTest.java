@@ -43,7 +43,7 @@ public class ItemDatabaseServiceBuilderTest {
 		}
 		
 		@Override
-		public void clear() {
+		public void clear(boolean global) {
 			throw new UnsupportedOperationException();
 		}
 		

@@ -5,5 +5,5 @@ package ru.prolib.caelum.aggregator;
  */
 public interface IAggregator {
 	AggregatorStatus getStatus();
-	void clear();
+	void clear(boolean global);
 }

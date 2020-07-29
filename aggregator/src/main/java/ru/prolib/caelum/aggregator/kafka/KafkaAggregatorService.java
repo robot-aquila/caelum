@@ -106,23 +106,23 @@ public class KafkaAggregatorService implements IAggregatorService {
 		return new TupleIterator(symbol, new WindowStoreIteratorLimited<KafkaTuple>(it, getLimit(request)));
 	}
 	
-	protected CompletableFuture<Void> createClear(IAggregator aggregator) {
-		return CompletableFuture.runAsync(() -> aggregator.clear());
+	protected CompletableFuture<Void> createClear(IAggregator aggregator, final boolean global) {
+		return CompletableFuture.runAsync(() -> aggregator.clear(global));
 	}
 
 	@Override
-	public void clear() {
+	public void clear(boolean global) {
 		// There is some kind problem with accessing files while streams cleanUp in Windows
 		if ( clearAggregatorsInParallel  ) {
 			int count = aggregatorList.size();
 			CompletableFuture<?> f[] = new CompletableFuture<?>[count];
 			for ( int i = 0; i < count; i ++ ) {
-				f[i] = createClear(aggregatorList.get(i));
+				f[i] = createClear(aggregatorList.get(i), global);
 			}
 			CompletableFuture.allOf(f).join();
 		} else {
 			for ( IAggregator aggregator : aggregatorList ) {
-				aggregator.clear();
+				aggregator.clear(global);
 			}
 		}
 	}

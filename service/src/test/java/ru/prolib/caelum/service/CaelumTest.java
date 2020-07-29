@@ -163,9 +163,14 @@ public class CaelumTest {
 	@Test
 	public void testClear() {
 		symbolCacheMock.clear();
-		symbolSvcMock.clear();
-		itemDbSvcMock.clear();
-		aggrSvcMock.clear();
+		symbolSvcMock.clear(true);
+		itemDbSvcMock.clear(true);
+		aggrSvcMock.clear(true);
+		control.replay();
+		
+		service.clear(true);
+		
+		control.verify();
 	}
 
 }

@@ -26,5 +26,5 @@ public interface ICaelum {
 	ICloseableIterator<String> fetchCategories();
 	ICloseableIterator<String> fetchSymbols(SymbolListRequest request);
 	ICloseableIterator<SymbolUpdate> fetchSymbolUpdates(String symbol);
-	void clear();
+	void clear(boolean global);
 }

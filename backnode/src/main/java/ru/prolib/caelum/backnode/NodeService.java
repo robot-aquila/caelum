@@ -211,11 +211,18 @@ public class NodeService {
 	
 	@GET
 	@Path("/clear")
-	public Result<Void> clear() {
+	public Result<Void> clear(@QueryParam("global") final boolean global) {
 		if ( ! isTestMode() ) {
 			throw new ForbiddenException();
 		}
-		caelum.clear();
+		caelum.clear(global);
+		return success();
+	}
+	
+	@GET
+	@Path("/logMarker")
+	public Result<Void> logMarker(@QueryParam("marker") @NotNull final String marker) {
+		logger.debug(marker);
 		return success();
 	}
 	

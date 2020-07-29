@@ -59,17 +59,19 @@ public class KafkaAggregator implements IAggregator {
 	}
 
 	@Override
-	public void clear() {
+	public void clear(boolean global) {
 		final long timeout = config.getDefaultTimeout();
 		if ( ! streamsService.stopAndWaitConfirm(timeout) ) {
 			throw new IllegalStateException("Failed to stop streams service: " + descr.getPeriod());
 		}
-		try ( AdminClient admin = utils.createAdmin(config.getAdminClientProperties()) ) {
-			utils.deleteRecords(admin, getChangelogTopic(), timeout);
-			if ( config.getTargetTopic() != null ) {
-				utils.deleteRecords(admin,  config.getTargetTopic(), timeout);
+		if ( global ) {
+			try ( AdminClient admin = utils.createAdmin(config.getAdminClientProperties()) ) {
+				utils.deleteRecords(admin, getChangelogTopic(), timeout);
+				if ( config.getTargetTopic() != null ) {
+					utils.deleteRecords(admin,  config.getTargetTopic(), timeout);
+				}
 			}
-		}		
+		}
 		streamsService.startAndWaitConfirm(timeout);
 	}
 

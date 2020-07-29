@@ -107,9 +107,11 @@ public class KafkaItemDatabaseService implements IItemDatabaseService {
 	}
 
 	@Override
-	public void clear() {
-		try ( AdminClient admin = utils.createAdmin(config.getAdminClientProperties()) ) {
-			utils.deleteRecords(admin, config.getSourceTopic(), 10000L);
+	public void clear(boolean global) {
+		if ( global ) {
+			try ( AdminClient admin = utils.createAdmin(config.getAdminClientProperties()) ) {
+				utils.deleteRecords(admin, config.getSourceTopic(), 10000L);
+			}
 		}
 	}
 

@@ -949,12 +949,17 @@ public class TestBasis {
 		databaseReplica.clear();
 		existingSymbols.clear();
 		existingCategories.clear();
-		given()
-			.spec(getSpec())
-		.when()
-			.get("clear")
-		.then()
-			.statusCode(200);
+		boolean first = true;
+		for ( RequestSpecification spec : getSpecAll() ) {
+			given()
+				.spec(spec)
+				.param("global", first)
+			.when()
+				.get("clear")
+			.then()
+				.statusCode(200);
+			first = false;
+		}
 	}
 
 }

@@ -11,7 +11,6 @@ import static org.easymock.EasyMock.*;
 import static org.hamcrest.Matchers.*;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.easymock.Capture;
 import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,7 +26,7 @@ public class KafkaAggregatorServiceBuilderTest {
 	Periods periods;
 	KafkaAggregatorBuilder builderMock;
 	CompositeService servicesMock;
-	KafkaAggregatorConfig config1, config2, config3, config4;
+	KafkaAggregatorConfig mockedConfig, config1, config2, config3;
 	IAggregator aggregatorMock1, aggregatorMock2, aggregatorMock3;
 	KafkaStreamsRegistry streamsRegistryMock;
 	KafkaAggregatorTopologyBuilder topologyBuilderMock;
@@ -41,10 +40,14 @@ public class KafkaAggregatorServiceBuilderTest {
 		control = createStrictControl();
 		builderMock = control.createMock(KafkaAggregatorBuilder.class);
 		servicesMock = control.createMock(CompositeService.class);
+		mockedConfig = partialMockBuilder(KafkaAggregatorConfig.class)
+				.withConstructor(Periods.class)
+				.withArgs(periods)
+				.addMockedMethod("load", String.class, String.class)
+				.createMock();
 		config1 = new KafkaAggregatorConfig(periods);
 		config2 = new KafkaAggregatorConfig(periods);
 		config3 = new KafkaAggregatorConfig(periods);
-		config4 = new KafkaAggregatorConfig(periods);
 		aggregatorMock1 = control.createMock(IAggregator.class);
 		aggregatorMock2 = control.createMock(IAggregator.class);
 		aggregatorMock3 = control.createMock(IAggregator.class);
@@ -112,19 +115,13 @@ public class KafkaAggregatorServiceBuilderTest {
 	
 	@Test
 	public void testBuild() throws Exception {
-		Capture<String> capArg1 = newCapture(), capArg2 = newCapture();
-		config1 = new KafkaAggregatorConfig(periods) {
-			@Override
-			public void load(String default_config_file, String config_file) {
-				capArg1.setValue(default_config_file);
-				capArg2.setValue(config_file);
-			}
-		};
+		mockedConfig.load("kappa.props", "beta.props");
 		// duplicates should be ignored
-		config1.getProperties().put("caelum.aggregator.aggregation.period", " M1, M5, H1, M1, H1, M5, M5");
-		config1.getProperties().put("caelum.aggregator.list.tuples.limit", "400");
+		mockedConfig.getProperties().put("caelum.aggregator.aggregation.period", " M1, M5, H1, M1, H1, M5, M5");
+		mockedConfig.getProperties().put("caelum.aggregator.list.tuples.limit", "400");
+		mockedConfig.getProperties().put("caelum.aggregator.kafka.force.parallel.clear", "1");
 		expect(mockedService.createPeriods()).andReturn(periods);
-		expect(mockedService.createConfig(periods)).andReturn(config1);
+		expect(mockedService.createConfig(periods)).andReturn(mockedConfig);
 		expect(mockedService.createStreamsRegistry(periods)).andReturn(streamsRegistryMock);
 		expect(mockedService.createTopologyBuilder()).andReturn(topologyBuilderMock);
 		expect(mockedService.createLock()).andReturn(mutexMock);
@@ -135,39 +132,65 @@ public class KafkaAggregatorServiceBuilderTest {
 		expect(builderMock.withCleanUpMutex(mutexMock)).andReturn(builderMock);
 		expect(builderMock.withUtils(utilsMock)).andReturn(builderMock);
 		// create M1 aggregator
-		expect(mockedService.createConfig(periods)).andReturn(config2);
-		expect(builderMock.withConfig(config2)).andReturn(builderMock);
+		expect(mockedService.createConfig(periods)).andReturn(config1);
+		expect(builderMock.withConfig(config1)).andReturn(builderMock);
 		expect(builderMock.build()).andReturn(aggregatorMock1);
 		// create M5 aggregator
-		expect(mockedService.createConfig(periods)).andReturn(config3);
-		expect(builderMock.withConfig(config3)).andReturn(builderMock);
+		expect(mockedService.createConfig(periods)).andReturn(config2);
+		expect(builderMock.withConfig(config2)).andReturn(builderMock);
 		expect(builderMock.build()).andReturn(aggregatorMock2);
 		// create H1 aggregator
-		expect(mockedService.createConfig(periods)).andReturn(config4);
-		expect(builderMock.withConfig(config4)).andReturn(builderMock);
+		expect(mockedService.createConfig(periods)).andReturn(config3);
+		expect(builderMock.withConfig(config3)).andReturn(builderMock);
 		expect(builderMock.build()).andReturn(aggregatorMock3);
 		control.replay();
 		replay(mockedService);
+		replay(mockedConfig);
 		
 		IAggregatorService actual = mockedService.build("kappa.props", "beta.props", servicesMock);
 		
+		verify(mockedConfig);
 		verify(mockedService);
 		control.verify();
 		assertThat(actual, is(instanceOf(KafkaAggregatorService.class)));
 		KafkaAggregatorService x = (KafkaAggregatorService) actual;
 		assertEquals(Arrays.asList(aggregatorMock1, aggregatorMock2, aggregatorMock3), x.getAggregatorList());
 		assertEquals(400, x.getMaxLimit());
-		assertFalse(x.isClearAggregatorsInParallel());
-		assertEquals("kappa.props", capArg1.getValue());
-		assertEquals("beta.props", capArg2.getValue());
+		assertTrue(x.isClearAggregatorsInParallel());
 		Properties expected_props = new Properties();
-		expected_props.putAll(config1.getProperties());
+		expected_props.putAll(mockedConfig.getProperties());
 		expected_props.put("caelum.aggregator.aggregation.period", "M1");
-		assertEquals(expected_props, config2.getProperties());
+		assertEquals(expected_props, config1.getProperties());
 		expected_props.put("caelum.aggregator.aggregation.period", "M5");
-		assertEquals(expected_props, config3.getProperties());
+		assertEquals(expected_props, config2.getProperties());
 		expected_props.put("caelum.aggregator.aggregation.period", "H1");
-		assertEquals(expected_props, config4.getProperties());
+		assertEquals(expected_props, config3.getProperties());
+	}
+	
+	@Test
+	public void testBuild_ShouldUseForceParallelClearFromConfig() throws Exception {
+		mockedService = partialMockBuilder(KafkaAggregatorServiceBuilder.class)
+				.withConstructor(KafkaAggregatorBuilder.class)
+				.addMockedMethod("createConfig", Periods.class)
+				.withArgs(new KafkaAggregatorBuilder())
+				.createMock();
+		expect(mockedService.createConfig(anyObject())).andReturn(mockedConfig);
+		mockedConfig.load("bubba.hut", "jubba.hut");
+		mockedConfig.getProperties().put("caelum.aggregator.aggregation.period", "");
+		mockedConfig.getProperties().put("caelum.aggregator.kafka.force.parallel.clear", "0");
+		control.replay();
+		replay(mockedService);
+		replay(mockedConfig);
+		
+		IAggregatorService actual = mockedService.build("bubba.hut", "jubba.hut", servicesMock);
+		
+		verify(mockedConfig);
+		verify(mockedService);
+		control.verify();
+		assertNotNull(actual);
+		assertThat(actual, is(instanceOf(KafkaAggregatorService.class)));
+		KafkaAggregatorService x = (KafkaAggregatorService) actual;
+		assertFalse(x.isClearAggregatorsInParallel());
 	}
 	
 	@Test

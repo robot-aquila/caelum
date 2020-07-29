@@ -38,7 +38,6 @@ public class KafkaAggregatorTopologyBuilder {
 		Topology topology = builder.build();
 		logger.debug("Created topology of item aggregator by {}: {}",
 				config.getAggregationPeriod(), topology.describe());
-		config.print(logger);
 		return topology;
 	}
 

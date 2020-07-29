@@ -143,4 +143,26 @@ public abstract class AbstractConfig {
 		return val;
 	}
 	
+	public Boolean getBoolean(String key) {
+		String str_val = props.getProperty(key);
+		if ( str_val == null || "".equals(str_val) ) {
+			return null;
+		}
+		switch ( str_val ) {
+		case "1":
+		case "true":
+			return true;
+		case "0":
+		case "false":
+			return false;
+		default:
+			throw new IllegalArgumentException("Expected boolean type of key: " + key + " but value is: " + str_val);
+		}
+	}
+	
+	public boolean getBoolean(String key, boolean default_value) {
+		Boolean val = getBoolean(key);
+		return val == null ? default_value : val;
+	}
+	
 }
