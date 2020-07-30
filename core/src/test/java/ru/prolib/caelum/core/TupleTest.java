@@ -8,12 +8,9 @@ import java.time.Instant;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 public class TupleTest {
-	@Rule public ExpectedException eex = ExpectedException.none();
 	Tuple service;
 
 	@Before
@@ -114,18 +111,16 @@ public class TupleTest {
 	
 	@Test
 	public void testOfDecimax15_9_ThrowsIfDecimalsGreaterThan15() {
-		eex.expect(IllegalArgumentException.class);
-		eex.expectMessage("Number of decimals must be in range 0-15 but: 23");
-		
-		Tuple.ofDecimax15("goo", 168479L, 114, 152, 112, 148, 23, 1000, 1);
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+				() -> Tuple.ofDecimax15("goo", 168479L, 114, 152, 112, 148, 23, 1000, 1));
+		assertEquals("Number of decimals must be in range 0-15 but: 23", e.getMessage());
 	}
 	
 	@Test
 	public void testOfDecimax15_9_ThrowsIfVolumeDecimalsGreaterThan15() {
-		eex.expect(IllegalArgumentException.class);
-		eex.expectMessage("Number of volume decimals must be in range 0-15 but: 129");
-		
-		Tuple.ofDecimax15("goo", 168479L, 114, 152, 112, 148, 2, 1000, 129);
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+				() -> Tuple.ofDecimax15("goo", 168479L, 114, 152, 112, 148, 2, 1000, 129));
+		assertEquals("Number of volume decimals must be in range 0-15 but: 129", e.getMessage());
 	}
 
 }

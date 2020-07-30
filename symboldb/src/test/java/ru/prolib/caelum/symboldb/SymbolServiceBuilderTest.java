@@ -3,6 +3,7 @@ package ru.prolib.caelum.symboldb;
 import static org.junit.Assert.*;
 import static org.easymock.EasyMock.*;
 import static org.hamcrest.Matchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.io.IOException;
 import java.util.Collection;

@@ -8,12 +8,9 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 public class IteratorStubTest {
-	@Rule public ExpectedException eex = ExpectedException.none();
 	List<Integer> data1, data2, data3;
 	IteratorStub<Integer> service;
 
@@ -66,19 +63,17 @@ public class IteratorStubTest {
 	@Test
 	public void testHasNext_ThrowsIfClosed() {
 		service.close();
-		eex.expect(IllegalStateException.class);
-		eex.expectMessage("Iterator already closed");
 		
-		service.hasNext();
+		IllegalStateException e = assertThrows(IllegalStateException.class, () -> service.hasNext());
+		assertEquals("Iterator already closed", e.getMessage());
 	}
 	
 	@Test
 	public void testNext_ThrowsIfClosed() {
 		service.close();
-		eex.expect(IllegalStateException.class);
-		eex.expectMessage("Iterator already closed");
 		
-		service.next();
+		IllegalStateException e = assertThrows(IllegalStateException.class, () -> service.next());
+		assertEquals("Iterator already closed", e.getMessage());
 	}
 	
 	@Test
@@ -88,9 +83,8 @@ public class IteratorStubTest {
 		service.next();
 		service.next();
 		service.next();
-		eex.expect(NoSuchElementException.class);
 		
-		service.next();
+		assertThrows(NoSuchElementException.class, () -> service.next());
 	}
 
 	@SuppressWarnings("resource")

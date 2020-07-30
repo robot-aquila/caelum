@@ -8,9 +8,7 @@ import java.util.Map;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import com.apple.foundationdb.KeyValue;
 import com.apple.foundationdb.subspace.Subspace;
@@ -21,7 +19,6 @@ import ru.prolib.caelum.symboldb.SymbolTime;
 import ru.prolib.caelum.symboldb.SymbolUpdate;
 
 public class FDBSchemaTest {
-	@Rule public ExpectedException eex = ExpectedException.none();
 	FDBSchema service;
 
 	@Before
@@ -119,10 +116,9 @@ public class FDBSchemaTest {
 				.add(1001).add("zulu24")
 				.add(1002)
 				.pack();
-		eex.expect(IllegalArgumentException.class);
-		eex.expectMessage("Uneven amount of elements");
 		
-		service.unpackTokens(source);
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> service.unpackTokens(source));
+		assertEquals("Uneven amount of elements", e.getMessage());
 	}
 	
 	@Test

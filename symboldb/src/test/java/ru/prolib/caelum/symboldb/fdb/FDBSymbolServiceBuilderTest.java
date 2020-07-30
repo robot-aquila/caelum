@@ -2,6 +2,7 @@ package ru.prolib.caelum.symboldb.fdb;
 
 import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.io.File;
 import java.util.Collection;

@@ -18,9 +18,7 @@ import org.apache.log4j.BasicConfigurator;
 import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import ru.prolib.caelum.core.IItem;
 import ru.prolib.caelum.core.ItemType;
@@ -45,7 +43,6 @@ public class ItemIteratorTest {
 		BasicConfigurator.configure();
 	}
 	
-	@Rule public ExpectedException eex = ExpectedException.none();
 	IMocksControl control;
 	KafkaConsumer<String, KafkaItem> consumerMock;
 	List<ConsumerRecord<String, KafkaItem>> itData;
@@ -181,10 +178,9 @@ public class ItemIteratorTest {
 		itData.add(CR("foo", "bar", 0, 104L, 5004L, 42L, 230L));
 		itData.add(CR("foo", "bar", 0, 105L, 5005L, 47L, 115L));
 		itData.add(CR("foo", "bar", 0, 106L, 5006L, 44L, 850L));
-		eex.expect(IllegalStateException.class);
-		eex.expectMessage("Partition changed: expected=0 actual=1");
 		
-		service.hasNext();
+		IllegalStateException e = assertThrows(IllegalStateException.class, () -> service.hasNext());
+		assertEquals("Partition changed: expected=0 actual=1", e.getMessage());
 	}
 	
 	@Test
@@ -193,28 +189,24 @@ public class ItemIteratorTest {
 		control.resetToNice();
 		expect(consumerMock.position(anyObject())).andStubReturn(100L);
 		control.replay();
-		
 		service.close();
-		eex.expect(NoSuchElementException.class);
 		
-		service.next();
+		assertThrows(NoSuchElementException.class, () -> service.next());
 	}
 	
 	@Test
 	public void testNext_ThrowsIfFinished() {
 		itData.add(CR("foo", "key", 0, 1L, 5000L, 54L, 250L)); // both should be ignored because of key
 		itData.add(CR("foo", "may", 0, 2L, 5001L, 26L, 190L));
-		eex.expect(NoSuchElementException.class);
 		
-		service.next();
+		assertThrows(NoSuchElementException.class, () -> service.next());
 	}
 	
 	@Test
 	public void testNext_ThrowsIfHasNoData() {
 		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, null, null), 10, 10000L);
-		eex.expect(NoSuchElementException.class);
 		
-		service.next();
+		assertThrows(NoSuchElementException.class, () -> service.next());
 	}
 	
 	@Test
@@ -229,9 +221,8 @@ public class ItemIteratorTest {
 			assertTrue("At #" + i, service.hasNext());
 			service.next();
 		}
-		eex.expect(NoSuchElementException.class);
 		
-		service.next();
+		assertThrows(NoSuchElementException.class, () -> service.next());
 	}
 	
 	@Test
@@ -240,9 +231,8 @@ public class ItemIteratorTest {
 		itData.add(CR("foo", "bar", 0, 102L, 5002L, 49L, 100L));
 		service.next();
 		service.next();
-		eex.expect(NoSuchElementException.class);
 		
-		service.next();
+		assertThrows(NoSuchElementException.class, () -> service.next());
 	}
 	
 	@Test
@@ -259,9 +249,8 @@ public class ItemIteratorTest {
 			assertTrue("At #" + i, service.hasNext());
 			service.next();
 		}
-		eex.expect(NoSuchElementException.class);
 		
-		service.next();
+		assertThrows(NoSuchElementException.class, () -> service.next());
 	}
 	
 	@Test
@@ -276,9 +265,8 @@ public class ItemIteratorTest {
 		for ( int i = 0; i < 3; i ++ ) {
 			service.next();
 		}
-		eex.expect(NoSuchElementException.class);
 
-		service.next();
+		assertThrows(NoSuchElementException.class, () -> service.next());
 	}
 	
 	@Test
@@ -315,10 +303,9 @@ public class ItemIteratorTest {
 		itData.add(CR("foo", "bar", 0, 104L, 5004L, 42L, 230L));
 		itData.add(CR("foo", "bar", 0, 105L, 5005L, 47L, 115L));
 		itData.add(CR("foo", "bar", 0, 106L, 5006L, 44L, 850L));
-		eex.expect(IllegalStateException.class);
-		eex.expectMessage("Partition changed: expected=0 actual=1");
 		
-		service.next();
+		IllegalStateException e = assertThrows(IllegalStateException.class, () -> service.next());
+		assertEquals("Partition changed: expected=0 actual=1", e.getMessage());
 	}
 	
 	@Test
@@ -375,13 +362,10 @@ public class ItemIteratorTest {
 		control.resetToNice();
 		expect(consumerMock.position(anyObject())).andStubReturn(100L);
 		control.replay();
-		
 		service.close();
 		
-		eex.expect(IllegalStateException.class);
-		eex.expectMessage("Iterator already closed");
-		
-		service.getMetaData();
+		IllegalStateException e = assertThrows(IllegalStateException.class, () -> service.getMetaData());
+		assertEquals("Iterator already closed", e.getMessage());
 	}
 	
 	@Test

@@ -4,9 +4,7 @@ import static org.junit.Assert.*;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 public class AbstractConfigTest {
 	
@@ -29,7 +27,6 @@ public class AbstractConfigTest {
 		
 	}
 
-	@Rule public ExpectedException eex = ExpectedException.none();
 	TestConfig service;
 	
 	@Before
@@ -141,10 +138,9 @@ public class AbstractConfigTest {
 	@Test
 	public void testGetBoolean_ShouldThrowIfUnsupportedValue() {
 		service.getProperties().put("tumbe", "solution");
-		eex.expect(IllegalArgumentException.class);
-		eex.expectMessage("Expected boolean type of key: tumbe but value is: solution");
 		
-		service.getBoolean("tumbe");
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> service.getBoolean("tumbe"));
+		assertEquals("Expected boolean type of key: tumbe but value is: solution", e.getMessage());
 	}
 
 }

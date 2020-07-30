@@ -2,6 +2,7 @@ package ru.prolib.caelum.aggregator.kafka;
 
 import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -12,9 +13,7 @@ import static org.easymock.EasyMock.*;
 import org.easymock.Capture;
 import org.easymock.IMocksControl;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import ru.prolib.caelum.aggregator.AggregatorType;
 import ru.prolib.caelum.aggregator.IAggregator;
@@ -29,7 +28,6 @@ import ru.prolib.caelum.core.Periods;
 import ru.prolib.caelum.itemdb.kafka.utils.KafkaUtils;
 
 public class KafkaAggregatorBuilderTest {
-	@Rule public ExpectedException eex = ExpectedException.none();
 	IMocksControl control;
 	KafkaUtils utils;
 	KafkaAggregatorTopologyBuilder topologyBuilderMock;
@@ -69,10 +67,8 @@ public class KafkaAggregatorBuilderTest {
 	
 	@Test
 	public void testObjects_GetUtils_ShouldThrowsIfNotDefined() {
-		eex.expect(IllegalStateException.class);
-		eex.expectMessage("Kafka utils was not defined");
-		
-		objects.getUtils();
+		IllegalStateException e = assertThrows(IllegalStateException.class, () -> objects.getUtils());
+		assertEquals("Kafka utils was not defined", e.getMessage());
 	}
 	
 	@Test
@@ -84,10 +80,9 @@ public class KafkaAggregatorBuilderTest {
 	
 	@Test
 	public void testObjects_GetTopologyBuilder_ShouldThrowsIfNotDefined() {
-		eex.expect(IllegalStateException.class);
-		eex.expectMessage("Topology builder was not defined");
+		IllegalStateException e = assertThrows(IllegalStateException.class, () -> objects.getTopologyBuilder());
+		assertEquals("Topology builder was not defined", e.getMessage());
 		
-		objects.getTopologyBuilder();
 	}
 	
 	@Test
@@ -99,10 +94,8 @@ public class KafkaAggregatorBuilderTest {
 	
 	@Test
 	public void testObjects_GetConfig_ShouldThrowsIfNotDefined() {
-		eex.expect(IllegalStateException.class);
-		eex.expectMessage("Configuration was not defined");
-		
-		objects.getConfig();
+		IllegalStateException e = assertThrows(IllegalStateException.class, () -> objects.getConfig());
+		assertEquals("Configuration was not defined", e.getMessage());
 	}
 	
 	@Test
@@ -114,10 +107,8 @@ public class KafkaAggregatorBuilderTest {
 	
 	@Test
 	public void testObjects_GetStreamsRegistry_ShouldThrowsIfNotDefined() {
-		eex.expect(IllegalStateException.class);
-		eex.expectMessage("Streams registry was not defined");
-		
-		objects.getStreamsRegistry();
+		IllegalStateException e = assertThrows(IllegalStateException.class, () -> objects.getStreamsRegistry());
+		assertEquals("Streams registry was not defined", e.getMessage());
 	}
 	
 	@Test
@@ -129,10 +120,8 @@ public class KafkaAggregatorBuilderTest {
 	
 	@Test
 	public void testObjects_GetServices_ShouldThrowsIfNotDefined() {
-		eex.expect(IllegalStateException.class);
-		eex.expectMessage("Services was not defined");
-		
-		objects.getServices();
+		IllegalStateException e = assertThrows(IllegalStateException.class, () -> objects.getServices());
+		assertEquals("Services was not defined", e.getMessage());
 	}
 	
 	@Test
@@ -144,10 +133,8 @@ public class KafkaAggregatorBuilderTest {
 	
 	@Test
 	public void testObjects_GetCleanUpMutex_ShouldThrowsIfNotDefined() {
-		eex.expect(IllegalStateException.class);
-		eex.expectMessage("CleanUp mutex was not defined");
-		
-		objects.getCleanUpMutex();
+		IllegalStateException e = assertThrows(IllegalStateException.class, () -> objects.getCleanUpMutex());
+		assertEquals("CleanUp mutex was not defined", e.getMessage());
 	}
 	
 	@Test

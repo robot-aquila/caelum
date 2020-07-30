@@ -11,9 +11,7 @@ import java.util.NoSuchElementException;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.kafka.streams.KeyValue;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import ru.prolib.caelum.aggregator.kafka.utils.WindowStoreIteratorStub;
 import ru.prolib.caelum.core.TupleType;
@@ -47,9 +45,6 @@ public class KafkaTupleAggregateIteratorTest {
 	static WindowStoreIteratorStub<KafkaTuple> testTuplesIt() {
 		return new WindowStoreIteratorStub<>(testTuples());
 	}
-	
-	@Rule
-	public ExpectedException eex = ExpectedException.none();
 	
 	WindowStoreIteratorStub<KafkaTuple> source;
 	KafkaTupleAggregateIterator service;
@@ -114,10 +109,9 @@ public class KafkaTupleAggregateIteratorTest {
 	@Test
 	public void testPeekNextKey_ThrowsIfClosed() {
 		service.close();
-		eex.expect(IllegalStateException.class);
-		eex.expectMessage("Iterator already closed");
 		
-		service.peekNextKey();
+		IllegalStateException e = assertThrows(IllegalStateException.class, () -> service.peekNextKey());
+		assertEquals("Iterator already closed", e.getMessage());
 	}
 	
 	@Test
@@ -125,18 +119,16 @@ public class KafkaTupleAggregateIteratorTest {
 		service.next();
 		service.next();
 		service.next();
-		eex.expect(NoSuchElementException.class);
 		
-		service.next();
+		assertThrows(NoSuchElementException.class, () -> service.next());
 	}
 	
 	@Test
 	public void testNext_ThrowsIfClosed() {
 		service.close();
-		eex.expect(IllegalStateException.class);
-		eex.expectMessage("Iterator already closed");
 		
-		service.next();
+		IllegalStateException e = assertThrows(IllegalStateException.class, () -> service.next());
+		assertEquals("Iterator already closed", e.getMessage());
 	}
 	
 	@Test
@@ -144,9 +136,8 @@ public class KafkaTupleAggregateIteratorTest {
 		service.next();
 		service.next();
 		service.next();
-		eex.expect(NoSuchElementException.class);
 		
-		service.next();
+		assertThrows(NoSuchElementException.class, () -> service.next());
 	}
 
 }

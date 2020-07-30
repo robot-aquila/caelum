@@ -6,9 +6,7 @@ import java.util.Arrays;
 import java.util.NoSuchElementException;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import ru.prolib.caelum.aggregator.kafka.KafkaTuple;
 import ru.prolib.caelum.aggregator.kafka.Tuple;
@@ -30,8 +28,6 @@ public class TupleMvcAdapterIteratorTest {
 		return new TupleMvcAdapter(T(time, open, high, low, close, volume));
 	}
 	
-	@Rule
-	public ExpectedException eex = ExpectedException.none();
 	IteratorStub<ITuple> iterator;
 	TupleMvcAdapterIterator service;
 
@@ -69,9 +65,8 @@ public class TupleMvcAdapterIteratorTest {
 		service.next();
 		service.next();
 		service.next();
-		eex.expect(NoSuchElementException.class);
 		
-		service.next();
+		assertThrows(NoSuchElementException.class, () -> service.next());
 	}
 	
 }

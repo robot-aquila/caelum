@@ -4,15 +4,11 @@ import static org.junit.Assert.*;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import ru.prolib.caelum.core.ItemType;
 
 public class KafkaItemTest {
-	@Rule
-	public ExpectedException eex = ExpectedException.none();
 	KafkaItem service;
 
 	@Before
@@ -31,34 +27,30 @@ public class KafkaItemTest {
 	
 	@Test
 	public void testCtor4_ThrowsIfValueDecimalsLtZero() {
-		eex.expect(IllegalArgumentException.class);
-		eex.expectMessage("Value decimals expected to be in range 0-15 but: -1");
-		
-		new KafkaItem(16625L, -1, 667L, 12);
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+				() -> new KafkaItem(16625L, -1, 667L, 12));
+		assertEquals("Value decimals expected to be in range 0-15 but: -1", e.getMessage());
 	}
 	
 	@Test
 	public void testCtor4_ThrowsIfValueDecimalsGt15() {
-		eex.expect(IllegalArgumentException.class);
-		eex.expectMessage("Value decimals expected to be in range 0-15 but: 17");
-		
-		new KafkaItem(61728L, 17, 667L, 12);
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+				() -> new KafkaItem(61728L, 17, 667L, 12));
+		assertEquals("Value decimals expected to be in range 0-15 but: 17", e.getMessage());
 	}
 	
 	@Test
 	public void testCtor4_ThrowsIfVolumeDecimalsLtZero() {
-		eex.expect(IllegalArgumentException.class);
-		eex.expectMessage("Volume decimals expected to be in range 0-15 but: -3");
-		
-		new KafkaItem(7162578L, 7, 8866661L, -3);
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+				() -> new KafkaItem(7162578L, 7, 8866661L, -3));
+		assertEquals("Volume decimals expected to be in range 0-15 but: -3", e.getMessage());
 	}
 	
 	@Test
 	public void testCtor4_ThrowsIfVolumeDecimalsGt15() {
-		eex.expect(IllegalArgumentException.class);
-		eex.expectMessage("Volume decimals expected to be in range 0-15 but: 26");
-		
-		new KafkaItem(7326279L, 7, 8866712L, 26);
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+				() -> new KafkaItem(7326279L, 7, 8866712L, 26));
+		assertEquals("Volume decimals expected to be in range 0-15 but: 26", e.getMessage());
 	}
 	
 	@Test
@@ -74,34 +66,30 @@ public class KafkaItemTest {
 	
 	@Test
 	public void testCtor5_ThrowsIfValueDecimalsLtZero() {
-		eex.expect(IllegalArgumentException.class);
-		eex.expectMessage("Value decimals expected to be in range 0-15 but: -1");
-		
-		new KafkaItem(16625L, (byte)-1, 667L, (byte)12, ItemType.LONG_UNKNOWN);
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+				() -> new KafkaItem(16625L, (byte)-1, 667L, (byte)12, ItemType.LONG_UNKNOWN));
+		assertEquals("Value decimals expected to be in range 0-15 but: -1", e.getMessage());
 	}
 	
 	@Test
 	public void testCtor5_ThrowsIfValueDecimalsGt15() {
-		eex.expect(IllegalArgumentException.class);
-		eex.expectMessage("Value decimals expected to be in range 0-15 but: 17");
-		
-		new KafkaItem(61728L, (byte)17, 667L, (byte)12, ItemType.LONG_UNKNOWN);
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+				() -> new KafkaItem(61728L, (byte)17, 667L, (byte)12, ItemType.LONG_UNKNOWN));
+		assertEquals("Value decimals expected to be in range 0-15 but: 17", e.getMessage());
 	}
 	
 	@Test
 	public void testCtor5_ThrowsIfVolumeDecimalsLtZero() {
-		eex.expect(IllegalArgumentException.class);
-		eex.expectMessage("Volume decimals expected to be in range 0-15 but: -3");
-		
-		new KafkaItem(7162578L, (byte)7, 8866661L, (byte)-3, ItemType.LONG_UNKNOWN);
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+				() -> new KafkaItem(7162578L, (byte)7, 8866661L, (byte)-3, ItemType.LONG_UNKNOWN));
+		assertEquals("Volume decimals expected to be in range 0-15 but: -3", e.getMessage());
 	}
 	
 	@Test
 	public void testCtor5_ThrowsIfVolumeDecimalsGt15() {
-		eex.expect(IllegalArgumentException.class);
-		eex.expectMessage("Volume decimals expected to be in range 0-15 but: 26");
-		
-		new KafkaItem(7326279L, (byte)7, 8866712L, (byte)26, ItemType.LONG_UNKNOWN);
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+				() -> new KafkaItem(7326279L, (byte)7, 8866712L, (byte)26, ItemType.LONG_UNKNOWN));
+		assertEquals("Volume decimals expected to be in range 0-15 but: 26", e.getMessage());
 	}
 	
 	@Test

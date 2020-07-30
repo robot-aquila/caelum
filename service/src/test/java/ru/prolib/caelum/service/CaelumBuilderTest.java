@@ -1,6 +1,7 @@
 package ru.prolib.caelum.service;
 
 import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -11,9 +12,7 @@ import static org.hamcrest.Matchers.*;
 import org.easymock.Capture;
 import org.easymock.IMocksControl;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import ru.prolib.caelum.aggregator.AggregatorServiceBuilder;
 import ru.prolib.caelum.aggregator.IAggregatorServiceBuilder;
@@ -28,7 +27,6 @@ import ru.prolib.caelum.symboldb.ISymbolServiceBuilder;
 import ru.prolib.caelum.symboldb.SymbolServiceBuilder;
 
 public class CaelumBuilderTest {
-	@Rule public ExpectedException eex = ExpectedException.none();
 	IMocksControl control;
 	KafkaAggregatorService aggrSvcMock;
 	IItemDatabaseService itemDbSvcMock;

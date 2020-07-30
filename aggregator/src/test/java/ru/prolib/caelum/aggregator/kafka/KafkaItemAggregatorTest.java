@@ -6,15 +6,11 @@ import static ru.prolib.caelum.core.TupleType.*;
 import java.math.BigInteger;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import ru.prolib.caelum.itemdb.kafka.KafkaItem;
 
 public class KafkaItemAggregatorTest {
-	@Rule
-	public ExpectedException eex = ExpectedException.none();
 	KafkaItemAggregator service;
 	KafkaTuple aggregate, expected, actual;
 
@@ -37,19 +33,19 @@ public class KafkaItemAggregatorTest {
 	@Test
 	public void testApply_Next_ThrowsIfValueDecimalsMismatch() {
 		service.apply("foo", new KafkaItem(45000L, 2, 10, 0), aggregate);
-		eex.expect(IllegalArgumentException.class);
-		eex.expectMessage("Value decimals mismatch: symbol: foo, expected: 2, actual: 5");
 		
-		service.apply("foo", new KafkaItem(49000L, 5, 10, 0), aggregate);
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+				() -> service.apply("foo", new KafkaItem(49000L, 5, 10, 0), aggregate));
+		assertEquals("Value decimals mismatch: symbol: foo, expected: 2, actual: 5", e.getMessage());
 	}
 	
 	@Test
 	public void testApply_Next_ThrowsIfVolumeDecimalsMismatch() {
 		service.apply("foo", new KafkaItem(45000L, 2, 10, 0), aggregate);
-		eex.expect(IllegalArgumentException.class);
-		eex.expectMessage("Volume decimals mismatch: symbol: foo, expected: 0, actual: 2");
 		
-		service.apply("foo", new KafkaItem(49000L, 2, 10, 2), aggregate);
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+				() -> service.apply("foo", new KafkaItem(49000L, 2, 10, 2), aggregate));
+		assertEquals("Volume decimals mismatch: symbol: foo, expected: 0, actual: 2", e.getMessage());
 	}
 	
 	@Test

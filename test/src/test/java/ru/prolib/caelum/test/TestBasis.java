@@ -9,7 +9,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -41,8 +41,10 @@ import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import ru.prolib.caelum.test.dto.CategoriesResponseDTO;
+import ru.prolib.caelum.test.dto.ClearResponseDTO;
 import ru.prolib.caelum.test.dto.ItemResponseDTO;
 import ru.prolib.caelum.test.dto.ItemsResponseDTO;
+import ru.prolib.caelum.test.dto.LogMarkerResponseDTO;
 import ru.prolib.caelum.test.dto.PingResponseDTO;
 import ru.prolib.caelum.test.dto.ResponseDTO;
 import ru.prolib.caelum.test.dto.SymbolResponseDTO;
@@ -623,6 +625,44 @@ public class TestBasis {
 				.as(PingResponseDTO.class);
 	}
 	
+	protected ClearResponseDTO apiClear(RequestSpecification spec, boolean global) {
+		return given()
+			.spec(spec)
+			.param("global", global)
+		.when()
+			.get("clear")
+		.then()
+			.statusCode(200)
+			.extract()
+			.as(ClearResponseDTO.class);
+	}
+	
+	protected LogMarkerResponseDTO apiLogMarker(RequestSpecification spec, String marker) {
+		return given()
+			.spec(spec)
+			.param("marker", marker)
+		.when()
+			.get("logMarker")
+		.then()
+			.statusCode(200)
+			.extract()
+			.as(LogMarkerResponseDTO.class);
+	}
+	
+	/**
+	 * Send marker to all known backnodes.
+	 * <p>
+	 * @param marker - marker
+	 * @return last response or null if no one request has been made
+	 */
+	protected LogMarkerResponseDTO apiLogMarker(String marker) {
+		LogMarkerResponseDTO response = null;
+		for ( RequestSpecification spec : getSpecAll() ) {
+			response = apiLogMarker(spec, marker);
+		}
+		return response;
+	}
+	
 	protected SymbolResponseDTO apiPutSymbol(RequestSpecification spec, String symbol) {
 		return given()
 				.spec(spec)
@@ -951,13 +991,7 @@ public class TestBasis {
 		existingCategories.clear();
 		boolean first = true;
 		for ( RequestSpecification spec : getSpecAll() ) {
-			given()
-				.spec(spec)
-				.param("global", first)
-			.when()
-				.get("clear")
-			.then()
-				.statusCode(200);
+			apiClear(spec, first);
 			first = false;
 		}
 	}

@@ -3,6 +3,7 @@ package ru.prolib.caelum.backnode.mvc;
 import static org.junit.Assert.*;
 import static org.easymock.EasyMock.*;
 import static org.hamcrest.Matchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.time.Clock;
 

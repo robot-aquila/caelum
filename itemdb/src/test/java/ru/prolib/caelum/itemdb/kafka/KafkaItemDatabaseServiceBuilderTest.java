@@ -1,6 +1,7 @@
 package ru.prolib.caelum.itemdb.kafka;
 
 import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.time.Clock;
 import java.util.Properties;

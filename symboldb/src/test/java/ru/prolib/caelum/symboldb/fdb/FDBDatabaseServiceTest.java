@@ -14,9 +14,7 @@ import static org.easymock.EasyMock.*;
 import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import com.apple.foundationdb.Database;
 import com.apple.foundationdb.FDB;
@@ -31,7 +29,6 @@ public class FDBDatabaseServiceTest {
 		BasicConfigurator.configure();
 	}
 	
-	@Rule public ExpectedException eex = ExpectedException.none();
 	IMocksControl control;
 	FDB fdbMock;
 	Database dbMock;
@@ -89,10 +86,9 @@ public class FDBDatabaseServiceTest {
 	@Test
 	public void testStart_ThrowsIfStarted() {
 		service.setDatabase(dbMock);
-		eex.expect(ServiceException.class);
-		eex.expectMessage("Service already started");
 		
-		service.start();
+		ServiceException e = assertThrows(ServiceException.class, () -> service.start());
+		assertEquals("Service already started", e.getMessage());
 	}
 	
 	@Test

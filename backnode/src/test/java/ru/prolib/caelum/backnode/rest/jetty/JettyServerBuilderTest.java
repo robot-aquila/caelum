@@ -3,6 +3,7 @@ package ru.prolib.caelum.backnode.rest.jetty;
 import static org.junit.Assert.*;
 import static org.easymock.EasyMock.*;
 import static org.hamcrest.Matchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.easymock.Capture;
 import org.easymock.IMocksControl;

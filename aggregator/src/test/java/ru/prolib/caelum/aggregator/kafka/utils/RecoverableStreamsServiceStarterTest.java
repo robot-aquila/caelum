@@ -13,9 +13,7 @@ import org.easymock.IMocksControl;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import ru.prolib.caelum.aggregator.AggregatorState;
 import ru.prolib.caelum.core.ServiceException;
@@ -28,7 +26,6 @@ public class RecoverableStreamsServiceStarterTest {
 		BasicConfigurator.configure();
 	}
 	
-	@Rule public ExpectedException eex = ExpectedException.none();
 	IMocksControl control;
 	CountDownLatch threadSignal;
 	Thread thread;
@@ -55,10 +52,9 @@ public class RecoverableStreamsServiceStarterTest {
 	public void testStart_ShouldThrowIfTimeoutWhileStarting() {
 		expect(streamsServiceMock.waitForStateChangeFrom(AggregatorState.CREATED, 30000L)).andReturn(false);
 		control.replay();
-		eex.expect(ServiceException.class);
-		eex.expectMessage("Timeout while starting service");
 		
-		service.start();
+		ServiceException e = assertThrows(ServiceException.class, () -> service.start());
+		assertEquals("Timeout while starting service", e.getMessage());
 	}
 	
 	@Test

@@ -1,6 +1,7 @@
 package ru.prolib.caelum.aggregator.kafka;
 
 import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.concurrent.locks.Lock;
 

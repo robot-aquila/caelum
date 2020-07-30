@@ -1,20 +1,19 @@
 package ru.prolib.caelum.core;
 
 import static org.junit.Assert.*;
+import static org.easymock.EasyMock.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 
-import static org.easymock.EasyMock.*;
-
 import org.apache.log4j.BasicConfigurator;
 import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 public class CompositeServiceTest {
 	
@@ -24,7 +23,6 @@ public class CompositeServiceTest {
 		BasicConfigurator.configure();
 	}
 	
-	@Rule public ExpectedException eex = ExpectedException.none();
 	IMocksControl control;
 	IService serviceMock1, serviceMock2, serviceMock3;
 	CompositeService service;
@@ -55,10 +53,9 @@ public class CompositeServiceTest {
 	public void testRegister_ThrowsIfStarted() {
 		service.register(serviceMock1);
 		service.start();
-		eex.expect(ServiceException.class);
-		eex.expectMessage("Cannot register when started");
 		
-		service.register(serviceMock2);
+		ServiceException e = assertThrows(ServiceException.class, () -> service.register(serviceMock2));
+		assertEquals("Cannot register when started", e.getMessage());
 	}
 	
 	@Test
@@ -82,28 +79,26 @@ public class CompositeServiceTest {
 	public void testStart_ThrowsIfStarted() {
 		service.register(serviceMock1);
 		service.start();
-		eex.expect(ServiceException.class);
-		eex.expectMessage("Service already started");
 		
-		service.start();
+		ServiceException e = assertThrows(ServiceException.class, () -> service.start());
+		assertEquals("Service already started", e.getMessage());
 	}
 	
 	@Test
 	public void testStart_RollbackOnException() {
-		Exception e = null;
 		service.register(serviceMock1);
 		service.register(serviceMock2);
 		service.register(serviceMock3);
 		serviceMock1.start();
 		serviceMock2.start();
-		expectLastCall().andThrow(e = new RuntimeException("Test error"));
+		expectLastCall().andThrow(new RuntimeException("Test error"));
 		serviceMock1.stop();
 		control.replay();
-		eex.expect(ServiceException.class);
-		eex.expectCause(org.hamcrest.Matchers.<Exception>equalTo(e));
-		eex.expectMessage("Error starting service");
 		
-		service.start();
+		ServiceException e = assertThrows(ServiceException.class, () -> service.start());
+		assertEquals("Error starting service", e.getMessage());
+		assertThat(e.getCause(), is(instanceOf(RuntimeException.class)));
+		assertThat(e.getCause().getMessage(), is(equalTo("Test error")));
 	}
 	
 	@Test
@@ -147,7 +142,6 @@ public class CompositeServiceTest {
 	
 	@Test
 	public void testStop_ThrowsLastError() {
-		Exception e = null;
 		service.register(serviceMock1);
 		service.register(serviceMock2);
 		service.register(serviceMock3);
@@ -157,13 +151,13 @@ public class CompositeServiceTest {
 		serviceMock2.stop();
 		expectLastCall().andThrow(new RuntimeException("Test error 1"));
 		serviceMock1.stop();
-		expectLastCall().andThrow(e = new RuntimeException("Test error 2"));
+		expectLastCall().andThrow(new RuntimeException("Test error 2"));
 		control.replay();
-		eex.expect(ServiceException.class);
-		eex.expectCause(org.hamcrest.Matchers.<Exception>equalTo(e));
-		eex.expectMessage("At least one error while stopping service");
 		
-		service.stop();
+		ServiceException e = assertThrows(ServiceException.class, () -> service.stop());
+		assertEquals("At least one error while stopping service", e.getMessage());
+		assertThat(e.getCause(), is(instanceOf(RuntimeException.class)));
+		assertThat(e.getCause().getMessage(), is(equalTo("Test error 2")));
 	}
 	
 	@Test

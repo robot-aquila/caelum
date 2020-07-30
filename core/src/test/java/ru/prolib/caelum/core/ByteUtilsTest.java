@@ -5,12 +5,9 @@ import static org.junit.Assert.*;
 import java.math.BigDecimal;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 public class ByteUtilsTest {
-	@Rule public ExpectedException eex = ExpectedException.none();
 	ByteUtils service;
 	
 	@Before
@@ -48,18 +45,16 @@ public class ByteUtilsTest {
 	
 	@Test
 	public void testIsNumberOfDecimalsFits4Bits_ThrowsIfNegativeDecimals() {
-		eex.expect(IllegalArgumentException.class);
-		eex.expectMessage("Number of decimals must be in range 0-255 but: -13");
-		
-		service.isNumberOfDecimalsFits4Bits(-13);
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+				() -> service.isNumberOfDecimalsFits4Bits(-13));
+		assertEquals("Number of decimals must be in range 0-255 but: -13", e.getMessage());
 	}
 	
 	@Test
 	public void testIsNumberOfDecimalsFits4Bits_ThrowsIfGreaterThan255() {
-		eex.expect(IllegalArgumentException.class);
-		eex.expectMessage("Number of decimals must be in range 0-255 but: 12000");
-		
-		service.isNumberOfDecimalsFits4Bits(12000);
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+				() -> service.isNumberOfDecimalsFits4Bits(12000));
+		assertEquals("Number of decimals must be in range 0-255 but: 12000", e.getMessage());
 	}
 
 	@Test

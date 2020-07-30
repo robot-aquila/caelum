@@ -1,6 +1,6 @@
 package ru.prolib.caelum.test;
 
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.awaitility.Awaitility.await;
 
 import java.math.BigDecimal;
@@ -17,11 +17,17 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 import org.junit.runners.MethodSorters;
 
 import io.restassured.specification.RequestSpecification;
@@ -38,6 +44,25 @@ import ru.prolib.caelum.test.dto.TuplesResponseDTO;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class BacknodeIT extends TestBasis {
+	
+	@Rule(order=Integer.MIN_VALUE)
+	public TestWatcher watchman = new TestWatcher() {
+		
+		private String toMarker(Description descr) {
+			return descr.getClassName() + "#" + descr.getMethodName();
+		}
+		
+		@Override
+		protected void starting(Description descr) {
+			apiLogMarker("Starting " + toMarker(descr));
+		}
+		
+		@Override
+		protected void finished(Description descr) {
+			apiLogMarker("Finished " + toMarker(descr));
+		}
+		
+	};
 	
 	public BacknodeIT() {
 		super(Arrays.asList("localhost:9698"));

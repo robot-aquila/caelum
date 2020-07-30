@@ -7,12 +7,9 @@ import java.time.Instant;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 public class ItemTest {
-	@Rule public ExpectedException eex = ExpectedException.none();
 	Item service;
 
 	@Before
@@ -95,18 +92,16 @@ public class ItemTest {
 	
 	@Test
 	public void testOfDecimax15_6_ThrowsIfDecimalsGreaterThan15() {
-		eex.expect(IllegalArgumentException.class);
-		eex.expectMessage("Number of decimals must be in range 0-15 but: 18");
-		
-		Item.ofDecimax15("foo", 15983739L, 1200L, 18, 10L, 2);
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+				() -> Item.ofDecimax15("foo", 15983739L, 1200L, 18, 10L, 2));
+		assertEquals("Number of decimals must be in range 0-15 but: 18", e.getMessage());
 	}
 	
 	@Test
 	public void testOfDecimax15_6_ThrowsIfVolumeDecimalsGreaterThan15() {
-		eex.expect(IllegalArgumentException.class);
-		eex.expectMessage("Number of volume decimals must be in range 0-15 but: 44");
-		
-		Item.ofDecimax15("foo", 15983739L, 1200L, 3, 10L, 44);
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+				() -> Item.ofDecimax15("foo", 15983739L, 1200L, 3, 10L, 44));
+		assertEquals("Number of volume decimals must be in range 0-15 but: 44", e.getMessage());
 	}
 
 }

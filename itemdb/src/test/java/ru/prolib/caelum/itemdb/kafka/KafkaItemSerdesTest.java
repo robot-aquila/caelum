@@ -2,6 +2,7 @@ package ru.prolib.caelum.itemdb.kafka;
 
 import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;

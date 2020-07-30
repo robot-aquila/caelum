@@ -6,13 +6,9 @@ import static ru.prolib.caelum.core.TupleType.*;
 import java.math.BigInteger;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 public class KafkaTupleAggregatorTest {
-	@Rule
-	public ExpectedException eex = ExpectedException.none();
 	KafkaTupleAggregator service;
 	KafkaTuple aggregate, expected, actual;
 	
@@ -63,22 +59,22 @@ public class KafkaTupleAggregatorTest {
 	public void testApply_NextValue_ThrowsIfValueDecimalsMismatch() {
 		service.apply("bar", new KafkaTuple(1250L, 1300L, 1190L, 1200L, (byte)1,
 				0L, new BigInteger("25000000"), (byte)10, LONG_WIDEVOL), aggregate);
-		eex.expect(IllegalArgumentException.class);
-		eex.expectMessage("Value decimals mismatch: symbol: bar, expected: 1, actual: 3");
 		
-		service.apply("bar", new KafkaTuple(1400L, 1405L, 1000L, 1100L, (byte)3,
-				1L, null, (byte)10, LONG_REGULAR), aggregate);
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+				() -> service.apply("bar", new KafkaTuple(1400L, 1405L, 1000L, 1100L, (byte)3,
+						1L, null, (byte)10, LONG_REGULAR), aggregate));
+		assertEquals("Value decimals mismatch: symbol: bar, expected: 1, actual: 3", e.getMessage());
 	}
 	
 	@Test
 	public void testApply_NextValue_ThrowsIfVolumeDecimalsMismatch() {
 		service.apply("bar", new KafkaTuple(1250L, 1300L, 1190L, 1200L, (byte)1,
 				0L, new BigInteger("25000000"), (byte)10, LONG_WIDEVOL), aggregate);
-		eex.expect(IllegalArgumentException.class);
-		eex.expectMessage("Volume decimals mismatch: symbol: bar, expected: 10, actual: 7");
 		
-		service.apply("bar", new KafkaTuple(1400L, 1405L, 1000L, 1100L, (byte)1,
-				1L, null, (byte)7, LONG_REGULAR), aggregate);
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+				() -> service.apply("bar", new KafkaTuple(1400L, 1405L, 1000L, 1100L, (byte)1,
+						1L, null, (byte)7, LONG_REGULAR), aggregate));
+		assertEquals("Volume decimals mismatch: symbol: bar, expected: 10, actual: 7", e.getMessage());
 	}
 	
 	@Test

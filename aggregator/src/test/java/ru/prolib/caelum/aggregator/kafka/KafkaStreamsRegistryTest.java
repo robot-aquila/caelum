@@ -1,6 +1,7 @@
 package ru.prolib.caelum.aggregator.kafka;
 
 import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.easymock.EasyMock.*;
 import static ru.prolib.caelum.core.Period.*;
@@ -14,15 +15,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.kafka.streams.KafkaStreams;
 import org.easymock.IMocksControl;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import ru.prolib.caelum.core.Period;
 import ru.prolib.caelum.core.Periods;
 
 public class KafkaStreamsRegistryTest {
-	@Rule public ExpectedException eex = ExpectedException.none();
 	IMocksControl control;
 	KafkaAggregatorDescr descr1, descr2, descr3;
 	KafkaStreams streamsMock1, streamsMock2, streamsMock3;
@@ -60,10 +58,9 @@ public class KafkaStreamsRegistryTest {
 	
 	@Test
 	public void testRegister_ThrowsIfTypeNotAllowed() {
-		eex.expect(IllegalArgumentException.class);
-		eex.expectMessage("Aggregator of type is not allowed to register: TUPLE_ONFLY");
-		
-		service.register(descr3, streamsMock3);
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+				() -> service.register(descr3, streamsMock3));
+		assertEquals("Aggregator of type is not allowed to register: TUPLE_ONFLY", e.getMessage());
 	}
 	
 	@Test
@@ -100,12 +97,12 @@ public class KafkaStreamsRegistryTest {
 	
 	@Test
 	public void testFindSuitableAggregatorToRebuildOnFly_ThrowsIfNoSuitableAggregator() {
-		eex.expect(IllegalStateException.class);
-		eex.expectMessage("No suitable aggregator was found to rebuild: D1");
 		expect(periodsMock.getSmallerPeriodsThatCanFill(D1)).andReturn(Arrays.asList(H1, M10, M5, M1));
 		control.replay();
 		
-		service.findSuitableAggregatorToRebuildOnFly(D1);
+		IllegalStateException e = assertThrows(IllegalStateException.class,
+				() -> service.findSuitableAggregatorToRebuildOnFly(D1));
+		assertEquals("No suitable aggregator was found to rebuild: D1", e.getMessage());
 	}
 	
 	@Test

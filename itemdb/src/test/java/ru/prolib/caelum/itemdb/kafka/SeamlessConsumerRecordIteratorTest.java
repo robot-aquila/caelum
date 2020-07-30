@@ -1,6 +1,8 @@
 package ru.prolib.caelum.itemdb.kafka;
 
 import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -19,11 +21,8 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.streams.KeyValue;
 import org.easymock.IMocksControl;
-import org.hamcrest.Matchers;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 @SuppressWarnings("unchecked")
 public class SeamlessConsumerRecordIteratorTest {
@@ -47,7 +46,6 @@ public class SeamlessConsumerRecordIteratorTest {
 		return KV(record.key(),record.value());
 	}
 	
-	@Rule public ExpectedException eex = ExpectedException.none();
 	IMocksControl control;
 	KafkaConsumer<String, Integer> consumerMock;
 	Clock clockMock;
@@ -151,10 +149,9 @@ public class SeamlessConsumerRecordIteratorTest {
 		service.next();
 		service.next();
 		service.next();
-		eex.expect(IllegalStateException.class);
-		eex.expectCause(Matchers.instanceOf(TimeoutException.class));
 		
-		service.next();
+		IllegalStateException e = assertThrows(IllegalStateException.class, () -> service.next());
+		assertThat(e.getCause(), is(instanceOf(TimeoutException.class)));
 	}
 
 }

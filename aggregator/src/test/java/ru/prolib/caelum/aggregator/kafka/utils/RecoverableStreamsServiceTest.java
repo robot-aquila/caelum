@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 import static org.easymock.EasyMock.*;
 import static org.hamcrest.Matchers.*;
 import static ru.prolib.caelum.aggregator.kafka.utils.RecoverableStreamsService.Mode.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.time.Clock;
 import java.util.Arrays;
@@ -18,9 +19,7 @@ import org.apache.log4j.BasicConfigurator;
 import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import ru.prolib.caelum.aggregator.AggregatorState;
 import ru.prolib.caelum.aggregator.kafka.utils.RecoverableStreamsService.StateTracker;
@@ -33,7 +32,6 @@ public class RecoverableStreamsServiceTest {
 		BasicConfigurator.configure();
 	}
 	
-	@Rule public ExpectedException eex = ExpectedException.none();
 	IMocksControl control;
 	IRecoverableStreamsController ctrlMock;
 	Lock lockMock;
@@ -469,10 +467,9 @@ public class RecoverableStreamsServiceTest {
 	public void testStart_ShouldThrowIfClosed() {
 		expect(trackerMock.getMode()).andReturn(CLOSE);
 		control.replay();
-		eex.expect(IllegalStateException.class);
-		eex.expectMessage("Service closed");
 		
-		service.start();
+		IllegalStateException e = assertThrows(IllegalStateException.class, () -> service.start());
+		assertEquals("Service closed", e.getMessage());
 	}
 	
 	@Test
@@ -504,10 +501,9 @@ public class RecoverableStreamsServiceTest {
 	public void testStartAndWaitConfirm_ShouldThrowsIfClosed() {
 		expect(trackerMock.getMode()).andReturn(CLOSE);
 		control.replay();
-		eex.expect(IllegalStateException.class);
-		eex.expectMessage("Service closed");
 		
-		service.startAndWaitConfirm(1000L);
+		IllegalStateException e = assertThrows(IllegalStateException.class, () -> service.startAndWaitConfirm(1000L));
+		assertEquals("Service closed", e.getMessage());
 	}
 	
 	@Test
@@ -554,10 +550,9 @@ public class RecoverableStreamsServiceTest {
 	public void testStop_ShouldThrowIfClosed() {
 		expect(trackerMock.getMode()).andReturn(CLOSE);
 		control.replay();
-		eex.expect(IllegalStateException.class);
-		eex.expectMessage("Service closed");
 		
-		service.stop();
+		IllegalStateException e = assertThrows(IllegalStateException.class, () -> service.stop());
+		assertEquals("Service closed", e.getMessage());
 	}
 	
 	@Test
@@ -586,10 +581,9 @@ public class RecoverableStreamsServiceTest {
 	public void testStopAndWaitConfirm_ShouldThrowsIfClosed() {
 		expect(trackerMock.getMode()).andReturn(CLOSE);
 		control.replay();
-		eex.expect(IllegalStateException.class);
-		eex.expectMessage("Service closed");
 
-		service.stopAndWaitConfirm(1000L);
+		IllegalStateException e = assertThrows(IllegalStateException.class, () -> service.stopAndWaitConfirm(1000L));
+		assertEquals("Service closed", e.getMessage());
 	}
 	
 	@Test

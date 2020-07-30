@@ -11,9 +11,7 @@ import static org.easymock.EasyMock.*;
 import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import ru.prolib.caelum.aggregator.AggregatorStatus;
 import ru.prolib.caelum.aggregator.kafka.utils.IRecoverableStreamsService;
@@ -28,7 +26,6 @@ public class KafkaAggregatorTest {
 		
 	}
 	
-	@Rule public ExpectedException eex = ExpectedException.none();
 	IMocksControl control;
 	KafkaAggregatorDescr descr;
 	KafkaAggregatorConfig config;
@@ -109,10 +106,9 @@ public class KafkaAggregatorTest {
 	public void testClear_Global_ThrowsIfFailedToStopService() {
 		expect(streamsServiceMock.stopAndWaitConfirm(35193L)).andReturn(false);
 		control.replay();
-		eex.expect(IllegalStateException.class);
-		eex.expectMessage("Failed to stop streams service: M1");
 		
-		service.clear(true);
+		IllegalStateException e = assertThrows(IllegalStateException.class, () -> service.clear(true));
+		assertEquals("Failed to stop streams service: M1", e.getMessage());
 	}
 	
 	@Test

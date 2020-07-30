@@ -2,6 +2,7 @@ package ru.prolib.caelum.itemdb.kafka.utils;
 
 import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.time.Clock;
 import java.util.ArrayList;
@@ -51,9 +52,7 @@ import org.easymock.Capture;
 import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import ru.prolib.caelum.core.AbstractConfig;
 import ru.prolib.caelum.core.IService;
@@ -81,8 +80,6 @@ public class KafkaUtilsTest {
 		BasicConfigurator.configure();
 	}
 	
-	@Rule
-	public ExpectedException eex = ExpectedException.none();
 	IMocksControl control;
 	KafkaConsumer<String, KafkaItem> consumerMock;
 	AdminClient adminMock;
@@ -134,13 +131,13 @@ public class KafkaUtilsTest {
 		}
 		expect(consumerMock.partitionsFor("zulu24")).andReturn(partitions);
 		control.replay();
-		eex.expect(IllegalStateException.class);
-		eex.expectMessage(new StringBuilder()
+
+		IllegalStateException e = assertThrows(IllegalStateException.class,
+				() -> service.getItemInfo(consumerMock, "zulu24", SYMBOL));
+		assertEquals(new StringBuilder()
 				.append("Expected partition not found: topic=zulu24 partition=")
 				.append(expected_partition)
-				.toString());
-
-		service.getItemInfo(consumerMock, "zulu24", SYMBOL);
+				.toString(), e.getMessage());
 	}
 	
 	@Test

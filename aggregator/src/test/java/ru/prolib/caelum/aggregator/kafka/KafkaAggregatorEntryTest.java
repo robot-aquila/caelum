@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.*;
 import static ru.prolib.caelum.aggregator.AggregatorType.*;
 import static ru.prolib.caelum.core.Period.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.kafka.streams.KafkaStreams;
@@ -16,12 +17,9 @@ import org.easymock.IMocksControl;
 import static org.easymock.EasyMock.*;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 public class KafkaAggregatorEntryTest {
-	@Rule public ExpectedException eex = ExpectedException.none();
 	IMocksControl control;
 	KafkaStreams streamsMock1, streamsMock2;
 	KafkaAggregatorDescr descr1, descr2;
@@ -94,12 +92,11 @@ public class KafkaAggregatorEntryTest {
 	
 	@Test
 	public void testGetStore_ThrowsIfNotExists() {
-		eex.expect(IllegalStateException.class);
-		eex.expectMessage("Store not available: store1");
 		expect(streamsMock1.store(anyObject())).andReturn(null);
 		control.replay();
 		
-		service.getStore();
+		IllegalStateException e = assertThrows(IllegalStateException.class, () -> service.getStore());
+		assertEquals("Store not available: store1", e.getMessage());
 	}
 
 }
