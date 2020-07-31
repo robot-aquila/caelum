@@ -42,7 +42,7 @@ public class KafkaAggregatorConfig extends AggregatorConfig {
 		props.put(BOOTSTRAP_SERVERS, "localhost:8082");
 		props.put(SOURCE_TOPIC, "caelum-item");
 		props.put(MAX_ERRORS, "99");
-		props.put(DEFAULT_TIMEOUT, "15000");
+		props.put(DEFAULT_TIMEOUT, "60000");
 		props.put(FORCE_PARALLEL_CLEAR, "");
 	}
 	

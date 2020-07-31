@@ -36,7 +36,7 @@ public class KafkaAggregatorConfigTest {
 		assertEquals("localhost:8082",			props.get("caelum.aggregator.kafka.bootstrap.servers"));
 		assertEquals("caelum-item",				props.get("caelum.aggregator.kafka.source.topic"));
 		assertEquals("99",						props.get("caelum.aggregator.kafka.max.errors"));
-		assertEquals("15000",					props.get("caelum.aggregator.kafka.default.timeout"));
+		assertEquals("60000",					props.get("caelum.aggregator.kafka.default.timeout"));
 		assertEquals("M1,H1",					props.get("caelum.aggregator.aggregation.period"));
 		assertEquals("5000",					props.get("caelum.aggregator.list.tuples.limit"));
 		assertEquals("",						props.get("caelum.aggregator.kafka.force.parallel.clear"));

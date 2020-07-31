@@ -9,9 +9,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -24,6 +27,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.Map.Entry;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
@@ -53,7 +57,7 @@ import ru.prolib.caelum.test.dto.SymbolUpdatesResponseDTO;
 import ru.prolib.caelum.test.dto.SymbolsResponseDTO;
 import ru.prolib.caelum.test.dto.TuplesResponseDTO;
 
-public class TestBasis {
+public class ApiTestHelper {
 
 	public static class InitialAndDelta {
 		final BigDecimal initial, delta;
@@ -231,6 +235,33 @@ public class TestBasis {
 					.build();
 		}
 		
+		@Override
+		public int hashCode() {
+			return new HashCodeBuilder(89911723, 307)
+					.append(category)
+					.append(symbol)
+					.append(decimals)
+					.append(volumeDecimals)
+					.build();
+		}
+		
+		@Override
+		public boolean equals(Object other) {
+			if ( other == this ) {
+				return true;
+			}
+			if ( other == null || other.getClass() != CatSym.class ) {
+				return false;
+			}
+			CatSym o = (CatSym) other;
+			return new EqualsBuilder()
+					.append(o.category, category)
+					.append(o.symbol, symbol)
+					.append(o.decimals, decimals)
+					.append(o.volumeDecimals, volumeDecimals)
+					.build();
+		}
+		
 		public static CatSym random(String category, int comp_len) {
 			return new CatSym(category,
 					category + "@" + RandomStringUtils.random(comp_len, true, true),
@@ -253,10 +284,6 @@ public class TestBasis {
 		
 	}
 	
-	private static final Map<String, List<Item>> databaseReplica = new HashMap<>();
-	private static final Map<String, Set<String>> existingCategories = new HashMap<>();
-	private static final Set<String> existingSymbols = new HashSet<>();
-
 	public static Map<Integer, String> toMap(Object... args) {
 		if ( args.length % 2 != 0 ) {
 			throw new IllegalArgumentException();
@@ -277,7 +304,7 @@ public class TestBasis {
 	}
 	
 	public static BigDecimal toBD(long value, int scale) {
-		return new BigDecimal(value).divide(BigDecimal.TEN.pow(scale));
+		return new BigDecimal(value).divide(BigDecimal.TEN.pow(scale)).setScale(scale, RoundingMode.UNNECESSARY);
 	}
 	
 	public static InitialAndDelta randomInitialAndDelta() {
@@ -287,76 +314,6 @@ public class TestBasis {
 		int scale = r.nextInt(0, 16);
 		tick = tick.pow(r.nextInt(1, 11)).divide(BigDecimal.TEN.pow(scale));
 		return new InitialAndDelta(tick.multiply(new BigDecimal(r.nextLong(1L, 2000L))), tick);
-	}
-	
-	public static CatSym registerSymbol(CatSym cs) {
-		existingSymbols.add(cs.symbol);
-		Set<String> symbols = existingCategories.get(cs.category);
-		if ( symbols == null ) {
-			symbols = new HashSet<>();
-			existingCategories.put(cs.category, symbols);
-		}
-		symbols.add(cs.symbol);
-		return cs;
-	}
-	
-	public static CatSym newSymbol(String category) {
-		for ( int i = 0; i < 1000; i ++ ) {
-			CatSym cs = CatSym.random(category);
-			if ( ! existingSymbols.contains(cs.symbol) ) {
-				return registerSymbol(cs);
-			}
-		}
-		throw new IllegalStateException();		
-	}
-	
-	public static CatSym newSymbol() {
-		for ( int i = 0; i < 1000; i ++ ) {
-			CatSym cs = CatSym.random();
-			if ( ! existingSymbols.contains(cs.symbol) ) {
-				return registerSymbol(cs);
-			}
-		}
-		throw new IllegalStateException();
-	}
-	
-	public static List<CatSym> newSymbols(int num_categories, int num_symbols) {
-		assertThat(num_categories, is(greaterThan(0)));
-		assertThat(num_symbols, is(greaterThan(0)));
-		List<CatSym> result = new ArrayList<>();
-		for ( int i = 0; i < num_categories; i ++ ) {
-			CatSym first = newSymbol();
-			result.add(first);
-			for ( int j = 1; j < num_symbols; j ++ ) {
-				result.add(newSymbol(first.category));
-			}
-		}
-		return result;
-	}
-
-	public static Map<Integer, List<CatSym>> newSymbolsOfDifferentPartitions(int num_partitions_max) {
-		int num_partitions_min = 2;
-		Map<Integer, List<CatSym>> map = new LinkedHashMap<>();
-		Set<String> all_symbols = new HashSet<>();
-		for ( int num_partitions = num_partitions_min; num_partitions <= num_partitions_max; num_partitions ++ ) {
-			// We need one symbol per partition. Put symbols to list where symbol position is its partition.
-			List<CatSym> symbols = new ArrayList<>();
-			for ( int partition = 0; partition < num_partitions; partition ++ ) {
-				for ( int k = 0; k < 5000; k ++ ) {
-					CatSym cs = newSymbol();
-					if ( all_symbols.contains(cs.symbol) == false
-					  && getSymbolPartition(cs.symbol, num_partitions) == partition )
-					{
-						all_symbols.add(cs.symbol);
-						symbols.add(cs);
-						break;
-					}
-				}
-			}
-			assertEquals(num_partitions, symbols.size());
-			map.put(num_partitions, symbols);
-		}
-		return map;
 	}
 	
 	public static long timeDiff(ResponseDTO response) {
@@ -469,34 +426,151 @@ public class TestBasis {
 		return result;
 	}
 	
-	public static Item registerItem(Item item) {
+	public static void waitUntil(Callable<Boolean> condition, Duration poll_interval, Duration timeout) {
+		await()
+			.dontCatchUncaughtExceptions()
+			.pollInterval(poll_interval)
+			.atMost(timeout)
+			.until(condition);
+	}
+	
+	public static void waitUntil(Callable<Boolean> condition, Duration timeout) {
+		waitUntil(condition, Duration.ofSeconds(1), timeout);
+	}
+	
+	public static void waitUntil(Callable<Boolean> condition) {
+		waitUntil(condition, Duration.ofSeconds(20));
+	}
+	
+	private final Map<String, List<Item>> databaseReplica = new HashMap<>();
+	private final Map<String, Set<String>> existingCategories = new HashMap<>();
+	private final Set<String> existingSymbols = new HashSet<>();
+	private final List<String> backnodeHosts;
+	private final boolean clearAfterEachTest;
+	private volatile long recentItemTime;
+	
+	public ApiTestHelper(Collection<String> backnode_hosts, boolean clear_after_each_test) {
+		this.backnodeHosts = new ArrayList<>(backnode_hosts);
+		this.clearAfterEachTest = clear_after_each_test;
+	}
+	
+	public ApiTestHelper(boolean clear_after_each_test) {
+		this(new ArrayList<>(), clear_after_each_test);
+	}
+	
+	public void setBacknodeHosts(Collection<String> backnode_hosts) {
+		backnodeHosts.clear();
+		backnodeHosts.addAll(backnode_hosts);
+	}
+
+	public CatSym registerSymbol(CatSym cs) {
+		existingSymbols.add(cs.symbol);
+		Set<String> symbols = existingCategories.get(cs.category);
+		if ( symbols == null ) {
+			symbols = new HashSet<>();
+			existingCategories.put(cs.category, symbols);
+		}
+		symbols.add(cs.symbol);
+		return cs;
+	}
+	
+	public CatSym newSymbol(String category) {
+		for ( int i = 0; i < 1000; i ++ ) {
+			CatSym cs = CatSym.random(category);
+			if ( ! existingSymbols.contains(cs.symbol) ) {
+				return registerSymbol(cs);
+			}
+		}
+		throw new IllegalStateException();		
+	}
+	
+	public CatSym newSymbol() {
+		for ( int i = 0; i < 1000; i ++ ) {
+			CatSym cs = CatSym.random();
+			if ( ! existingSymbols.contains(cs.symbol) ) {
+				return registerSymbol(cs);
+			}
+		}
+		throw new IllegalStateException();
+	}
+	
+	public List<CatSym> newSymbols(int num_categories, int num_symbols) {
+		assertThat(num_categories, is(greaterThan(0)));
+		assertThat(num_symbols, is(greaterThan(0)));
+		List<CatSym> result = new ArrayList<>();
+		for ( int i = 0; i < num_categories; i ++ ) {
+			CatSym first = newSymbol();
+			result.add(first);
+			for ( int j = 1; j < num_symbols; j ++ ) {
+				result.add(newSymbol(first.category));
+			}
+		}
+		return result;
+	}
+
+	public Map<Integer, List<CatSym>> newSymbolsOfDifferentPartitions(int num_partitions_max) {
+		int num_partitions_min = 2;
+		Map<Integer, List<CatSym>> map = new LinkedHashMap<>();
+		Set<String> all_symbols = new HashSet<>();
+		for ( int num_partitions = num_partitions_min; num_partitions <= num_partitions_max; num_partitions ++ ) {
+			// We need one symbol per partition. Put symbols to list where symbol position is its partition.
+			List<CatSym> symbols = new ArrayList<>();
+			for ( int partition = 0; partition < num_partitions; partition ++ ) {
+				for ( int k = 0; k < 5000; k ++ ) {
+					CatSym cs = newSymbol();
+					if ( all_symbols.contains(cs.symbol) == false
+					  && getSymbolPartition(cs.symbol, num_partitions) == partition )
+					{
+						all_symbols.add(cs.symbol);
+						symbols.add(cs);
+						break;
+					}
+				}
+			}
+			assertEquals(num_partitions, symbols.size());
+			map.put(num_partitions, symbols);
+		}
+		return map;
+	}
+	
+	public long getRecentItemTime() {
+		return recentItemTime;
+	}
+	
+	public long getRecentItemTimePlus1() {
+		return getRecentItemTime() + 1;
+	}
+	
+	public Item registerItem(Item item) {
 		List<Item> list = databaseReplica.get(item.category);
 		if ( list == null ) {
 			list = new ArrayList<>();
 			databaseReplica.put(item.category, list);
 			registerSymbol(new CatSym(item.category, item.symbol, (byte)item.value.scale(), (byte)item.volume.scale()));
 		}
+		long recent_time = recentItemTime;
+		recentItemTime = Math.max(recent_time, item.time);
 		list.add(item);
 		return item;
 	}
 	
-	public static Item registerItem(String category, String symbol, long time, BigDecimal value, BigDecimal volume) {
+	public Item registerItem(String category, String symbol, long time, BigDecimal value, BigDecimal volume) {
 		return registerItem(new Item(category, symbol, time, value, volume));
 	}
 	
-	public static Item registerItem(String category, String symbol, long time, String value, String volume) {
+	public Item registerItem(String category, String symbol, long time, String value, String volume) {
 		return registerItem(category, symbol, time, new BigDecimal(value), new BigDecimal(volume));
 	}
 	
-	public static Item registerItem(CatSym cs, long time, String value, String volume) {
+	public Item registerItem(CatSym cs, long time, String value, String volume) {
 		return registerItem(cs.category, cs.symbol, time, value, volume);
 	}
 	
-	public static Item registerItem(CatSym cs, long time) {
+	public Item registerItem(CatSym cs, long time) {
 		return registerItem(cs.newItem(time));
 	}
 	
-	public static  List<Item> registeredItems(String category, String symbol) {
+	public List<Item> registeredItems(String category, String symbol) {
 		List<Item> result = new ArrayList<>(), category_items = databaseReplica.get(category);
 		if ( category_items == null ) {
 			return result;
@@ -510,11 +584,11 @@ public class TestBasis {
 		return result;
 	}
 	
-	public static List<Item> registeredItems(CatSym cs) {
+	public List<Item> registeredItems(CatSym cs) {
 		return registeredItems(cs.category, cs.symbol);
 	}
 	
-	public static List<Tuple> registeredItemsToTuples(CatSym cs, long period_millis) {
+	public List<Tuple> registeredItemsToTuples(CatSym cs, long period_millis) {
 		Map<Long, Tuple> tuple_map = new HashMap<>();
 		for ( Item item : registeredItems(cs) ) {
 			long tuple_time = item.time / period_millis * period_millis;
@@ -545,14 +619,14 @@ public class TestBasis {
 		return result;
 	}
 	
-	public static List<String> registeredCategories() {
+	public List<String> registeredCategories() {
 		List<String> result = new ArrayList<>(existingCategories.keySet());
 		Collections.sort(result);
 		assertNotEquals(0, result.size());
 		return result;
 	}
 	
-	public static List<String> registeredSymbols(String category) {
+	public List<String> registeredSymbols(String category) {
 		Set<String> dummy_set = existingCategories.get(category);
 		if ( dummy_set == null ) dummy_set = new HashSet<>();
 		List<String> result = new ArrayList<>(dummy_set);
@@ -561,20 +635,13 @@ public class TestBasis {
 		return result;
 	}
 	
-	protected final List<String> backnodeHosts;
-
-	public TestBasis(Collection<String> backnode_hosts) {
-		backnodeHosts = new ArrayList<>(backnode_hosts);
-	}
-	
-	
 	/**
 	 * Get request specification for specified backnode host.
 	 * <p>
 	 * @param host - host in form host:port
 	 * @return request specification
 	 */
-	protected RequestSpecification getSpec(String host) {
+	public RequestSpecification getSpec(String host) {
 		return new RequestSpecBuilder()
 				.setContentType(ContentType.JSON)
 				.setBaseUri("http://" + host + "/api/v1/")
@@ -588,7 +655,7 @@ public class TestBasis {
 	 * <p>
 	 * @return request specification
 	 */
-	protected RequestSpecification getSpec() {
+	public RequestSpecification getSpec() {
 		return getSpec(backnodeHosts.get(0));
 	}
 	
@@ -597,7 +664,7 @@ public class TestBasis {
 	 * <p>
 	 * @return request specification
 	 */
-	protected RequestSpecification getSpecRandom() {
+	public RequestSpecification getSpecRandom() {
 		return getSpec(backnodeHosts.get(ThreadLocalRandom.current().nextInt(backnodeHosts.size())));
 	}
 	
@@ -606,7 +673,7 @@ public class TestBasis {
 	 * <p>
 	 * @return list of available request specification
 	 */
-	protected Collection<RequestSpecification> getSpecAll() {
+	public Collection<RequestSpecification> getSpecAll() {
 		List<RequestSpecification> result = new ArrayList<>();
 		for ( String host : backnodeHosts ) {
 			result.add(getSpec(host));
@@ -614,7 +681,7 @@ public class TestBasis {
 		return result;
 	}
 		
-	protected PingResponseDTO apiPing(RequestSpecification spec) {
+	public PingResponseDTO apiPing(RequestSpecification spec) {
 		return given()
 				.spec(spec)
 			.when()
@@ -625,7 +692,7 @@ public class TestBasis {
 				.as(PingResponseDTO.class);
 	}
 	
-	protected ClearResponseDTO apiClear(RequestSpecification spec, boolean global) {
+	public ClearResponseDTO apiClear(RequestSpecification spec, boolean global) {
 		return given()
 			.spec(spec)
 			.param("global", global)
@@ -637,7 +704,7 @@ public class TestBasis {
 			.as(ClearResponseDTO.class);
 	}
 	
-	protected LogMarkerResponseDTO apiLogMarker(RequestSpecification spec, String marker) {
+	public LogMarkerResponseDTO apiLogMarker(RequestSpecification spec, String marker) {
 		return given()
 			.spec(spec)
 			.param("marker", marker)
@@ -655,7 +722,7 @@ public class TestBasis {
 	 * @param marker - marker
 	 * @return last response or null if no one request has been made
 	 */
-	protected LogMarkerResponseDTO apiLogMarker(String marker) {
+	public LogMarkerResponseDTO apiLogMarker(String marker) {
 		LogMarkerResponseDTO response = null;
 		for ( RequestSpecification spec : getSpecAll() ) {
 			response = apiLogMarker(spec, marker);
@@ -663,7 +730,7 @@ public class TestBasis {
 		return response;
 	}
 	
-	protected SymbolResponseDTO apiPutSymbol(RequestSpecification spec, String symbol) {
+	public SymbolResponseDTO apiPutSymbol(RequestSpecification spec, String symbol) {
 		return given()
 				.spec(spec)
 				.contentType(ContentType.URLENC)
@@ -676,7 +743,7 @@ public class TestBasis {
 				.as(SymbolResponseDTO.class);
 	}
 	
-	protected SymbolResponseDTO apiPutSymbol(RequestSpecification spec, List<String> symbols) {
+	public SymbolResponseDTO apiPutSymbol(RequestSpecification spec, List<String> symbols) {
 		return given()
 				.spec(spec)
 				.contentType(ContentType.URLENC)
@@ -689,22 +756,22 @@ public class TestBasis {
 			.as(SymbolResponseDTO.class);
 	}
 	
-	protected SymbolResponseDTO apiPutSymbol(RequestSpecification spec, CatSym cs) {
+	public SymbolResponseDTO apiPutSymbol(RequestSpecification spec, CatSym cs) {
 		return apiPutSymbol(spec, cs.symbol);
 	}
 	
-	protected SymbolResponseDTO apiPutSymbolCS(RequestSpecification spec, List<CatSym> symbols) {
+	public SymbolResponseDTO apiPutSymbolCS(RequestSpecification spec, List<CatSym> symbols) {
 		return apiPutSymbol(spec, symbols.stream().map(x -> x.symbol).collect(Collectors.toList()));
 	}
 	
-	protected ItemResponseDTO apiPutItem(RequestSpecification spec, Item item) {
+	public ItemResponseDTO apiPutItem(RequestSpecification spec, Item item) {
 		return given()
 				.spec(spec)
 				.contentType(ContentType.URLENC)
 				.formParam("symbol", item.symbol)
 				.formParam("time", item.time)
-				.formParam("value", item.value)
-				.formParam("volume", item.volume)
+				.formParam("value", item.value.toPlainString())
+				.formParam("volume", item.volume.toPlainString())
 			.when()
 				.put("item")
 			.then()
@@ -713,18 +780,18 @@ public class TestBasis {
 				.as(ItemResponseDTO.class);
 	}
 	
-	protected ItemResponseDTO apiPutItem(Item item) {
+	public ItemResponseDTO apiPutItem(Item item) {
 		return apiPutItem(getSpec(), item);
 	}
 	
-	protected ItemResponseDTO apiPutItem(RequestSpecification spec, List<Item> items) {
+	public ItemResponseDTO apiPutItem(RequestSpecification spec, List<Item> items) {
 		return given()
 				.spec(spec)
 				.contentType(ContentType.URLENC)
 				.formParam("symbol", items.stream().map(x -> x.symbol).collect(Collectors.toList()))
 				.formParam("time", items.stream().map(x -> x.time).collect(Collectors.toList()))
-				.formParam("value", items.stream().map(x -> x.value).collect(Collectors.toList()))
-				.formParam("volume", items.stream().map(x -> x.volume).collect(Collectors.toList()))
+				.formParam("value", items.stream().map(x -> x.value.toPlainString()).collect(Collectors.toList()))
+				.formParam("volume", items.stream().map(x -> x.volume.toPlainString()).collect(Collectors.toList()))
 			.when()
 				.put("item")
 			.then()
@@ -733,7 +800,7 @@ public class TestBasis {
 				.as(ItemResponseDTO.class);
 	}
 	
-	protected ItemsResponseDTO apiGetItems(RequestSpecification spec, String symbol,
+	public ItemsResponseDTO apiGetItems(RequestSpecification spec, String symbol,
 			Integer limit, Long from, Long to, String magic, Long fromOffset)
 	{
 		spec = given()
@@ -752,26 +819,26 @@ public class TestBasis {
 				.as(ItemsResponseDTO.class);
 	}
 	
-	protected ItemsResponseDTO apiGetItems(RequestSpecification spec,
+	public ItemsResponseDTO apiGetItems(RequestSpecification spec,
 			String symbol, Integer limit, Long from, Long to)
 	{
 		return apiGetItems(spec, symbol, limit, from, to, null, null);
 	}
 	
-	protected ItemsResponseDTO apiGetItems(RequestSpecification spec, String symbol, Integer limit) {
+	public ItemsResponseDTO apiGetItems(RequestSpecification spec, String symbol, Integer limit) {
 		return apiGetItems(spec, symbol, limit, null, null);
 	}
 	
-	protected ItemsResponseDTO apiGetItems(String symbol, Integer limit) {
+	public ItemsResponseDTO apiGetItems(String symbol, Integer limit) {
 		return apiGetItems(getSpec(), symbol, limit);
 	}
 	
-	protected ItemsResponseDTO apiGetItems(String symbol) {
+	public ItemsResponseDTO apiGetItems(String symbol) {
 		return apiGetItems(getSpec(), symbol, null);
 	}
 	
 	
-	protected TuplesResponseDTO apiGetTuples(RequestSpecification spec, String period, String symbol,
+	public TuplesResponseDTO apiGetTuples(RequestSpecification spec, String period, String symbol,
 			Integer limit, Long from, Long to)
 	{
 		spec = given()
@@ -789,11 +856,11 @@ public class TestBasis {
 				.as(TuplesResponseDTO.class);
 	}
 	
-	protected TuplesResponseDTO apiGetTuples(RequestSpecification spec, String period, String symbol) {
+	public TuplesResponseDTO apiGetTuples(RequestSpecification spec, String period, String symbol) {
 		return apiGetTuples(spec, period, symbol, null, null, null);
 	}
 	
-	protected CategoriesResponseDTO apiGetCategories(RequestSpecification spec) {
+	public CategoriesResponseDTO apiGetCategories(RequestSpecification spec) {
 		return given()
 				.spec(spec)
 			.when()
@@ -804,11 +871,11 @@ public class TestBasis {
 				.as(CategoriesResponseDTO.class);		
 	}
 	
-	protected CategoriesResponseDTO apiGetCategories() {
+	public CategoriesResponseDTO apiGetCategories() {
 		return apiGetCategories(getSpec());
 	}
 	
-	protected SymbolsResponseDTO apiGetSymbols(RequestSpecification spec,
+	public SymbolsResponseDTO apiGetSymbols(RequestSpecification spec,
 			String category, String afterSymbol, Integer limit)
 	{
 		spec = given()
@@ -824,23 +891,23 @@ public class TestBasis {
 				.as(SymbolsResponseDTO.class);		
 	}
 	
-	protected SymbolsResponseDTO apiGetSymbols(RequestSpecification spec, String category, Integer limit) {
+	public SymbolsResponseDTO apiGetSymbols(RequestSpecification spec, String category, Integer limit) {
 		return apiGetSymbols(spec, category, null, limit);
 	}
 	
-	protected SymbolsResponseDTO apiGetSymbols(RequestSpecification spec, String category, String afterSymbol) {
+	public SymbolsResponseDTO apiGetSymbols(RequestSpecification spec, String category, String afterSymbol) {
 		return apiGetSymbols(spec, category, afterSymbol, null);
 	}
 	
-	protected SymbolsResponseDTO apiGetSymbols(RequestSpecification spec, String category) {
+	public SymbolsResponseDTO apiGetSymbols(RequestSpecification spec, String category) {
 		return apiGetSymbols(spec, category, null, null);
 	}
 	
-	protected SymbolsResponseDTO apiGetSymbols(String category) {
+	public SymbolsResponseDTO apiGetSymbols(String category) {
 		return apiGetSymbols(getSpec(), category);
 	}
 	
-	protected SymbolUpdateResponseDTO apiPutSymbolUpdate(RequestSpecification spec,
+	public SymbolUpdateResponseDTO apiPutSymbolUpdate(RequestSpecification spec,
 			String symbol, long time, Map<Integer, String> tokens)
 	{
 		spec = given()
@@ -861,13 +928,13 @@ public class TestBasis {
 				.as(SymbolUpdateResponseDTO.class);
 	}
 	
-	protected SymbolUpdateResponseDTO apiPutSymbolUpdate(RequestSpecification spec,
+	public SymbolUpdateResponseDTO apiPutSymbolUpdate(RequestSpecification spec,
 			String symbol, long time, Object... tokens)
 	{
 		return apiPutSymbolUpdate(spec, symbol, time, toMap(tokens));
 	}
 	
-	protected SymbolUpdatesResponseDTO apiGetSymbolUpdates(RequestSpecification spec, String symbol) {
+	public SymbolUpdatesResponseDTO apiGetSymbolUpdates(RequestSpecification spec, String symbol) {
 		return given()
 				.spec(spec)
 				.param("symbol", symbol)
@@ -879,7 +946,7 @@ public class TestBasis {
 				.as(SymbolUpdatesResponseDTO.class);		
 	}
 	
-	protected void generateItems(String category, String symbol, int total_items,
+	public void generateItems(String category, String symbol, int total_items,
 			long start_time, long time_delta,
 			BigDecimal start_value, BigDecimal value_delta,
 			BigDecimal start_volume, BigDecimal volume_delta)
@@ -903,7 +970,7 @@ public class TestBasis {
 		}
 	}
 	
-	protected void generateItems(String category, String symbol, int total_items,
+	public void generateItems(String category, String symbol, int total_items,
 			long start_time, long time_delta,
 			String start_value, String value_delta,
 			String start_volume, String volume_delta)
@@ -913,16 +980,16 @@ public class TestBasis {
 				new BigDecimal(start_volume), new BigDecimal(volume_delta));
 	}
 	
-	protected void generateItems(CatSym cs, int total_items, long start_time, long time_delta,
+	public void generateItems(CatSym cs, int total_items, long start_time, long time_delta,
 			String start_value, String value_delta, String start_volume, String volume_delta)
 	{
 		generateItems(cs.category, cs.symbol, total_items, start_time, time_delta,
 				start_value, value_delta, start_volume, volume_delta);
 	}
 	
-	protected void generateItems(CatSym cs, int total_items) {
+	public void generateItems(CatSym cs, int total_items) {
 		ThreadLocalRandom r = ThreadLocalRandom.current();
-		long start_time = r.nextLong(1000L, 10000000L);
+		long start_time = getRecentItemTimePlus1();
 		long time_delta = r.nextLong(1000L, 300000L);
 		InitialAndDelta id_value = randomInitialAndDelta(), id_volume = randomInitialAndDelta();
 		generateItems(cs.category, cs.symbol, total_items, start_time, time_delta,
@@ -944,7 +1011,7 @@ public class TestBasis {
 	 * @param start_volume - initial item volume
 	 * @param volume_delta - volume change
 	 */
-	protected void generateItems(Collection<CatSym> cs_list, int total_items,
+	public void generateItems(Collection<CatSym> cs_list, int total_items,
 			long start_time, long time_delta,
 			BigDecimal start_value, BigDecimal value_delta,
 			BigDecimal start_volume, BigDecimal volume_delta)
@@ -971,7 +1038,7 @@ public class TestBasis {
 		}
 	}
 	
-	protected void generateItems(Collection<CatSym> cs_list, int total_items,
+	public void generateItems(Collection<CatSym> cs_list, int total_items,
 			long start_time, long time_delta,
 			String start_value, String value_delta,
 			String start_volume, String volume_delta)
@@ -981,18 +1048,64 @@ public class TestBasis {
 				new BigDecimal(start_volume), new BigDecimal(volume_delta));
 	}
 	
+	public void generateItems(Collection<CatSym> cs_list, int total_items, long start_time, long time_delta) {
+		long time = start_time;
+		List<Item> items = new ArrayList<>();
+		int batch_size = 500;
+		for ( int i = 0;  i < total_items; i ++ ) {
+			for ( CatSym cs : cs_list ) {
+				items.add(registerItem(cs.newItem(time)));
+			}
+			if( items.size() >= batch_size ) {
+				assertNotError(apiPutItem(getSpecRandom(), items));
+				items.clear();
+			}
+			time += time_delta;
+		}
+		if ( items.size() > 0 ) {
+			assertNotError(apiPutItem(getSpecRandom(), items));
+		}
+	}
+	
+	public void generateItems(Collection<CatSym> cs_list, int total_items) {
+		generateItems(cs_list, total_items, getRecentItemTimePlus1(), 1000L);
+	}
+	
+	public void clearData(Collection<RequestSpecification> spec_list) {
+		databaseReplica.clear();
+		existingSymbols.clear();
+		existingCategories.clear();
+		boolean first = true;
+		for ( RequestSpecification spec : spec_list ) {
+			apiClear(spec, first);
+			first = false;
+		}
+	}
+	
+	public void clearData() {
+		clearData(getSpecAll());
+	}
+	
 	public void setUp() {
 		
 	}
 	
 	public void tearDown() {
-		databaseReplica.clear();
-		existingSymbols.clear();
-		existingCategories.clear();
-		boolean first = true;
-		for ( RequestSpecification spec : getSpecAll() ) {
-			apiClear(spec, first);
-			first = false;
+		if ( clearAfterEachTest == true ) {
+			clearData();
+		}
+	}
+	
+	public void setUpBeforeClass() {
+		if ( clearAfterEachTest == false ) {
+			clearData();
+		}
+		
+	}
+	
+	public void tearDownAfterClass() {
+		if ( clearAfterEachTest == false ) {
+			clearData();
 		}
 	}
 

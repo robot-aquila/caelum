@@ -2,27 +2,32 @@ package ru.prolib.caelum.test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.awaitility.Awaitility.await;
+import static ru.prolib.caelum.test.ApiTestHelper.*;
 
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Rule;
 import org.junit.Test;
@@ -43,7 +48,8 @@ import ru.prolib.caelum.test.dto.SymbolsResponseDTO;
 import ru.prolib.caelum.test.dto.TuplesResponseDTO;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class BacknodeIT extends TestBasis {
+public class BacknodeIT {
+	static final ApiTestHelper ath = new ApiTestHelper(false);
 	
 	@Rule(order=Integer.MIN_VALUE)
 	public TestWatcher watchman = new TestWatcher() {
@@ -54,36 +60,41 @@ public class BacknodeIT extends TestBasis {
 		
 		@Override
 		protected void starting(Description descr) {
-			apiLogMarker("Starting " + toMarker(descr));
+			ath.apiLogMarker("Starting " + toMarker(descr));
 		}
 		
 		@Override
 		protected void finished(Description descr) {
-			apiLogMarker("Finished " + toMarker(descr));
+			ath.apiLogMarker("Finished " + toMarker(descr));
 		}
 		
 	};
 	
-	public BacknodeIT() {
-		super(Arrays.asList("localhost:9698"));
+	@BeforeClass
+	public static void setUpBeforeClass() {
+		ath.setBacknodeHosts(Arrays.asList("localhost:9698"));
+		ath.setUpBeforeClass();
 	}
 	
 	@Before
-	@Override
 	public void setUp() {
-		super.setUp();
+		ath.setUp();
 	}
 	
 	@After
-	@Override
 	public void tearDown() {
-		super.tearDown();
+		ath.tearDown();
+	}
+	
+	@AfterClass
+	public static void tearDownAfterClass() {
+		ath.tearDownAfterClass();
 	}
 	
 	@Test
 	public void C0000_Ping() {
-		for ( RequestSpecification spec : getSpecAll() ) {
-			PingResponseDTO response = apiPing(spec);
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			PingResponseDTO response = ath.apiPing(spec);
 			assertNotError(response);
 			assertNull(response.data);
 		}
@@ -93,23 +104,24 @@ public class BacknodeIT extends TestBasis {
 	
 	@Test
 	public void C1001_PutItem_PutAndTestResponse() {
-		CatSym cs = newSymbol();
-		Item item1 = registerItem(cs, 10000L);
+		CatSym cs = ath.newSymbol();
+		Item item1 = ath.registerItem(cs, ath.getRecentItemTimePlus1());
 
-		ItemResponseDTO response = apiPutItem(getSpecRandom(), item1);
+		ItemResponseDTO response = ath.apiPutItem(ath.getSpecRandom(), item1);
 		
 		assertNotError(response);
 	}
 	
 	@Test
 	public void C1002_PutItem_PutOfSameTimeAndTestSequence() {
-		CatSym cs = newSymbol();
-		assertNotError(apiPutItem(getSpecRandom(), registerItem(cs, 10000L)));
-		assertNotError(apiPutItem(getSpecRandom(), registerItem(cs, 10000L)));
-		assertNotError(apiPutItem(getSpecRandom(), registerItem(cs, 10000L)));
-		assertNotError(apiPutItem(getSpecRandom(), registerItem(cs, 10000L)));
+		long time = ath.getRecentItemTimePlus1();
+		CatSym cs = ath.newSymbol();
+		assertNotError(ath.apiPutItem(ath.getSpecRandom(), ath.registerItem(cs, time)));
+		assertNotError(ath.apiPutItem(ath.getSpecRandom(), ath.registerItem(cs, time)));
+		assertNotError(ath.apiPutItem(ath.getSpecRandom(), ath.registerItem(cs, time)));
+		assertNotError(ath.apiPutItem(ath.getSpecRandom(), ath.registerItem(cs, time)));
 		
-		ItemsResponseDTO response = apiGetItems(cs.symbol);
+		ItemsResponseDTO response = ath.apiGetItems(cs.symbol);
 	
 		assertNotError(response);
 		assertEquals(cs.symbol, response.data.symbol);
@@ -117,110 +129,111 @@ public class BacknodeIT extends TestBasis {
 		assertNotNull(response.data.magic);
 		assertThat(response.data.magic.length(), is(greaterThanOrEqualTo(1)));
 		assertEquals(4, response.data.rows.size());
-		assertEquals(registeredItems(cs), toItems(cs, response.data.rows));
+		assertEquals(ath.registeredItems(cs), toItems(cs, response.data.rows));
 	}
 	
 	@Test
 	public void C1003_PutItem_ItemsOfDifferentSymbolsShouldBeOkTogether() {
-		long time = 10000L;
+		long time = ath.getRecentItemTimePlus1();
 		List<CatSym> symbols = new ArrayList<>();
 		for ( int i = 1; i < 7; i ++ ) {
-			CatSym cs = newSymbol();
+			CatSym cs = ath.newSymbol();
 			symbols.add(cs);
 			for ( int j = 0; j < i; j ++ ) {
-				assertNotError(apiPutItem(getSpecRandom(), registerItem(cs, time)));
+				assertNotError(ath.apiPutItem(ath.getSpecRandom(), ath.registerItem(cs, time)));
 				time ++;
 			}
 		}
 		
 		for ( int i = 0; i < symbols.size(); i ++ ) {
 			CatSym cs = symbols.get(i);
-			ItemsResponseDTO response = apiGetItems(cs.symbol);
+			ItemsResponseDTO response = ath.apiGetItems(cs.symbol);
 			assertEquals(i + 1, response.data.rows.size());
-			assertEquals(registeredItems(cs), toItems(cs, response.data.rows));
+			assertEquals(ath.registeredItems(cs), toItems(cs, response.data.rows));
 		}
 	}
 	
 	@Test
-	public void C1004_PutItem_ShouldRegisterCategories() {
-		for ( CatSym cs : newSymbols(5, 10) ) {
-			apiPutItem(getSpecRandom(), registerItem(cs, 1000L));
+	public void C1004_PutItem_ShouldRegisterCategories() throws Exception {
+		long time = ath.getRecentItemTimePlus1();
+		List<CatSym> cs_list = ath.newSymbols(5, 10);
+		for ( CatSym cs : cs_list ) {
+			ath.apiPutItem(ath.getSpecRandom(), ath.registerItem(cs, time));
 		}
 		
-		for ( RequestSpecification spec : getSpecAll() ) {
-			CategoriesResponseDTO response = apiGetCategories(spec);
-			
+		List<String> expected = ath.registeredCategories();
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			CompletableFuture<CategoriesResponseDTO> r = new CompletableFuture<>();
+			waitUntil(() -> {
+				CategoriesResponseDTO response = ath.apiGetCategories(spec);
+				assertNotError(response);
+				return response.data.rows.size() == expected.size() ? r.complete(response) : false;
+			});
+			CategoriesResponseDTO response = r.get(1, TimeUnit.SECONDS);
 			assertNotError(response);
-			assertEquals(registeredCategories(), response.data.rows);
+			assertEquals(expected, response.data.rows);
 		}
 	}
 	
 	@Test
 	public void C1005_PutItem_ShouldRegisterSymbols() throws Exception {
-		long time = 10000L;
-		for ( CatSym cs : newSymbols(5, 10) ) {
-			apiPutItem(getSpecRandom(), registerItem(cs, time ++));
+		long time = ath.getRecentItemTimePlus1();
+		for ( CatSym cs : ath.newSymbols(5, 10) ) {
+			ath.apiPutItem(ath.getSpecRandom(), ath.registerItem(cs, time ++));
 		}
 		
-		for ( RequestSpecification spec : getSpecAll() ) {
-			for ( String category : registeredCategories() ) {
-				final List<String> expected_symbols = registeredSymbols(category);
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			for ( String category : ath.registeredCategories() ) {
+				final List<String> expected_symbols = ath.registeredSymbols(category);
 				CompletableFuture<SymbolsResponseDTO> r = new CompletableFuture<>();
-				await().dontCatchUncaughtExceptions()
-					.pollInterval(Duration.ofSeconds(5L))
-					.atMost(Duration.ofSeconds(20))
-					.until(() -> {
-						SymbolsResponseDTO response = apiGetSymbols(spec, category);
+				waitUntil(() -> {
+						SymbolsResponseDTO response = ath.apiGetSymbols(spec, category);
 						assertNotError(response);
-						if ( response.data.rows.size() == expected_symbols.size() ) {
-							r.complete(response);
-							return true;
-						} else {
-							return false;
-						}
+						return response.data.rows.size() == expected_symbols.size() ? r.complete(response) : false;
 					});
 				SymbolsResponseDTO response = r.get(1, TimeUnit.SECONDS);
 				
 				assertNotError(response);
-				assertEquals(registeredSymbols(category), response.data.rows);
+				assertEquals(ath.registeredSymbols(category), response.data.rows);
 			}
 		}
 	}
 	
 	@Test
 	public void C1006_PutItem_BatchModeShouldWorkOk() {
-		long time = 100000L;
-		CatSym cs1 = newSymbol(), cs2 = newSymbol();
+		long time = ath.getRecentItemTimePlus1();
+		CatSym cs1 = ath.newSymbol(), cs2 = ath.newSymbol();
 		List<Item> items = new ArrayList<>();
 		for ( int i = 0; i < 50; i ++ ) {
-			items.add(registerItem(cs1, time));
-			items.add(registerItem(cs2, time ++));
+			items.add(ath.registerItem(cs1, time));
+			items.add(ath.registerItem(cs2, time ++));
 		}
 		
-		assertNotError(apiPutItem(getSpecRandom(), items));
+		assertNotError(ath.apiPutItem(ath.getSpecRandom(), items));
 		
 		ItemsResponseDTO response;
-		for ( RequestSpecification spec : getSpecAll() ) {
-			assertNotError(response = apiGetItems(spec, cs1.symbol, null));
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			assertNotError(response = ath.apiGetItems(spec, cs1.symbol, null));
 			assertEquals(50, response.data.rows.size());
-			assertEquals(registeredItems(cs1), toItems(cs1, response.data.rows));
+			assertEquals(ath.registeredItems(cs1), toItems(cs1, response.data.rows));
 			
-			assertNotError(response = apiGetItems(spec, cs2.symbol, null));
+			assertNotError(response = ath.apiGetItems(spec, cs2.symbol, null));
 			assertEquals(50, response.data.rows.size());
-			assertEquals(registeredItems(cs2), toItems(cs2, response.data.rows));
+			assertEquals(ath.registeredItems(cs2), toItems(cs2, response.data.rows));
 		}
 	}
 
 	@Test
 	public void C1050_Items_AllShouldBeLimitedUpTo5000() throws Exception {
-		CatSym cs = newSymbol();
+		CatSym cs = ath.newSymbol();
+		long start_time = ath.getRecentItemTimePlus1();
 		long time_delta = 30000L; // +30 seconds for each
 		int total_m1_tuples = 4 * 24 * 60, total_items = (int) (total_m1_tuples * 60000 / time_delta);
 		assertThat(total_items, is(greaterThan(5000 * 2)));
-		generateItems(cs, total_items, 10000L, time_delta, "0.001", "0.001", "5", "5");
+		ath.generateItems(cs, total_items, start_time, time_delta, "0.001", "0.001", "5", "5");
 
-		for ( RequestSpecification spec : getSpecAll() ) {
-			ItemsResponseDTO response = apiGetItems(spec, cs.symbol, null);
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			ItemsResponseDTO response = ath.apiGetItems(spec, cs.symbol, null);
 			assertNotError(response);
 			assertEquals(5000, response.data.rows.size());
 			assertEquals(cs.symbol, response.data.symbol);
@@ -228,17 +241,17 @@ public class BacknodeIT extends TestBasis {
 			assertThat(response.data.fromOffset, is(greaterThanOrEqualTo(5000L)));
 			assertNotNull(response.data.magic);
 			assertThat(response.data.magic.length(), is(equalTo(32)));
-			assertEquals(registeredItems(cs).subList(0,  5000), toItems(cs, response.data.rows));
+			assertEquals(ath.registeredItems(cs).subList(0,  5000), toItems(cs, response.data.rows));
 		}
 	}
 	
 	@Test
 	public void C1051_Items_WithLimitLessThanMaxLimitAndLessThanItemsCount() {
-		CatSym cs = newSymbol();
-		generateItems(cs, 800, 129800L, 15000L, "0.050", "0.025", "1", "1");
+		CatSym cs = ath.newSymbol();
+		ath.generateItems(cs, 800, ath.getRecentItemTimePlus1(), 15000L, "0.050", "0.025", "1", "1");
 		
-		for ( RequestSpecification spec : getSpecAll() ) {
-			ItemsResponseDTO response = apiGetItems(spec, cs.symbol, 500);
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			ItemsResponseDTO response = ath.apiGetItems(spec, cs.symbol, 500);
 			
 			assertNotError(response);
 			assertEquals(cs.symbol, response.data.symbol);
@@ -246,17 +259,17 @@ public class BacknodeIT extends TestBasis {
 			assertEquals(500, response.data.rows.size());
 			assertNotNull(response.data.magic);
 			assertNotNull(response.data.fromOffset);
-			assertEquals(registeredItems(cs).subList(0, 500), toItems(cs, response.data.rows));
+			assertEquals(ath.registeredItems(cs).subList(0, 500), toItems(cs, response.data.rows));
 		}
 	}
 	
 	@Test
 	public void C1052_Items_WithLimitLessThanMaxLimitButGreaterThanItemsCount() {
-		CatSym cs = newSymbol();
-		generateItems(cs, 800, 130999L, 15000L, "0.050", "0.025", "1", "2");
+		CatSym cs = ath.newSymbol();
+		ath.generateItems(cs, 800, ath.getRecentItemTimePlus1(), 15000L, "0.050", "0.025", "1", "2");
 		
-		for ( RequestSpecification spec : getSpecAll() ) {
-			ItemsResponseDTO response = apiGetItems(spec, cs.symbol, 1000);
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			ItemsResponseDTO response = ath.apiGetItems(spec, cs.symbol, 1000);
 			
 			assertNotError(response);
 			assertEquals(cs.symbol, response.data.symbol);
@@ -264,61 +277,68 @@ public class BacknodeIT extends TestBasis {
 			assertEquals(800, response.data.rows.size());
 			assertNotNull(response.data.magic);
 			assertNotNull(response.data.fromOffset);
-			assertEquals(registeredItems(cs).subList(0, 800), toItems(cs, response.data.rows));
+			assertEquals(ath.registeredItems(cs).subList(0, 800), toItems(cs, response.data.rows));
 		}
 	}
 	
 	@Test
 	public void C1053_Items_WithLimitGreaterThanMaxLimitAndLessThanItemsCount() {
-		CatSym cs = newSymbol();
-		generateItems(cs, 5500, 178896L, 15000L, "1025.0", "0.5", "1000", "10");
+		CatSym cs = ath.newSymbol();
+		ath.generateItems(cs, 5500, ath.getRecentItemTimePlus1(), 15000L, "1025.0", "0.5", "1000", "10");
 		
-		for ( RequestSpecification spec : getSpecAll() ) {
-			ItemsResponseDTO response = apiGetItems(spec, cs.symbol, 5200);
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			ItemsResponseDTO response = ath.apiGetItems(spec, cs.symbol, 5200);
 			
 			assertEquals(cs.symbol, response.data.symbol);
 			assertEquals("std", response.data.format);
 			assertEquals(5000, response.data.rows.size());
 			assertNotNull(response.data.magic);
 			assertNotNull(response.data.fromOffset);
-			assertEquals(5500, registeredItems(cs).size());
-			assertEquals(registeredItems(cs).subList(0, 5000), toItems(cs, response.data.rows));
+			assertEquals(5500, ath.registeredItems(cs).size());
+			assertEquals(ath.registeredItems(cs).subList(0, 5000), toItems(cs, response.data.rows));
 		}
 	}
 	
 	@Test
 	public void C1054_Items_WithLimitGreaterThanMaxLimitAndGreaterThanItemsCount() {
-		CatSym cs = newSymbol();
-		generateItems(cs, 5500, 172991L, 15000L, "100.24919", "0.00001", "10900", "-1");
+		CatSym cs = ath.newSymbol();
+		ath.generateItems(cs, 5500, ath.getRecentItemTimePlus1(), 15000L, "100.24919", "0.00001", "10900", "-1");
 		
-		for ( RequestSpecification spec : getSpecAll() ) {
-			ItemsResponseDTO response = apiGetItems(spec, cs.symbol, 7000);
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			ItemsResponseDTO response = ath.apiGetItems(spec, cs.symbol, 7000);
 			
 			assertEquals(cs.symbol, response.data.symbol);
 			assertEquals("std", response.data.format);
 			assertEquals(5000, response.data.rows.size());
 			assertNotNull(response.data.magic);
 			assertNotNull(response.data.fromOffset);
-			assertEquals(5500, registeredItems(cs).size());
-			assertEquals(registeredItems(cs).subList(0, 5000), toItems(cs, response.data.rows));
+			assertEquals(5500, ath.registeredItems(cs).size());
+			assertEquals(ath.registeredItems(cs).subList(0, 5000), toItems(cs, response.data.rows));
 		}
 	}
 	
 	@Test
-	public void C1055_Items_ShouldConsiderTimeFromInclusiveAndTimeToExclusive() {
-		CatSym cs = newSymbol();
-		generateItems(cs, 1000, 200000L, 1000L, "0.20000", "-0.00005", "1", "1");
-		List<Item> expected = registeredItems(cs);
+	public void C1055_Items_ShouldConsiderTimeFromInclusiveAndTimeToExclusive() throws Exception {
+		CatSym cs = ath.newSymbol();
+		long start_time = ath.getRecentItemTimePlus1();
+		ath.generateItems(cs, 1000, start_time + 200000L, 1000L, "0.20000", "-0.00005", "1", "1");
+		List<Item> expected = ath.registeredItems(cs);
 		Item expected_first, expected_last;
-		assertEquals(                 cs.newItem( 200000L, "0.20000",    "1"), expected.get(  0));
-		assertEquals(expected_first = cs.newItem( 300000L, "0.19500",  "101"), expected.get(100));
-		assertEquals(expected_last  = cs.newItem(1099000L, "0.15505",  "900"), expected.get(899));
-		assertEquals(                 cs.newItem(1199000L, "0.15005", "1000"), expected.get(999));
+		assertEquals(                 cs.newItem(start_time +  200000L, "0.20000",    "1"), expected.get(  0));
+		assertEquals(expected_first = cs.newItem(start_time +  300000L, "0.19500",  "101"), expected.get(100));
+		assertEquals(expected_last  = cs.newItem(start_time + 1099000L, "0.15505",  "900"), expected.get(899));
+		assertEquals(                 cs.newItem(start_time + 1199000L, "0.15005", "1000"), expected.get(999));
 		expected = expected.subList(100, 900);
 
-		for ( RequestSpecification spec : getSpecAll() ) {
-			ItemsResponseDTO response = apiGetItems(spec, cs.symbol, null, 300000L, 1100000L);
-
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			CompletableFuture<ItemsResponseDTO> r = new CompletableFuture<>();
+			waitUntil(() -> {
+				ItemsResponseDTO response = ath.apiGetItems(spec, cs.symbol, null,
+						start_time + 300000L, start_time + 1100000L);
+				assertNotError(response);
+				return response.data.rows.size() == 800 ? r.complete(response) : false;
+			});
+			ItemsResponseDTO response = r.get(1, TimeUnit.SECONDS);
 			List<Item> actual = toItems(cs, response.data.rows);
 			assertEquals(expected_first, actual.get(0));
 			assertEquals(expected_last, actual.get(actual.size() - 1));
@@ -329,17 +349,18 @@ public class BacknodeIT extends TestBasis {
 	
 	@Test
 	public void C1056_Items_ShouldConsiderTimeFromInclusive() {
-		CatSym cs = newSymbol();
-		generateItems(cs, 1000, 200000L, 1000L, "0.20000", "-0.00005", "1", "1");
-		List<Item> expected = registeredItems(cs);
+		CatSym cs = ath.newSymbol();
+		long start_time = ath.getRecentItemTimePlus1();
+		ath.generateItems(cs, 1000, start_time + 200000L, 1000L, "0.20000", "-0.00005", "1", "1");
+		List<Item> expected = ath.registeredItems(cs);
 		Item expected_first, expected_last;
-		assertEquals(                 cs.newItem( 200000L, "0.20000",    "1"), expected.get(  0));
-		assertEquals(expected_first = cs.newItem( 300000L, "0.19500",  "101"), expected.get(100));
-		assertEquals(expected_last  = cs.newItem(1199000L, "0.15005", "1000"), expected.get(999));
+		assertEquals(                 cs.newItem(start_time +  200000L, "0.20000",    "1"), expected.get(  0));
+		assertEquals(expected_first = cs.newItem(start_time +  300000L, "0.19500",  "101"), expected.get(100));
+		assertEquals(expected_last  = cs.newItem(start_time + 1199000L, "0.15005", "1000"), expected.get(999));
 		expected = expected.subList(100, 1000);
 		
-		for ( RequestSpecification spec : getSpecAll() ) {
-			ItemsResponseDTO response = apiGetItems(spec, cs.symbol, null, 300000L, null);
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			ItemsResponseDTO response = ath.apiGetItems(spec, cs.symbol, null, start_time + 300000L, null);
 
 			List<Item> actual = toItems(cs, response.data.rows);
 			assertEquals(expected_first, actual.get(0));
@@ -350,41 +371,49 @@ public class BacknodeIT extends TestBasis {
 	}
 	
 	@Test
-	public void C1057_Items_ShouldConsiderTimeToExclusive() {
-		CatSym cs = newSymbol();
-		generateItems(cs, 1000, 200000L, 1000L, "0.20000", "-0.00005", "1", "1");
-		List<Item> expected = registeredItems(cs);
+	public void C1057_Items_ShouldConsiderTimeToExclusive() throws Exception {
+		CatSym cs = ath.newSymbol();
+		long start_time = ath.getRecentItemTimePlus1();
+		ath.generateItems(cs, 1000, start_time + 200000L, 1000L, "0.20000", "-0.00005", "1", "1");
+		List<Item> expected = ath.registeredItems(cs);
 		Item expected_first, expected_last;
-		assertEquals(expected_first = cs.newItem( 200000L, "0.20000",    "1"), expected.get(  0));
-		assertEquals(expected_last  = cs.newItem(1099000L, "0.15505",  "900"), expected.get(899));
-		assertEquals(                 cs.newItem(1199000L, "0.15005", "1000"), expected.get(999));
+		assertEquals(expected_first = cs.newItem(start_time +  200000L, "0.20000",    "1"), expected.get(  0));
+		assertEquals(expected_last  = cs.newItem(start_time + 1099000L, "0.15505",  "900"), expected.get(899));
+		assertEquals(                 cs.newItem(start_time + 1199000L, "0.15005", "1000"), expected.get(999));
 		expected = expected.subList(000, 900);
 
-		for ( RequestSpecification spec : getSpecAll() ) {
-			ItemsResponseDTO response = apiGetItems(spec, cs.symbol, null, null, 1100000L);
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			CompletableFuture<ItemsResponseDTO> r = new CompletableFuture<>();
+			waitUntil(() -> {
+				ItemsResponseDTO response = ath.apiGetItems(spec, cs.symbol, null, null, start_time + 1100000L);
+				assertNotError(response);
+				return response.data.rows.size() == 900 ? r.complete(response) : false;
+			});
+			ItemsResponseDTO response = r.get(1, TimeUnit.SECONDS);
 
 			List<Item> actual = toItems(cs, response.data.rows);
 			assertEquals(expected_first, actual.get(0));
 			assertEquals(expected_last, actual.get(actual.size() - 1));
-			assertEquals(900, actual.size());
-			assertEquals(expected, actual);
+			assertEqualsItemByItem("Test failed", expected, actual);
 		}
 	}
 	
 	@Test
 	public void C1058_Items_LimitShouldHaveGreaterPriorityThanTimeTo() {
-		CatSym cs = newSymbol();
-		generateItems(cs, 1000, 200000L, 1000L, "0.20000", "-0.00005", "1", "1");
-		List<Item> expected = registeredItems(cs);
+		CatSym cs = ath.newSymbol();
+		long start_time = ath.getRecentItemTimePlus1();
+		ath.generateItems(cs, 1000, start_time + 200000L, 1000L, "0.20000", "-0.00005", "1", "1");
+		List<Item> expected = ath.registeredItems(cs);
 		Item expected_first, expected_last;
-		assertEquals(                 cs.newItem( 200000L, "0.20000",    "1"), expected.get(  0));
-		assertEquals(expected_first = cs.newItem( 300000L, "0.19500",  "101"), expected.get(100));
-		assertEquals(expected_last  = cs.newItem(1049000L, "0.15755",  "850"), expected.get(849));
-		assertEquals(                 cs.newItem(1199000L, "0.15005", "1000"), expected.get(999));
+		assertEquals(                 cs.newItem(start_time +  200000L, "0.20000",    "1"), expected.get(  0));
+		assertEquals(expected_first = cs.newItem(start_time +  300000L, "0.19500",  "101"), expected.get(100));
+		assertEquals(expected_last  = cs.newItem(start_time + 1049000L, "0.15755",  "850"), expected.get(849));
+		assertEquals(                 cs.newItem(start_time + 1199000L, "0.15005", "1000"), expected.get(999));
 		expected = expected.subList(100, 850);
 
-		for ( RequestSpecification spec : getSpecAll() ) {
-			ItemsResponseDTO response = apiGetItems(spec, cs.symbol, 750, 300000L, 1100000L);
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			ItemsResponseDTO response =
+					ath.apiGetItems(spec, cs.symbol, 750, start_time + 300000L, start_time + 1100000L);
 
 			List<Item> actual = toItems(cs, response.data.rows);
 			assertEquals(expected_first, actual.get(0));
@@ -395,72 +424,117 @@ public class BacknodeIT extends TestBasis {
 	}
 	
 	@Test
-	public void C1059_Items_ShouldConsiderFromOffset() {
-		CatSym cs = newSymbol();
-		generateItems(cs, 12000, 230000L, 1000L, "1.0000", "0.0005", "1", "1");
+	public void C1059_Items_ShouldConsiderFromOffset() throws Exception {
+		CatSym cs = ath.newSymbol();
+		long start_time = ath.getRecentItemTimePlus1();
+		ath.generateItems(cs, 12000, start_time + 230000L, 1000L, "1.0000", "0.0005", "1", "1");
 		
-		for ( RequestSpecification spec : getSpecAll() ) {
-			ItemsResponseDTO response = apiGetItems(spec, cs.symbol, null);
-			assertEquals(registeredItems(cs).subList(0, 5000), toItems(cs, response.data.rows));
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			final CompletableFuture<ItemsResponseDTO> r1 = new CompletableFuture<>();
+			waitUntil(() -> {
+				ItemsResponseDTO response = ath.apiGetItems(spec, cs.symbol, null);
+				assertNotError(response);
+				return response.data.rows.size() == 5000 ? r1.complete(response) : false;
+			});
+			final ItemsResponseDTO response1 = r1.get(1, TimeUnit.SECONDS);
+			assertEquals(ath.registeredItems(cs).subList(0, 5000), toItems(cs, response1.data.rows));
 			
-			response = apiGetItems(spec, cs.symbol, null, null, null, response.data.magic, response.data.fromOffset);
-			assertNotError(response);
-			assertEquals(cs.symbol, response.data.symbol);
-			assertEquals("std", response.data.format);
-			assertNotNull(response.data.magic);
-			assertThat(response.data.magic.length(), is(greaterThan(0)));
-			assertNotNull(response.data.fromOffset);
-			assertEquals(registeredItems(cs).subList(5000, 10000), toItems(cs, response.data.rows));
+			final CompletableFuture<ItemsResponseDTO> r2 = new CompletableFuture<>();
+			waitUntil(() -> {
+				ItemsResponseDTO response = ath.apiGetItems(spec, cs.symbol, null, null, null,
+						response1.data.magic, response1.data.fromOffset);
+				assertNotError(response);
+				return response.data.rows.size() == 5000 ? r2.complete(response) : false;
+			});
+			final ItemsResponseDTO response2 = r2.get(1, TimeUnit.SECONDS); 
+			assertEquals(cs.symbol, response2.data.symbol);
+			assertEquals("std", response2.data.format);
+			assertNotNull(response2.data.magic);
+			assertThat(response2.data.magic.length(), is(greaterThan(0)));
+			assertNotNull(response2.data.fromOffset);
+			assertEquals(ath.registeredItems(cs).subList(5000, 10000), toItems(cs, response2.data.rows));
 			
-			response = apiGetItems(spec, cs.symbol, null, null, null, response.data.magic, response.data.fromOffset);
-			assertNotError(response);
-			assertEquals(cs.symbol, response.data.symbol);
-			assertEquals("std", response.data.format);
-			assertNotNull(response.data.magic);
-			assertThat(response.data.magic.length(), is(greaterThan(0)));
-			assertNotNull(response.data.fromOffset);
-			assertEquals(registeredItems(cs).subList(10000, 12000), toItems(cs, response.data.rows));
+			final CompletableFuture<ItemsResponseDTO> r3 = new CompletableFuture<>();
+			waitUntil(() -> {
+				ItemsResponseDTO response = ath.apiGetItems(spec, cs.symbol, null, null, null,
+						response2.data.magic, response2.data.fromOffset);
+				assertNotError(response);
+				return response.data.rows.size() == 2000 ? r3.complete(response) : false;
+			});
+			final ItemsResponseDTO response3 = r3.get(1, TimeUnit.SECONDS); 
+			assertEquals(cs.symbol, response3.data.symbol);
+			assertEquals("std", response3.data.format);
+			assertNotNull(response3.data.magic);
+			assertThat(response3.data.magic.length(), is(greaterThan(0)));
+			assertNotNull(response3.data.fromOffset);
+			assertEquals(ath.registeredItems(cs).subList(10000, 12000), toItems(cs, response3.data.rows));
 		}
 	}
 	
 	@Test
-	public void C1060_Items_ShouldIgnoreTimeFromIfFromOffsetSpecified() {
-		CatSym cs = newSymbol();
-		generateItems(cs, 6000, 230000L, 1000L, "1.0000", "0.0005", "1", "1");
+	public void C1060_Items_ShouldIgnoreTimeFromIfFromOffsetSpecified() throws Exception {
+		CatSym cs = ath.newSymbol();
+		long start_time = ath.getRecentItemTimePlus1();
+		ath.generateItems(cs, 6000, start_time + 230000L, 1000L, "1.0000", "0.0005", "1", "1");
 
-		for ( RequestSpecification spec : getSpecAll() ) {
-			ItemsResponseDTO response = apiGetItems(spec, cs.symbol, null);
-			assertEquals(registeredItems(cs).subList(0, 5000), toItems(cs, response.data.rows));
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			CompletableFuture<ItemsResponseDTO> r1 = new CompletableFuture<>();
+			waitUntil(() -> {
+				ItemsResponseDTO response = ath.apiGetItems(spec, cs.symbol, null);
+				assertNotError(response);
+				return response.data.rows.size() == 5000 ? r1.complete(response) : false;
+			});
+			ItemsResponseDTO response1 = r1.get(1, TimeUnit.SECONDS);
+			assertEqualsItemByItem("#1", ath.registeredItems(cs).subList(0, 5000), toItems(cs, response1.data.rows));
 			
-			response = apiGetItems(spec, cs.symbol, null, 730000L, null, response.data.magic, response.data.fromOffset);
-			assertNotError(response);
-			assertEquals(registeredItems(cs).subList(5000, 6000), toItems(cs, response.data.rows));
+			CompletableFuture<ItemsResponseDTO> r2 = new CompletableFuture<>();
+			waitUntil(() -> {
+				ItemsResponseDTO response = ath.apiGetItems(spec, cs.symbol, null, start_time + 730000L, null,
+					response1.data.magic, response1.data.fromOffset);
+				assertNotError(response);
+				return response.data.rows.size() == 1000 ? r2.complete(response) : false;
+			});
+			ItemsResponseDTO response2 = r2.get(1, TimeUnit.SECONDS); 
+			assertEqualsItemByItem("#2", ath.registeredItems(cs).subList(5000, 6000), toItems(cs, response2.data.rows));
 		}
 	}
 	
 	@Test
-	public void C1061_Items_ShouldBeOkIfOutOfRangeIfFromOffsetSpecified() {
-		CatSym cs = newSymbol();
-		generateItems(cs, 6000, 230000L, 1000L, "1.0000", "0.0005", "1", "1");
-
-		for ( RequestSpecification spec : getSpecAll() ) {
-			ItemsResponseDTO response = apiGetItems(spec, cs.symbol, null);
-			assertEquals(registeredItems(cs).subList(0, 5000), toItems(cs, response.data.rows));
+	public void C1061_Items_ShouldBeOkIfOutOfRangeIfFromOffsetSpecified() throws Exception {
+		CatSym cs = ath.newSymbol();
+		ath.generateItems(cs, 6000, ath.getRecentItemTimePlus1(), 1000L, "1.0000", "0.0005", "1", "1");
+		
+		List<Item> expected_rows = ath.registeredItems(cs).subList(0, 5000);
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			CompletableFuture<ItemsResponseDTO> r1 = new CompletableFuture<>();
+			waitUntil(() -> {
+				ItemsResponseDTO response = ath.apiGetItems(spec, cs.symbol, null);
+				assertNotError(response);
+				return response.data.rows.size() == 5000 ? r1.complete(response) : false;
+			});
+			ItemsResponseDTO response1 = r1.get(1, TimeUnit.SECONDS);
+			assertEqualsItemByItem("Initial request", expected_rows, toItems(cs, response1.data.rows));
 			
-			response = apiGetItems(spec, cs.symbol, 1, null, null, response.data.magic, 1128276L);
-			assertNotError(response);
-			assertEquals(0, response.data.rows.size());
+			CompletableFuture<ItemsResponseDTO> r2 = new CompletableFuture<>();
+			waitUntil(() -> {
+				ItemsResponseDTO response = ath.apiGetItems(spec, cs.symbol, 1, null, null,
+						response1.data.magic, response1.data.fromOffset + 1128276L);
+				assertNotError(response);
+				return response.data.rows.size() == 0 ? r2.complete(response) : false;
+			});
+			ItemsResponseDTO response2 = r2.get(1, TimeUnit.SECONDS);
+			assertEquals(0, response2.data.rows.size());
 		}
 	}	
 	
 	@Test
 	public void C1062_Items_ConcurrentRequestsShouldGiveSameResults() throws Exception {
-		CatSym cs = newSymbol();
-		generateItems(cs, 6000);
+		CatSym cs = ath.newSymbol();
+		ath.generateItems(cs, 6000);
 		int num_threads = 5;
 		CountDownLatch started = new CountDownLatch(num_threads),
 			go = new CountDownLatch(1), finished = new CountDownLatch(num_threads);
-		RequestSpecification spec = getSpecRandom();
+		RequestSpecification spec = ath.getSpecRandom();
 		List<CompletableFuture<ItemsResponseDTO>> result = new ArrayList<>();
 		for ( int i = 0; i < num_threads; i ++ ) {
 			final CompletableFuture<ItemsResponseDTO> f = new CompletableFuture<>();
@@ -470,7 +544,7 @@ public class BacknodeIT extends TestBasis {
 					try {
 						started.countDown();
 						if ( go.await(5, TimeUnit.SECONDS) ) {
-							ItemsResponseDTO response = apiGetItems(spec, cs.symbol, null);
+							ItemsResponseDTO response = ath.apiGetItems(spec, cs.symbol, null);
 							assertNotError(response);
 							f.complete(response);
 							finished.countDown();
@@ -486,7 +560,7 @@ public class BacknodeIT extends TestBasis {
 		go.countDown();
 		
 		CompletableFuture.allOf(result.toArray(new CompletableFuture<?>[0])).get(5, TimeUnit.SECONDS);
-		List<Item> expected = registeredItems(cs).subList(0, 5000);
+		List<Item> expected = ath.registeredItems(cs).subList(0, 5000);
 		for ( int i = 0; i < num_threads; i ++ ) {
 			CompletableFuture<ItemsResponseDTO> f = result.get(i);
 			assertEqualsItemByItem("Thread #" + i, expected, toItems(cs, f.get().data.rows));
@@ -495,16 +569,16 @@ public class BacknodeIT extends TestBasis {
 
 	@Test
 	public void C1063_Items_TwoConsecutiveCallsShouldGiveSameResult() throws Exception {
-		CatSym cs = newSymbol();
-		generateItems(cs, 4000);
+		CatSym cs = ath.newSymbol();
+		ath.generateItems(cs, 4000);
 
-		for ( RequestSpecification spec : getSpecAll() ) {
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
 			CompletableFuture<ItemsResponseDTO> r = new CompletableFuture<>();
 			await().dontCatchUncaughtExceptions()
 				.pollInterval(Duration.ofSeconds(5L))
 				.atMost(Duration.ofSeconds(20))
 				.until(() -> {
-					ItemsResponseDTO response = apiGetItems(spec, cs.symbol, 3000);
+					ItemsResponseDTO response = ath.apiGetItems(spec, cs.symbol, 3000);
 					assertNotError(response);
 					if ( response.data.rows.size() == 3000 ) {
 						r.complete(response);
@@ -516,7 +590,7 @@ public class BacknodeIT extends TestBasis {
 			
 			ItemsResponseDTO response1, response2;
 			assertNotError(response1 = r.get(1, TimeUnit.SECONDS));
-			assertNotError(response2 = apiGetItems(spec, cs.symbol, 3000));
+			assertNotError(response2 = ath.apiGetItems(spec, cs.symbol, 3000));
 			
 			assertEquals(3000, response1.data.rows.size());
 			assertEquals(response1.data.symbol, response2.data.symbol);
@@ -529,21 +603,20 @@ public class BacknodeIT extends TestBasis {
 	
 	@Test
 	public void C1064_Items_AnyNodeShouldProvideDataOfAnySymbolDespitePartitioning() {
-		Map<Integer, List<CatSym>> map = newSymbolsOfDifferentPartitions(5);
-		for ( int num_partitions : map.keySet() ) {
-			for ( CatSym cs : map.get(num_partitions) ) {
-				generateItems(cs, 1000);
-			}
-		}
+		Map<Integer, List<CatSym>> map = ath.newSymbolsOfDifferentPartitions(5);
+		List<CatSym> cs_list = map.values().stream()
+			.flatMap(x -> x.stream())
+			.collect(Collectors.toList());
+		ath.generateItems(cs_list, 1000);
 		
-		for ( RequestSpecification spec : getSpecAll() ) {
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
 			for ( int num_partitions : map.keySet() ) {
 				for ( CatSym cs : map.get(num_partitions) ) {
-					ItemsResponseDTO response = apiGetItems(spec, cs.symbol, 877);
+					ItemsResponseDTO response = ath.apiGetItems(spec, cs.symbol, 877);
 					assertNotError(response);
-					assertEquals(registeredItems(cs).subList(0,  877), toItems(cs, response.data.rows));
+					assertEquals(ath.registeredItems(cs).subList(0,  877), toItems(cs, response.data.rows));
 				}
-			}	
+			}
 		}
 	}
 	
@@ -551,108 +624,112 @@ public class BacknodeIT extends TestBasis {
 	
 	@Test
 	public void C2010_PutSymbol_PutAndTestResponse() {
-		CatSym cs = newSymbol();
+		CatSym cs = ath.newSymbol();
 
-		SymbolResponseDTO response = apiPutSymbol(getSpecRandom(), cs.symbol);
+		SymbolResponseDTO response = ath.apiPutSymbol(ath.getSpecRandom(), cs.symbol);
 		
 		assertNotError(response);
 	}
 	
 	@Test
 	public void C2011_PutSymbol_ShouldBeOkIfEmptyCategory() {
-		CatSym cs = newSymbol("");
+		CatSym cs = ath.newSymbol("");
 		
-		assertNotError(apiPutSymbol(getSpecRandom(), cs.symbol));
+		assertNotError(ath.apiPutSymbol(ath.getSpecRandom(), cs.symbol));
 		
-		CategoriesResponseDTO response = apiGetCategories();
+		CategoriesResponseDTO response = ath.apiGetCategories();
 		assertNotError(response);
-		assertEquals(Arrays.asList(""), response.data.rows);
+		assertTrue(response.data.rows.contains(""));
 	}
 	
 	@Test
 	public void C2012_PutSymbol_ShouldRegisterCategory() {
-		List<CatSym> symbols = newSymbols(2, 1);
+		List<CatSym> symbols = ath.newSymbols(2, 1);
 		CatSym cs1 = symbols.get(0), cs2 = symbols.get(1);
 		
-		assertNotError(apiPutSymbol(getSpecRandom(), cs1.symbol));
-		assertNotError(apiPutSymbol(getSpecRandom(), cs2.symbol));
+		assertNotError(ath.apiPutSymbol(ath.getSpecRandom(), cs1.symbol));
+		assertNotError(ath.apiPutSymbol(ath.getSpecRandom(), cs2.symbol));
 		
-		CategoriesResponseDTO response = apiGetCategories();
+		CategoriesResponseDTO response = ath.apiGetCategories();
 		assertNotError(response);
-		List<String> expected = new ArrayList<>(Arrays.asList(cs1.category, cs2.category));
-		Collections.sort(expected);
-		assertEquals(expected, response.data.rows);
+		assertTrue(response.data.rows.contains(cs1.category));
+		assertTrue(response.data.rows.contains(cs2.category));
 	}
 	
 	@Test
 	public void C2012_PutSymbol_ShouldSupportBatchMode() {
-		List<CatSym> symbols = newSymbols(1, 20);
+		List<CatSym> symbols = ath.newSymbols(1, 20);
 		
-		assertNotError(apiPutSymbolCS(getSpecRandom(), symbols));
+		assertNotError(ath.apiPutSymbolCS(ath.getSpecRandom(), symbols));
 		
 		String category = symbols.get(0).category;
-		SymbolsResponseDTO response = apiGetSymbols(getSpecRandom(), category);
+		SymbolsResponseDTO response = ath.apiGetSymbols(ath.getSpecRandom(), category);
 		assertNotError(response);
 		assertEquals(20, response.data.rows.size());
-		assertEquals(registeredSymbols(category), response.data.rows);
+		assertEquals(ath.registeredSymbols(category), response.data.rows);
 	}
 	
 	@Test
-	public void C2030_Symbols_GetAll() {
-		List<CatSym> symbols = newSymbols(10, 20);
-		assertNotError(apiPutSymbolCS(getSpecRandom(), symbols));
+	public void C2030_Symbols_GetAll() throws Exception {
+		List<CatSym> symbols = ath.newSymbols(10, 20);
+		assertNotError(ath.apiPutSymbolCS(ath.getSpecRandom(), symbols));
 		
-		List<String> categories = registeredCategories();
-		assertEquals(10, categories.size());
-		for ( RequestSpecification spec : getSpecAll() ) {
+		Set<String> categories = symbols.stream().map(x -> x.category).collect(Collectors.toSet());
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
 			for ( String category : categories ) {
-				SymbolsResponseDTO response = apiGetSymbols(spec, category);
-				assertNotError(response);
-				assertEquals(registeredSymbols(category), response.data.rows);
-				assertEquals(20, response.data.rows.size());
+				CompletableFuture<SymbolsResponseDTO> r = new CompletableFuture<>();
+				List<String> expected_symbols = ath.registeredSymbols(category);
+				waitUntil(() -> {
+					SymbolsResponseDTO response = ath.apiGetSymbols(spec, category);
+					assertNotError(response);
+					return response.data.rows.size() == expected_symbols.size() ? r.complete(response) : false;
+				});
+				SymbolsResponseDTO response = r.get(1, TimeUnit.SECONDS);
+				assertEquals(expected_symbols, response.data.rows);
+				assertThat(response.data.rows.size(), is(greaterThanOrEqualTo(20)));
 			}
 		}
 	}
 	
 	@Test
 	public void C2031_Symbols_ShouldApplyDefaultLimit() {
-		List<CatSym> symbols = newSymbols(1, 7000);
-		assertNotError(apiPutSymbolCS(getSpecRandom(), symbols));
+		List<CatSym> symbols = ath.newSymbols(1, 7000);
+		assertNotError(ath.apiPutSymbolCS(ath.getSpecRandom(), symbols));
 		
 		String category = symbols.get(0).category;
-		for ( RequestSpecification spec : getSpecAll() ) {
-			SymbolsResponseDTO response = apiGetSymbols(spec, category);
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			SymbolsResponseDTO response = ath.apiGetSymbols(spec, category);
 			assertNotError(response);
-			assertEquals(registeredSymbols(category).subList(0, 5000), response.data.rows);
+			assertEquals(ath.registeredSymbols(category).subList(0, 5000), response.data.rows);
 			assertEquals(5000, response.data.rows.size());
 		}
 	}
 	
 	@Test
 	public void C2032_Symbols_WithLimitGreaterThanMaxLimit() {
-		List<CatSym> symbols = newSymbols(1, 7000);
-		assertNotError(apiPutSymbolCS(getSpecRandom(), symbols));
+		List<CatSym> symbols = ath.newSymbols(1, 7000);
+		assertNotError(ath.apiPutSymbolCS(ath.getSpecRandom(), symbols));
 		
 		String category = symbols.get(0).category;
-		for ( RequestSpecification spec : getSpecAll() ) {
-			SymbolsResponseDTO response = apiGetSymbols(spec, category, 5100);
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			SymbolsResponseDTO response = ath.apiGetSymbols(spec, category, 5100);
 			assertNotError(response);
-			assertEquals(registeredSymbols(category).subList(0, 5000), response.data.rows);
+			assertEquals(ath.registeredSymbols(category).subList(0, 5000), response.data.rows);
 			assertEquals(5000, response.data.rows.size());
 		}
 	}
 	
 	@Test
 	public void C2033_Symbols_WithLimitGreaterThanMaxLimitAndAfterSymbol() {
-		List<CatSym> symbols = newSymbols(1, 7000);
-		assertNotError(apiPutSymbolCS(getSpecRandom(), symbols));
+		List<CatSym> symbols = ath.newSymbols(1, 7000);
+		assertNotError(ath.apiPutSymbolCS(ath.getSpecRandom(), symbols));
 		
 		String category = symbols.get(0).category;
-		List<String> expected = registeredSymbols(category);
+		List<String> expected = ath.registeredSymbols(category);
 		String afterSymbol = expected.get(199);
 		expected = expected.subList(200, 5200);
-		for ( RequestSpecification spec : getSpecAll() ) {
-			SymbolsResponseDTO response = apiGetSymbols(spec, category, afterSymbol, 8000);
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			SymbolsResponseDTO response = ath.apiGetSymbols(spec, category, afterSymbol, 8000);
 			assertNotError(response);
 			assertEquals(expected, response.data.rows);
 			assertEquals(5000, response.data.rows.size());
@@ -661,18 +738,18 @@ public class BacknodeIT extends TestBasis {
 
 	@Test
 	public void C2034_Symbols_WithLimit() {
-		List<CatSym> symbols = newSymbols(5, 20);
-		assertNotError(apiPutSymbolCS(getSpecRandom(), symbols));
+		List<CatSym> symbols = ath.newSymbols(5, 20);
+		assertNotError(ath.apiPutSymbolCS(ath.getSpecRandom(), symbols));
 		
 		List<String> expected;
 		SymbolsResponseDTO response;
 		
 		String expected_category = symbols.get(0).category;
-		for ( RequestSpecification spec : getSpecAll() ) {
-			response = apiGetSymbols(spec, expected_category, 5);
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			response = ath.apiGetSymbols(spec, expected_category, 5);
 			assertNotError(response);
 			
-			expected = registeredSymbols(expected_category).subList(0,  5);
+			expected = ath.registeredSymbols(expected_category).subList(0,  5);
 			assertEquals(expected, response.data.rows);
 			assertEquals(expected_category, response.data.category);
 			assertEquals(5, response.data.rows.size());
@@ -681,19 +758,19 @@ public class BacknodeIT extends TestBasis {
 	
 	@Test
 	public void C2035_Symbols_WithAfterSymbol() {
-		List<CatSym> symbols = newSymbols(5, 20);
-		assertNotError(apiPutSymbolCS(getSpecRandom(), symbols));
+		List<CatSym> symbols = ath.newSymbols(5, 20);
+		assertNotError(ath.apiPutSymbolCS(ath.getSpecRandom(), symbols));
 
 		List<String> expected;
 		SymbolsResponseDTO response;
 		
 		String expected_category = symbols.get(0).category;
-		String after_symbol = registeredSymbols(expected_category).get(2);
-		for ( RequestSpecification spec : getSpecAll() ) {
-			response = apiGetSymbols(spec, expected_category, after_symbol); // 3-19
+		String after_symbol = ath.registeredSymbols(expected_category).get(2);
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			response = ath.apiGetSymbols(spec, expected_category, after_symbol); // 3-19
 			assertNotError(response);
 			
-			expected = registeredSymbols(expected_category).subList(3, 20);
+			expected = ath.registeredSymbols(expected_category).subList(3, 20);
 			assertEquals(expected, response.data.rows);
 			assertEquals(expected_category, response.data.category);
 			assertEquals(17, response.data.rows.size());
@@ -702,18 +779,18 @@ public class BacknodeIT extends TestBasis {
 	
 	@Test
 	public void C2036_Symbols_WithLimitAndAfterSymbol() {
-		List<CatSym> symbols = newSymbols(5, 20);
-		assertNotError(apiPutSymbolCS(getSpecRandom(), symbols));
+		List<CatSym> symbols = ath.newSymbols(5, 20);
+		assertNotError(ath.apiPutSymbolCS(ath.getSpecRandom(), symbols));
 
 		List<String> expected;
 		SymbolsResponseDTO response;
 		String expected_category = symbols.get(0).category;
-		String after_symbol = registeredSymbols(expected_category).get(2);
-		for ( RequestSpecification spec : getSpecAll() ) {
-			response = apiGetSymbols(spec, expected_category, after_symbol, 15);
+		String after_symbol = ath.registeredSymbols(expected_category).get(2);
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			response = ath.apiGetSymbols(spec, expected_category, after_symbol, 15);
 			assertNotError(response);
 			
-			expected = registeredSymbols(expected_category).subList(3, 18);
+			expected = ath.registeredSymbols(expected_category).subList(3, 18);
 			assertEquals(expected, response.data.rows);
 			assertEquals(expected_category, response.data.category);
 			assertEquals(15, response.data.rows.size());
@@ -722,22 +799,22 @@ public class BacknodeIT extends TestBasis {
 	
 	@Test
 	public void C2050_PutSymbolUpdate_PutAndTestResponse() {
-		CatSym cs = newSymbol();
+		CatSym cs = ath.newSymbol();
 		
 		SymbolUpdateResponseDTO response =
-				apiPutSymbolUpdate(getSpecRandom(), cs.symbol, 112456L, 1, "foo", 2, "bar", 5, "buzz");
+				ath.apiPutSymbolUpdate(ath.getSpecRandom(), cs.symbol, 112456L, 1, "foo", 2, "bar", 5, "buzz");
 		
 		assertNotError(response);
 	}
 	
 	@Test
 	public void C2051_PutSymbolUpdate_ShouldRegisterUpdate() {
-		CatSym cs = newSymbol();
+		CatSym cs = ath.newSymbol();
 		
-		assertNotError(apiPutSymbolUpdate(getSpecRandom(), cs.symbol, 237991L, 50, "pop", 51, "gap", 52, "die"));
+		assertNotError(ath.apiPutSymbolUpdate(ath.getSpecRandom(), cs.symbol, 237991L, 50, "pop", 51, "gap", 52, "die"));
 
-		for ( RequestSpecification spec : getSpecAll() ) {
-			SymbolUpdatesResponseDTO response = apiGetSymbolUpdates(spec, cs.symbol);
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			SymbolUpdatesResponseDTO response = ath.apiGetSymbolUpdates(spec, cs.symbol);
 			assertNotError(response);
 			assertEquals(cs.symbol, response.data.symbol);
 			List<SymbolUpdateDTO> expected = Arrays.asList(
@@ -749,23 +826,23 @@ public class BacknodeIT extends TestBasis {
 	
 	@Test
 	public void C2052_PutSymbolUpdate_ShouldRegisterCategory() {
-		CatSym cs = newSymbol();
-		assertNotError(apiPutSymbolUpdate(getSpecRandom(), cs.symbol, 279390L, 1, "foo"));
+		CatSym cs = ath.newSymbol();
+		assertNotError(ath.apiPutSymbolUpdate(ath.getSpecRandom(), cs.symbol, 279390L, 1, "foo"));
 		
-		for ( RequestSpecification spec : getSpecAll() ) {
-			CategoriesResponseDTO response = apiGetCategories(spec);
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			CategoriesResponseDTO response = ath.apiGetCategories(spec);
 			assertNotError(response);
-			assertEquals(Arrays.asList(cs.category), response.data.rows);
+			assertTrue(response.data.rows.contains(cs.category));
 		}
 	}
 	
 	@Test
 	public void C2053_PutSymbolUpdate_ShouldRegisterSymbol() {
-		CatSym cs = newSymbol();
-		assertNotError(apiPutSymbolUpdate(getSpecRandom(), cs.symbol, 279390L, 1, "foo"));
+		CatSym cs = ath.newSymbol();
+		assertNotError(ath.apiPutSymbolUpdate(ath.getSpecRandom(), cs.symbol, 279390L, 1, "foo"));
 
-		for ( RequestSpecification spec : getSpecAll() ) {
-			SymbolsResponseDTO response = apiGetSymbols(spec, cs.category);
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			SymbolsResponseDTO response = ath.apiGetSymbols(spec, cs.category);
 			assertNotError(response);
 			assertEquals(Arrays.asList(cs.symbol), response.data.rows);
 		}
@@ -773,13 +850,13 @@ public class BacknodeIT extends TestBasis {
 
 	@Test
 	public void C2054_PutSymbolUpdate_ShouldOverrideExistingUpdate() {
-		CatSym cs = newSymbol();
-		assertNotError(apiPutSymbolUpdate(getSpecRandom(), cs.symbol, 279390L, 1, "foo"));
+		CatSym cs = ath.newSymbol();
+		assertNotError(ath.apiPutSymbolUpdate(ath.getSpecRandom(), cs.symbol, 279390L, 1, "foo"));
 		
-		assertNotError(apiPutSymbolUpdate(getSpecRandom(), cs.symbol, 279390L, 5, "back", 7, "rogers"));
+		assertNotError(ath.apiPutSymbolUpdate(ath.getSpecRandom(), cs.symbol, 279390L, 5, "back", 7, "rogers"));
 		
-		for ( RequestSpecification spec : getSpecAll() ) {
-			SymbolUpdatesResponseDTO response = apiGetSymbolUpdates(spec, cs.symbol);
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			SymbolUpdatesResponseDTO response = ath.apiGetSymbolUpdates(spec, cs.symbol);
 			assertNotError(response);
 			List<SymbolUpdateDTO> expected = Arrays.asList(
 					new SymbolUpdateDTO(279390L, toMap(5, "back", 7, "rogers"))
@@ -790,14 +867,14 @@ public class BacknodeIT extends TestBasis {
 	
 	@Test
 	public void C2060_SymbolUpdates() {
-		CatSym cs = newSymbol();
+		CatSym cs = ath.newSymbol();
 		// the order does not matter
-		assertNotError(apiPutSymbolUpdate(getSpecRandom(), cs.symbol, 279200L, 5, "back", 7, "rogers"));
-		assertNotError(apiPutSymbolUpdate(getSpecRandom(), cs.symbol, 279100L, 1, "foo"));
-		assertNotError(apiPutSymbolUpdate(getSpecRandom(), cs.symbol, 279000L, 3, "mamba", 4, "garpia"));
+		assertNotError(ath.apiPutSymbolUpdate(ath.getSpecRandom(), cs.symbol, 279200L, 5, "back", 7, "rogers"));
+		assertNotError(ath.apiPutSymbolUpdate(ath.getSpecRandom(), cs.symbol, 279100L, 1, "foo"));
+		assertNotError(ath.apiPutSymbolUpdate(ath.getSpecRandom(), cs.symbol, 279000L, 3, "mamba", 4, "garpia"));
 		
-		for ( RequestSpecification spec : getSpecAll() ) {
-			SymbolUpdatesResponseDTO response = apiGetSymbolUpdates(spec, cs.symbol);
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			SymbolUpdatesResponseDTO response = ath.apiGetSymbolUpdates(spec, cs.symbol);
 			assertNotError(response);
 			List<SymbolUpdateDTO> expected = Arrays.asList(
 					new SymbolUpdateDTO(279000L, toMap(3, "mamba", 4, "garpia")),
@@ -812,23 +889,28 @@ public class BacknodeIT extends TestBasis {
 	
 	@Test
 	public void C3001_Symbols_ShouldReturnSymbolsOfEmptyCategory() {
-		assertNotError(apiPutSymbol(getSpecRandom(), Arrays.asList("kobresia", "canopus", "foo@sirius", "bar@io")));
+		assertNotError(ath.apiPutSymbol(ath.getSpecRandom(),
+				Arrays.asList("kobresia", "canopus", "foo@sirius", "bar@io")));
 		
-		for ( RequestSpecification spec : getSpecAll() ) {
-			SymbolsResponseDTO response = apiGetSymbols(spec, "");
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			SymbolsResponseDTO response = ath.apiGetSymbols(spec, "");
 			assertNotError(response);
-			assertEquals(Arrays.asList("canopus", "kobresia"), response.data.rows);
+			assertTrue(response.data.rows.contains("canopus"));
+			assertTrue(response.data.rows.contains("kobresia"));
 		}
 	}
 	
 	@Test
 	public void C3002_Categories_ShouldReturnAllCategoriesIncludingEmpty() {
-		assertNotError(apiPutSymbol(getSpecRandom(), Arrays.asList("kobresia", "canopus", "foo@sirius", "bar@io")));
+		assertNotError(ath.apiPutSymbol(ath.getSpecRandom(),
+				Arrays.asList("kobresia", "canopus", "foo@sirius", "bar@io")));
 		
-		for ( RequestSpecification spec : getSpecAll() ) {
-			CategoriesResponseDTO response = apiGetCategories(spec);
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			CategoriesResponseDTO response = ath.apiGetCategories(spec);
 			assertNotError(response);
-			assertEquals(Arrays.asList("", "bar", "foo"), response.data.rows);
+			assertTrue(response.data.rows.contains(""));
+			assertTrue(response.data.rows.contains("bar"));
+			assertTrue(response.data.rows.contains("foo"));
 		}
 	}
 	
@@ -836,202 +918,186 @@ public class BacknodeIT extends TestBasis {
 	
 	@Test
 	public void C9001_Tuples_SimpleM1Request() throws Exception {
-		CatSym cs = newSymbol();
-		generateItems(cs, 100, 1L, 60000L, "0.01", "0.01", "1", "1");
+		Duration window = Duration.ofMinutes(1);
+		CatSym cs = ath.newSymbol();
+		long start_time = ath.getRecentItemTimePlus1();
+		long time_delta = 60000L;
+		ath.generateItems(cs, 100, start_time, time_delta, "0.01", "0.01", "1", "1");
+		start_time = start_time / window.toMillis() * window.toMillis(); // make it round
 
-		RequestSpecification spec = getSpecRandom();
+		RequestSpecification spec = ath.getSpecRandom();
 		CompletableFuture<TuplesResponseDTO> r = new CompletableFuture<>();
-		await().dontCatchUncaughtExceptions()
-			.pollInterval(Duration.ofSeconds(10L))
-			.atMost(Duration.ofSeconds(20))
-			.until(() -> {
-				TuplesResponseDTO response = apiGetTuples(spec, "M1", cs.symbol);
+		waitUntil(() -> {
+				TuplesResponseDTO response = ath.apiGetTuples(spec, "M1", cs.symbol);
 				assertNotError(response);
-				if ( response.data.rows.size() == 100 ) {
-					r.complete(response);
-					return true;
-				} else {
-					return false;
-				}
-			});
-		TuplesResponseDTO response = r.get(1, TimeUnit.MINUTES);
+				return response.data.rows.size() == 100 ? r.complete(response) : false;
+			}, Duration.ofMinutes(2L));
+		TuplesResponseDTO response = r.get(1, TimeUnit.SECONDS);
 		assertEquals(cs.symbol, response.data.symbol);
 		assertEquals("M1", response.data.period);
 		assertEquals("std", response.data.format);
 		List<Tuple> actual_rows = toTuples(response.data.rows);
 		assertEquals(100, actual_rows.size());
-		assertEquals(new Tuple(0L, "0.01", "0.01", "0.01", "0.01", "1"), actual_rows.get(0));
-		assertEquals(new Tuple(60000 * 99, "1.00", "1.00", "1.00", "1.00", "100"), actual_rows.get(99));
-		for ( int i = 0; i < 100; i ++ ) {
-			long expected_time = 60000 * i;
-			BigDecimal expected_val = new BigDecimal("0.01").multiply(new BigDecimal(i + 1));
-			BigDecimal expected_vol = BigDecimal.ONE.multiply(new BigDecimal(i + 1));
-			assertEquals("Tuple #" + i,
-				new Tuple(expected_time, expected_val, expected_val, expected_val, expected_val, expected_vol),
-				actual_rows.get(i));
+		assertEquals(new Tuple(start_time +           0L, "0.01", "0.01", "0.01", "0.01", "1"), actual_rows.get(0));
+		assertEquals(new Tuple(start_time + 60000L * 99L, "1.00", "1.00", "1.00", "1.00", "100"), actual_rows.get(99));
+		List<Tuple> expected_rows = new ArrayList<>();
+		for ( long i = 0; i < 100; i ++ ) {
+			long exp_time = start_time + 60000L * i;
+			BigDecimal exp_val = new BigDecimal("0.01").multiply(new BigDecimal(i + 1L));
+			BigDecimal exp_volume = BigDecimal.ONE.multiply(new BigDecimal(i + 1L));
+			expected_rows.add(new Tuple(exp_time, exp_val, exp_val, exp_val, exp_val, exp_volume));
 		}
+		assertEqualsTupleByTuple("Test failed", expected_rows, actual_rows);
 	}
 	
 	@Test
 	public void C9002_Tuples_FromTimeToTime() throws Exception {
-		CatSym cs = newSymbol();
-		generateItems(cs, 100, 1L, 60000L, "0.01", "0.01", "1", "1");
+		Duration window = Duration.ofMinutes(1);
+		CatSym cs = ath.newSymbol();
+		long start_time = ath.getRecentItemTimePlus1();
+		long time_delta = 60000L;
+		ath.generateItems(cs, 100, start_time, time_delta, "0.01", "0.01", "1", "1");
+		start_time = start_time / window.toMillis() * window.toMillis();
 		
-		RequestSpecification spec = getSpecRandom();
+		RequestSpecification spec = ath.getSpecRandom();
 		CompletableFuture<TuplesResponseDTO> r = new CompletableFuture<>();
-		await().dontCatchUncaughtExceptions()
-			.pollInterval(Duration.ofSeconds(10L))
-			.atMost(Duration.ofSeconds(20))
-			.until(() -> {
-				TuplesResponseDTO response = apiGetTuples(spec, "M1", cs.symbol, null, 1200000L, 4800000L);
+		final long _tb = start_time;
+		waitUntil(() -> {
+				TuplesResponseDTO response = ath.apiGetTuples(spec, "M1", cs.symbol, null, _tb+1200000L, _tb+4800000L);
 				assertNotError(response);
-				if ( response.data.rows.size() == 60 ) {
-					r.complete(response);
-					return true;
-				} else {
-					return false;
-				}
-			});
-		TuplesResponseDTO response = r.get(1, TimeUnit.MINUTES);
+				return response.data.rows.size() == 60 ? r.complete(response) : false;
+			}, Duration.ofMinutes(2L));
+		TuplesResponseDTO response = r.get(1, TimeUnit.SECONDS);
 		assertEquals(cs.symbol, response.data.symbol);
 		assertEquals("M1", response.data.period);
 		assertEquals("std", response.data.format);
 		List<Tuple> actual_rows = toTuples(response.data.rows);
 		assertEquals(60, actual_rows.size());
-		assertEquals(new Tuple(1200000, "0.21", "0.21", "0.21", "0.21", "21"), actual_rows.get(0));
-		assertEquals(new Tuple(4740000, "0.80", "0.80", "0.80", "0.80", "80"), actual_rows.get(59));
+		assertEquals(new Tuple(start_time + 1200000, "0.21", "0.21", "0.21", "0.21", "21"), actual_rows.get(0));
+		assertEquals(new Tuple(start_time + 4740000, "0.80", "0.80", "0.80", "0.80", "80"), actual_rows.get(59));
 		BigDecimal init_val = new BigDecimal("0.21"), init_vol = new BigDecimal("21"),
 				delt_val = new BigDecimal("0.01"), delt_vol = BigDecimal.ONE;
 		List<Tuple> expected_rows = new ArrayList<>();
 		for ( int i = 0; i < 60; i ++ ) {
 			BigDecimal mult = new BigDecimal(i);
 			BigDecimal val = delt_val.multiply(mult).add(init_val);
-			expected_rows.add(new Tuple(1200000 + 60000 * i,
+			expected_rows.add(new Tuple(start_time + 1200000 + 60000 * i,
 					val, val, val, val, delt_vol.multiply(mult).add(init_vol)));
 		}
-		assertEquals(expected_rows, actual_rows);
+		assertEqualsTupleByTuple("Test failed", expected_rows, actual_rows);
 	}
 	
 	@Test
 	public void C9003_Tuples_LimitHasHigherPriorityThanTimeTo() throws Exception {
-		CatSym cs = newSymbol();
-		generateItems(cs, 100, 1L, 60000L, "0.01", "0.01", "1", "1");
+		Duration window = Duration.ofMinutes(1L);
+		CatSym cs = ath.newSymbol();
+		long start_time = ath.getRecentItemTimePlus1();
+		long time_delta = 60000L;
+		ath.generateItems(cs, 100, start_time, time_delta, "0.01", "0.01", "1", "1");
+		start_time = start_time / window.toMillis() * window.toMillis();
 		
-		RequestSpecification spec = getSpecRandom();
+		RequestSpecification spec = ath.getSpecRandom();
 		CompletableFuture<TuplesResponseDTO> r = new CompletableFuture<>();
-		await().dontCatchUncaughtExceptions()
-			.pollInterval(Duration.ofSeconds(5L))
-			.atMost(Duration.ofSeconds(20))
-			.until(() -> {
-				TuplesResponseDTO response = apiGetTuples(spec, "M1", cs.symbol, 20, 1200000L, 4800000L);
+		final long _tb = start_time;
+		waitUntil(() -> {
+				TuplesResponseDTO response = ath.apiGetTuples(spec, "M1", cs.symbol, 20, _tb+1200000L, _tb+4800000L);
 				assertNotError(response);
-				if ( response.data.rows.size() == 20 ) {
-					r.complete(response);
-					return true;
-				} else {
-					return false;
-				}
-			});
-		TuplesResponseDTO response = r.get(1, TimeUnit.MINUTES);
+				return response.data.rows.size() == 20 ? r.complete(response) : false;
+			}, Duration.ofMinutes(2L));
+		TuplesResponseDTO response = r.get(1, TimeUnit.SECONDS);
 		assertEquals(cs.symbol, response.data.symbol);
 		assertEquals("M1", response.data.period);
 		assertEquals("std", response.data.format);
 		List<Tuple> actual_rows = toTuples(response.data.rows);
 		assertEquals(20, actual_rows.size());
-		assertEquals(new Tuple(1200000, "0.21", "0.21", "0.21", "0.21", "21"), actual_rows.get(0));
-		assertEquals(new Tuple(2340000, "0.40", "0.40", "0.40", "0.40", "40"), actual_rows.get(19));
+		assertEquals(new Tuple(start_time + 1200000L, "0.21", "0.21", "0.21", "0.21", "21"), actual_rows.get(0));
+		assertEquals(new Tuple(start_time + 2340000L, "0.40", "0.40", "0.40", "0.40", "40"), actual_rows.get(19));
 		BigDecimal init_val = new BigDecimal("0.21"), init_vol = new BigDecimal("21"),
 				delt_val = new BigDecimal("0.01"), delt_vol = BigDecimal.ONE;
 		List<Tuple> expected_rows = new ArrayList<>();
-		for ( int i = 0; i < 20; i ++ ) {
+		for ( long i = 0; i < 20; i ++ ) {
 			BigDecimal mult = new BigDecimal(i);
 			BigDecimal val = delt_val.multiply(mult).add(init_val);
-			expected_rows.add(new Tuple(1200000 + 60000 * i,
+			expected_rows.add(new Tuple(start_time + 1200000L + 60000L * i,
 					val, val, val, val, delt_vol.multiply(mult).add(init_vol)));
 		}
-		assertEquals(expected_rows, actual_rows);
+		assertEqualsTupleByTuple("Test failed", expected_rows, actual_rows);
 	}
 	
 	@Test
 	public void C9004_Tuples_ShouldUseMaxLimitIfRequestedLimitIsGreaterThanMaxLimit() throws Exception {
-		CatSym cs = newSymbol();
-		generateItems(cs, 7000, 1L, 60000L, "0.01", "0.01", "1", "1");
+		Duration window = Duration.ofMinutes(1L);
+		CatSym cs = ath.newSymbol();
+		long start_time = ath.getRecentItemTimePlus1();
+		long time_delta = 60000L;
+		ath.generateItems(cs, 7000, start_time, time_delta, "0.01", "0.01", "1", "1");
+		start_time = start_time / window.toMillis() * window.toMillis();
 		
-		RequestSpecification spec = getSpecRandom();
+		RequestSpecification spec = ath.getSpecRandom();
 		CompletableFuture<TuplesResponseDTO> r = new CompletableFuture<>();
-		await().dontCatchUncaughtExceptions()
-			.pollInterval(Duration.ofSeconds(5L))
-			.atMost(Duration.ofSeconds(20))
-			.until(() -> {
-				TuplesResponseDTO response = apiGetTuples(spec, "M1", cs.symbol, 6000, null, null);
+		waitUntil(() -> {
+				TuplesResponseDTO response = ath.apiGetTuples(spec, "M1", cs.symbol, 6000, null, null);
 				assertNotError(response);
-				if ( response.data.rows.size() == 5000 ) {
-					r.complete(response);
-					return true;
-				} else {
-					return false;
-				}
+				return response.data.rows.size() == 5000 ? r.complete(response) : false;
 			});
-		TuplesResponseDTO response = r.get(1, TimeUnit.MINUTES);
+		TuplesResponseDTO response = r.get(1, TimeUnit.SECONDS);
 		assertEquals(cs.symbol, response.data.symbol);
 		assertEquals("M1", response.data.period);
 		assertEquals("std", response.data.format);
 		List<Tuple> actual_rows = toTuples(response.data.rows);
 		assertEquals(5000, actual_rows.size());
-		assertEquals(new Tuple(        0,  "0.01",  "0.01",  "0.01",  "0.01",  "1"), actual_rows.get(0));
-		assertEquals(new Tuple(299940000, "50.00", "50.00", "50.00", "50.00", "5000"), actual_rows.get(4999));
+		assertEquals(new Tuple(start_time +         0L,  "0.01",  "0.01",  "0.01",  "0.01",  "1"), actual_rows.get(0));
+		assertEquals(new Tuple(start_time + 299940000L, "50.00", "50.00", "50.00", "50.00", "5000"), actual_rows.get(4999));
 		BigDecimal init_val = new BigDecimal("0.01"), init_vol = BigDecimal.ONE,
 				delt_val = new BigDecimal("0.01"), delt_vol = BigDecimal.ONE;
 		List<Tuple> expected_rows = new ArrayList<>();
-		for ( int i = 0; i < 5000; i ++ ) {
+		for ( long i = 0; i < 5000; i ++ ) {
 			BigDecimal mult = new BigDecimal(i);
 			BigDecimal val = delt_val.multiply(mult).add(init_val);
-			expected_rows.add(new Tuple(60000 * i, val, val, val, val, delt_vol.multiply(mult).add(init_vol)));
+			expected_rows.add(new Tuple(start_time + 60000L * i, val, val, val, val,
+					delt_vol.multiply(mult).add(init_vol)));
 		}
-		assertEquals(expected_rows, actual_rows);
+		assertEqualsTupleByTuple("Test failed", expected_rows, actual_rows);
 	}
 	
 	@Test
 	public void C9005_Tuples_AnyBacknodeShouldProvideDataAssociatedWithAnySymbol() throws Exception {
-		Map<Integer, List<CatSym>> part_symbols = newSymbolsOfDifferentPartitions(4);
+		Map<Integer, List<CatSym>> part_symbols = ath.newSymbolsOfDifferentPartitions(4);
 		Iterator<Map.Entry<Integer, List<CatSym>>> it = part_symbols.entrySet().iterator();
 		List<CatSym> cs_list = new ArrayList<>();
 		while ( it.hasNext() ) {
 			Map.Entry<Integer, List<CatSym>> entry = it.next();
 			cs_list.addAll(entry.getValue());
 		}
-		generateItems(cs_list, 7000, 1L, 60000L, "0.01", "0.01", "1", "1");
+		Duration window = Duration.ofMinutes(1L);
+		long start_time = ath.getRecentItemTimePlus1();
+		ath.generateItems(cs_list, 7000, start_time, 60000L, "0.01", "0.01", "1", "1");
+		start_time = start_time / window.toMillis() * window.toMillis();
 		
 		BigDecimal init_val = new BigDecimal("10.01"), init_vol = new BigDecimal(1001),
 				delt_val = new BigDecimal("0.01"), delt_vol = BigDecimal.ONE;
 		List<Tuple> expected_rows = new ArrayList<>();
-		for ( int i = 0; i < 5000; i ++ ) {
+		for ( long i = 0; i < 5000; i ++ ) {
 			BigDecimal mult = new BigDecimal(i);
 			BigDecimal val = delt_val.multiply(mult).add(init_val);
-			expected_rows.add(new Tuple(60000 * i + 60000000, val, val, val, val, delt_vol.multiply(mult).add(init_vol)));
+			expected_rows.add(new Tuple(start_time + 60000L * i + 60000000L, val, val, val, val,
+					delt_vol.multiply(mult).add(init_vol)));
 		}
-		for ( RequestSpecification spec : getSpecAll() ) {
+		final long _tb = start_time;
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
 			for ( CatSym cs : cs_list ) {
 				CompletableFuture<TuplesResponseDTO> r = new CompletableFuture<>();
-				await().dontCatchUncaughtExceptions()
-					.pollInterval(Duration.ofSeconds(5L))
-					.atMost(Duration.ofSeconds(20))
-					.until(() -> {
-						TuplesResponseDTO response = apiGetTuples(spec, "M1", cs.symbol, null, 60000000L, null);
+				waitUntil(() -> {
+						TuplesResponseDTO response = ath.apiGetTuples(spec, "M1", cs.symbol, null, _tb+60000000L, null);
 						assertNotError(response);
-						if ( response.data.rows.size() == 5000 ) {
-							r.complete(response);
-							return true;
-						} else {
-							return false;
-						}
-					});
-				TuplesResponseDTO response = r.get(1, TimeUnit.MINUTES);
+						return response.data.rows.size() == 5000 ? r.complete(response) : false;
+					}, Duration.ofMinutes(2L));
+				TuplesResponseDTO response = r.get(1, TimeUnit.SECONDS);
 				assertEquals(cs.symbol, response.data.symbol);
 				assertEquals("M1", response.data.period);
 				assertEquals("std", response.data.format);
 				List<Tuple> actual_rows = toTuples(response.data.rows);
-				assertEquals(expected_rows, actual_rows);
+				assertEqualsTupleByTuple(cs.toString(), expected_rows, actual_rows);
 			}
 		}
 	}
@@ -1057,33 +1123,26 @@ public class BacknodeIT extends TestBasis {
 		map.put("H8", Duration.ofHours(8));
 		map.put("H12", Duration.ofHours(12));
 		map.put("D1", Duration.ofDays(1));
-		CatSym cs = newSymbol();
+		CatSym cs = ath.newSymbol();
+		long start_time = ath.getRecentItemTimePlus1();
 		long time_delta = 30000;
 		int total_items = 5 * 24 * 60 * 60000 / (int)time_delta;
-		generateItems(cs, total_items, 1, time_delta, "0.01", "0.01", "1", "1");
+		ath.generateItems(cs, total_items, start_time, time_delta, "0.01", "0.01", "1", "1");
 
 		for ( String period : map.keySet() ) {
-			List<Tuple> expected_rows = registeredItemsToTuples(cs, map.get(period).toMillis());
+			List<Tuple> expected_rows = ath.registeredItemsToTuples(cs, map.get(period).toMillis());
 			if ( expected_rows.size() > 5000 ) { 
 				expected_rows = expected_rows.subList(0, 5000);
 			}
-			for ( RequestSpecification spec : getSpecAll() ) {
+			for ( RequestSpecification spec : ath.getSpecAll() ) {
 				int expected_count = expected_rows.size();
 				CompletableFuture<TuplesResponseDTO> r = new CompletableFuture<>();
-				await().dontCatchUncaughtExceptions()
-					.pollInterval(Duration.ofSeconds(5L))
-					.atMost(Duration.ofSeconds(20))
-					.until(() -> {
-						TuplesResponseDTO response = apiGetTuples(spec, period, cs.symbol);
+				waitUntil(() -> {
+						TuplesResponseDTO response = ath.apiGetTuples(spec, period, cs.symbol);
 						assertNotError(response);
-						if ( response.data.rows.size() == expected_count ) {
-							r.complete(response);
-							return true;
-						} else {
-							return false;
-						}
-					});
-				TuplesResponseDTO response = r.get(1, TimeUnit.MINUTES);
+						return response.data.rows.size() == expected_count ? r.complete(response) : false;
+					}, Duration.ofMinutes(2L));
+				TuplesResponseDTO response = r.get(1, TimeUnit.SECONDS);
 				assertEquals(cs.symbol, response.data.symbol);
 				assertEquals(period, response.data.period);
 				assertEquals("std", response.data.format);

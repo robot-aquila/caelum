@@ -1,4 +1,11 @@
-aggregator max time (to) +292278994-08-17T07:12:55.807Z inclusive (Long.MAX_VALUE)
+read_commited после перехода на транзы для items
+aggregator:
+*) https://kafka.apache.org/documentation/#processing.guarantee
+*) max time (to) +292278994-08-17T07:12:55.807Z inclusive (Long.MAX_VALUE)
+*) https://kafka.apache.org/documentation/#application.server
+
+
+
 
 TODO: Нужно продумать горячий запуск/останов фидера? Продумать механизм,
 как работать с дублирующими фидерами. Но в MVP этим заморачиваться вероятно не
