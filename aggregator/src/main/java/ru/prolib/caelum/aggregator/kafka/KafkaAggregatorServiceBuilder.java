@@ -67,7 +67,6 @@ public class KafkaAggregatorServiceBuilder implements IAggregatorServiceBuilder 
 		KafkaAggregatorConfig config = createConfig(periods);
 		config.load(default_config_file, config_file);
 		boolean is_parallel_clear = config.isParallelClear();
-		config.print(logger);
 		logger.debug("isParallelClear: {}", is_parallel_clear);
 		
 		KafkaStreamsRegistry streams_registry = createStreamsRegistry(periods);

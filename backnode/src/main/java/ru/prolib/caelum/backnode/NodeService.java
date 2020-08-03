@@ -273,6 +273,9 @@ public class NodeService {
 			@FormParam("value") List<String> raw_bd_value,
 			@FormParam("volume") List<String> raw_bd_volume)
 	{
+		if ( ! isTestMode() ) {
+			throw new ForbiddenException();
+		}
 		int count = raw_symbol.size();
 		if ( raw_time.size() != count || raw_bd_value.size() != count || raw_bd_volume.size() != count ) {
 			throw new BadRequestException();

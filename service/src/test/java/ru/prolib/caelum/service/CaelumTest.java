@@ -5,6 +5,8 @@ import static org.easymock.EasyMock.*;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
+
 import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,7 +30,8 @@ public class CaelumTest {
 	KafkaAggregatorService aggrSvcMock;
 	IItemDatabaseService itemDbSvcMock;
 	ISymbolService symbolSvcMock;
-	ISymbolCache symbolCacheMock;
+	IExtension extMock1, extMock2, extMock3;
+	List<IExtension> extensions;
 	Caelum service;
 
 	@Before
@@ -37,8 +40,11 @@ public class CaelumTest {
 		aggrSvcMock = control.createMock(KafkaAggregatorService.class);
 		itemDbSvcMock = control.createMock(IItemDatabaseService.class);
 		symbolSvcMock = control.createMock(ISymbolService.class);
-		symbolCacheMock = control.createMock(ISymbolCache.class);
-		service = new Caelum(aggrSvcMock, itemDbSvcMock, symbolSvcMock, symbolCacheMock);
+		extMock1 = control.createMock(IExtension.class);
+		extMock2 = control.createMock(IExtension.class);
+		extMock3 = control.createMock(IExtension.class);
+		extensions = Arrays.asList(extMock1, extMock2, extMock3);
+		service = new Caelum(aggrSvcMock, itemDbSvcMock, symbolSvcMock, extensions);
 	}
 	
 	@Test
@@ -46,7 +52,7 @@ public class CaelumTest {
 		assertSame(aggrSvcMock, service.getAggregatorService());
 		assertSame(itemDbSvcMock, service.getItemDatabaseService());
 		assertSame(symbolSvcMock, service.getSymbolService());
-		assertSame(symbolCacheMock, service.getSymbolCache());
+		assertSame(extensions, service.getExtensions());
 	}
 	
 	@Test
@@ -118,7 +124,6 @@ public class CaelumTest {
 	@Test
 	public void testRegisterItem() {
 		Item item = Item.ofDecimax15("foo", 15739304L, 15000, 2, 1000, 4);
-		symbolCacheMock.registerSymbol("foo");
 		itemDbSvcMock.registerItem(item);
 		control.replay();
 		
@@ -162,10 +167,12 @@ public class CaelumTest {
 	
 	@Test
 	public void testClear() {
-		symbolCacheMock.clear();
 		symbolSvcMock.clear(true);
 		itemDbSvcMock.clear(true);
 		aggrSvcMock.clear(true);
+		extMock1.clear();
+		extMock2.clear();
+		extMock3.clear();
 		control.replay();
 		
 		service.clear(true);

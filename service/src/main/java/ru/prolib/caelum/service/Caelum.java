@@ -19,17 +19,17 @@ public class Caelum implements ICaelum {
 	private final IAggregatorService aggrService;
 	private final IItemDatabaseService itemDbService;
 	private final ISymbolService symbolService;
-	private final ISymbolCache symbolCache;
+	private final Collection<IExtension> extensions;
 	
 	public Caelum(IAggregatorService aggregator_service,
 			IItemDatabaseService itemdb_service,
 			ISymbolService symbol_service,
-			ISymbolCache symbol_cache)
+			Collection<IExtension> extensions)
 	{
 		this.aggrService = aggregator_service;
 		this.itemDbService = itemdb_service;
 		this.symbolService = symbol_service;
-		this.symbolCache = symbol_cache;
+		this.extensions = extensions;
 	}
 	
 	public IAggregatorService getAggregatorService() {
@@ -44,8 +44,8 @@ public class Caelum implements ICaelum {
 		return symbolService;
 	}
 	
-	public ISymbolCache getSymbolCache() {
-		return symbolCache;
+	public Collection<IExtension> getExtensions() {
+		return extensions;
 	}
 	
 	@Override
@@ -80,7 +80,6 @@ public class Caelum implements ICaelum {
 	
 	@Override
 	public void registerItem(IItem item) {
-		symbolCache.registerSymbol(item.getSymbol());
 		itemDbService.registerItem(item);
 	}
 
@@ -101,10 +100,12 @@ public class Caelum implements ICaelum {
 	
 	@Override
 	public void clear(boolean global) {
-		symbolCache.clear();
 		symbolService.clear(global);
 		itemDbService.clear(global);
 		aggrService.clear(global);
+		for ( IExtension extension : extensions ) {
+			extension.clear();
+		}
 	}
 
 }

@@ -16,8 +16,9 @@
 		<module>itemdb</module>
 		<module>symboldb</module>
 		<module>service</module>
-		<module>test</module>
+		<module>itesym-ak</module>
 		<module>backnode</module>
+		<module>test</module>
 	</modules>
   
 	<dependencies>
