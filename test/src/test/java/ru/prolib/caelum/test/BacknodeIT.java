@@ -113,7 +113,7 @@ public class BacknodeIT {
 	}
 	
 	@Test
-	public void C1002_PutItem_PutOfSameTimeAndTestSequence() {
+	public void C1002_PutItem_PutOfSameTimeAndTestSequence() throws Exception {
 		long time = ath.getRecentItemTimePlus1();
 		CatSym cs = ath.newSymbol();
 		assertNotError(ath.apiPutItem(ath.getSpecRandom(), ath.registerItem(cs, time)));
@@ -121,9 +121,13 @@ public class BacknodeIT {
 		assertNotError(ath.apiPutItem(ath.getSpecRandom(), ath.registerItem(cs, time)));
 		assertNotError(ath.apiPutItem(ath.getSpecRandom(), ath.registerItem(cs, time)));
 		
-		ItemsResponseDTO response = ath.apiGetItems(cs.symbol);
-	
-		assertNotError(response);
+		CompletableFuture<ItemsResponseDTO> r = new CompletableFuture<>();
+		waitUntil(() -> {
+			ItemsResponseDTO response = ath.apiGetItems(cs.symbol);
+			assertNotError(response);
+			return response.data.rows.size() == 4 ? r.complete(response) : false;
+		});
+		ItemsResponseDTO response = r.get(1, TimeUnit.SECONDS);
 		assertEquals(cs.symbol, response.data.symbol);
 		assertEquals("std", response.data.format);
 		assertNotNull(response.data.magic);
@@ -170,7 +174,6 @@ public class BacknodeIT {
 				return response.data.rows.size() == expected.size() ? r.complete(response) : false;
 			});
 			CategoriesResponseDTO response = r.get(1, TimeUnit.SECONDS);
-			assertNotError(response);
 			assertEquals(expected, response.data.rows);
 		}
 	}
@@ -220,6 +223,27 @@ public class BacknodeIT {
 			assertNotError(response = ath.apiGetItems(spec, cs2.symbol, null));
 			assertEquals(50, response.data.rows.size());
 			assertEquals(ath.registeredItems(cs2), toItems(cs2, response.data.rows));
+		}
+	}
+	
+	@Test
+	public void C1007_PutItem_PutEqualItemsShouldBeOk() throws Exception {
+		long time = ath.getRecentItemTimePlus1();
+		CatSym cs = ath.newSymbol();
+		assertNotError(ath.apiPutItem(ath.getSpecRandom(), ath.registerItem(cs, time, "1.250", "1000")));
+		assertNotError(ath.apiPutItem(ath.getSpecRandom(), ath.registerItem(cs, time, "1.250", "1000")));
+		assertNotError(ath.apiPutItem(ath.getSpecRandom(), ath.registerItem(cs, time, "1.250", "1000")));
+		assertNotError(ath.apiPutItem(ath.getSpecRandom(), ath.registerItem(cs, time, "1.250", "1000")));
+		
+		CompletableFuture<ItemsResponseDTO> r = new CompletableFuture<>();
+		waitUntil(() -> {
+			ItemsResponseDTO response = ath.apiGetItems(cs.symbol);
+			assertNotError(response);
+			return response.data.rows.size() == 4 ? r.complete(response) : false;
+		});
+		ItemsResponseDTO response = r.get(1, TimeUnit.SECONDS);
+		for ( Item item : toItems(cs, response.data.rows) ) {
+			assertEquals(cs.newItem(time, "1.250", "1000"), item);
 		}
 	}
 

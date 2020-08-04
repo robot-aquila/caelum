@@ -126,11 +126,12 @@ public class KafkaAggregatorConfigTest {
 		assertNotSame(service.getProperties(), props);
 		assertNotSame(props, service.getKafkaProperties()); // it's a new properties every call
 		
-		assertEquals(4, props.size());
+		assertEquals(5, props.size());
 		assertEquals("omega-m5", props.get("application.id"));
 		assertEquals("191.15.34.5:19987", props.get("bootstrap.servers"));
 		assertEquals(KafkaItemSerdes.keySerde().getClass(), props.get("default.key.serde"));
 		assertEquals(KafkaItemSerdes.itemSerde().getClass(), props.get("default.value.serde"));
+		assertEquals("exactly_once", props.get("processing.guarantee"));
 	}
 	
 	@Test
