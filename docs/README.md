@@ -21,9 +21,9 @@ You need Docker to build Caelum documentation. Visit https://www.docker.com/ to 
    docker run -it --rm -v /path/to/this/directory:/docs caelum/caelum-sphinx make clean html
    ```
    In case if you are on Windows and your Docker running under Docker Toolbox make a shared folder which
-   is pointed to this directory and available for Docker VBox host. Then use the share by path inside the
-   VBox host. For example if this directory is D:\work\caelum\docs then make share it with name /var/caelum_docs
-   inside the host then run from your docker console
+   is pointed to this directory and available for Docker VBox host. Then use this share by path inside the
+   Docker VBox host. For example if the directory is D:\work\caelum\docs then make a share with name
+   /var/caelum_docs inside the host then run from your docker console
    ```
    docker run -it --rm -v /var/caelum_docs:/docs caelum/caelum-sphinx make clean html
    ```
