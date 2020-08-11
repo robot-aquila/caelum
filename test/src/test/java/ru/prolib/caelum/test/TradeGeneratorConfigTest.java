@@ -22,8 +22,8 @@ public class TradeGeneratorConfigTest {
 		assertEquals("459811",			props.get("caelum.tradegenerator.seed"));
 		assertEquals("16",				props.get("caelum.tradegenerator.symbol.num"));
 		assertEquals("4",				props.get("caelum.tradegenerator.symbol.chars"));
-		assertEquals("S:",				props.get("caelum.tradegenerator.symbol.prefix"));
-		assertEquals("@EXCHANGE:USD",	props.get("caelum.tradegenerator.symbol.suffix"));
+		assertEquals("",				props.get("caelum.tradegenerator.symbol.prefix"));
+		assertEquals("",				props.get("caelum.tradegenerator.symbol.suffix"));
 		assertEquals("120",				props.get("caelum.tradegenerator.trades.per.minute"));
 	}
 	

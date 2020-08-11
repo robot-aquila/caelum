@@ -79,7 +79,7 @@ public class TradeGenerator {
 		}
 		
 		public SymbolDesc randomSymbol(int chars, String prefix, String suffix) {
-			String symbol = prefix + randomString(chars) + suffix;
+			String symbol = prefix + randomString(chars) + "@" + randomString(chars) + suffix;
 			SymbolDesc desc = new SymbolDesc(symbol, (byte)rand.nextInt(16),
 					(byte)rand.nextInt(16), rand.nextLong());
 			desc.lastPrice = (long) Math.pow(10, 2 + rand.nextInt(16));

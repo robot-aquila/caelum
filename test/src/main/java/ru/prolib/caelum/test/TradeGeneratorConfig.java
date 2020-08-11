@@ -30,8 +30,8 @@ public class TradeGeneratorConfig extends AbstractConfig {
 		props.put(SEED, "459811");
 		props.put(SYMBOL_NUM, "16");
 		props.put(SYMBOL_CHARS, "4");
-		props.put(SYMBOL_PREFIX, "S:");
-		props.put(SYMBOL_SUFFIX, "@EXCHANGE:USD");
+		props.put(SYMBOL_PREFIX, "");
+		props.put(SYMBOL_SUFFIX, "");
 		props.put(TRADES_PER_MINUTE, "120");
 	}
 

@@ -1,14 +1,10 @@
 package ru.prolib.caelum.backnode;
 
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.BadRequestException;
@@ -24,27 +20,18 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.StreamingOutput;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import freemarker.template.TemplateException;
 import ru.prolib.caelum.aggregator.AggregatedDataRequest;
-import ru.prolib.caelum.backnode.mvc.Freemarker;
-import ru.prolib.caelum.backnode.mvc.ItemMvcAdapterIterator;
 import ru.prolib.caelum.backnode.mvc.StreamFactory;
-import ru.prolib.caelum.backnode.mvc.TupleMvcAdapter;
-import ru.prolib.caelum.backnode.mvc.TupleMvcAdapterIterator;
 import ru.prolib.caelum.core.ByteUtils;
-import ru.prolib.caelum.core.ICloseableIterator;
 import ru.prolib.caelum.core.Item;
 import ru.prolib.caelum.core.IteratorStub;
 import ru.prolib.caelum.core.Period;
 import ru.prolib.caelum.core.Periods;
-import ru.prolib.caelum.itemdb.IItemIterator;
-import ru.prolib.caelum.itemdb.ItemIteratorStub;
 import ru.prolib.caelum.itemdb.ItemDataRequest;
 import ru.prolib.caelum.itemdb.ItemDataRequestContinue;
 import ru.prolib.caelum.service.ICaelum;
@@ -58,21 +45,18 @@ public class NodeService {
 	public static final Period DEFAULT_PERIOD = Period.M5;
 	
 	private final ICaelum caelum;
-	private final Freemarker templates;
 	private final StreamFactory streamFactory;
 	private final Periods periods;
 	private final ByteUtils byteUtils;
 	private final boolean testMode;
 	
 	public NodeService(ICaelum caelum,
-			Freemarker templates,
 			StreamFactory streamFactory,
 			Periods periods,
 			ByteUtils byteUtils,
 			boolean testMode)
 	{
 		this.caelum = caelum;
-		this.templates = templates;
 		this.streamFactory = streamFactory;
 		this.periods = periods;
 		this.byteUtils = byteUtils;
@@ -81,10 +65,6 @@ public class NodeService {
 	
 	public ICaelum getCaelum() {
 		return caelum;
-	}
-	
-	public Freemarker getFreemarker() {
-		return templates;
 	}
 	
 	public StreamFactory getStreamFactory() {
@@ -222,6 +202,9 @@ public class NodeService {
 	@GET
 	@Path("/logMarker")
 	public Result<Void> logMarker(@QueryParam("marker") @NotNull final String marker) {
+		if ( ! isTestMode() ) {
+			throw new ForbiddenException();
+		}
 		logger.debug(marker);
 		return success();
 	}
@@ -238,6 +221,18 @@ public class NodeService {
 		AggregatedDataRequest request = toAggrDataRequest(symbol, period, from, to, limit);
 		return Response.status(200)
 			.entity(streamFactory.tuplesToJson(caelum.fetch(request), request))
+			.build();
+	}
+	
+	@GET
+	@Path("/periods")
+	public Response periods() {
+		List<String> rows = caelum.getAggregationPeriods()
+				.stream()
+				.map(x -> x.toString())
+				.collect(Collectors.toList());
+		return Response.status(200)
+			.entity(streamFactory.stringsToJson(new IteratorStub<>(rows)))
 			.build();
 	}
 	
@@ -373,126 +368,6 @@ public class NodeService {
 		for ( String symbol : symbols ) validateSymbol(symbol);
 		caelum.registerSymbol(symbols);
 		return success();
-	}
-	
-	@GET
-	@Path("/console")
-	@Produces(MediaType.TEXT_HTML)
-	public Response consoleIndex() {
-		return Response.status(200)
-			.entity((StreamingOutput)((stream) -> {
-				try ( Writer out = new OutputStreamWriter(stream) ) {
-					templates.getTemplate("/console_index.ftl").process(new Object(), out);
-				} catch ( TemplateException e ) {
-					throw new IOException("Error processing template", e);
-				}
-			})).build();
-	}
-	
-	@GET
-	@Path("/console/items")
-	@Produces(MediaType.TEXT_HTML)
-	public Response consoleItems(
-			@QueryParam("symbol") final String symbol,
-			@QueryParam("from") final String str_from,
-			@QueryParam("to") final String str_to,
-			@QueryParam("limit") final Integer limit,
-			@QueryParam("fromOffset") final Long offset,
-			@QueryParam("magic") final String magic)
-	{
-		Long from = null, to = null;
-		if ( str_from != null && str_from.length() > 0 ) {
-			from = Instant.parse(str_from).toEpochMilli();
-		}
-		if ( str_to != null && str_to.length() > 0 ) {
-			to = Instant.parse(str_to).toEpochMilli();
-		}
-		boolean has_output = symbol != null && symbol.length() > 0;
-		final Map<String, Object> model = new HashMap<>();
-		IItemIterator item_iterator = null;
-		boolean is_continue_request = false;
-		Object request = null;
-		if ( has_output ) {
-			if ( offset == null ) {
-				ItemDataRequest _request = toItemDataRequest(symbol, from, to, limit);
-				item_iterator = caelum.fetch(_request);
-				is_continue_request = false;
-				request = _request;
-			} else {
-				ItemDataRequestContinue _request = toItemDataRequestContinue(symbol, offset, magic, to, limit); 
-				item_iterator = caelum.fetch(_request);
-				is_continue_request = true;
-				request = _request;
-			}
-		} else {
-			item_iterator = new ItemIteratorStub();
-			ItemDataRequest _request = toItemDataRequest(symbol, from, to, limit);
-			request = _request;
-		}
-		final ItemMvcAdapterIterator it = new ItemMvcAdapterIterator(item_iterator);
-		model.put("is_continue_request", is_continue_request);
-		model.put("request", request);
-		if ( has_output ) {
-			model.put("rows", it);
-			model.put("magic", it.getMetaData().getMagic());
-		}
-		return Response.status(200)
-			.entity((StreamingOutput)((stream) -> {
-				try ( Writer out = new OutputStreamWriter(stream) ) {
-					templates.getTemplate("/console_items.ftl").process(model, out);
-				} catch ( TemplateException e ) {
-					throw new IOException("Error processing template", e);
-				} finally {
-					try {
-						it.close();
-					} catch ( Exception e ) {
-						logger.error("Unexpected exception: ", e);
-					}
-				}
-			})).build();
-	}
-	
-	@GET
-	@Path("/console/tuples")
-	@Produces(MediaType.TEXT_HTML)
-	public Response consoleTuples(
-			@QueryParam("symbol") final String symbol,
-			@QueryParam("period") final Period period,
-			@QueryParam("from") final String str_from,
-			@QueryParam("to") final String str_to,
-			@QueryParam("limit") final Integer limit)
-	{
-		Long from = null, to = null;
-		if ( str_from != null && str_from.length() > 0 ) {
-			from = Instant.parse(str_from).toEpochMilli();
-		}
-		if ( str_to != null && str_to.length() > 0 ) {
-			to = Instant.parse(str_to).toEpochMilli();
-		}
-		AggregatedDataRequest request = toAggrDataRequest(symbol, period, from, to, limit);
-		final boolean has_output = request.isValidSymbol();
-		final ICloseableIterator<TupleMvcAdapter> it = has_output ?
-				new TupleMvcAdapterIterator(caelum.fetch(request)) : new IteratorStub<>();
-		final Map<String, Object> model = new HashMap<>();
-		model.put("request", request);
-		model.put("periods", periods.getIntradayPeriodCodes());
-		if ( has_output ) {
-			model.put("rows", it);
-		}
-		return Response.status(200)
-			.entity((StreamingOutput)((stream) -> {
-				try ( Writer out = new OutputStreamWriter(stream) ) {
-					templates.getTemplate("/console_tuples.ftl").process(model, out);
-				} catch ( TemplateException e ) {
-					throw new IOException("Error processing template", e);
-				} finally {
-					try {
-						it.close();
-					} catch ( Exception e ) {
-						throw new IOException(e);
-					}
-				}
-			})).build();
 	}
 	
 //	@GET

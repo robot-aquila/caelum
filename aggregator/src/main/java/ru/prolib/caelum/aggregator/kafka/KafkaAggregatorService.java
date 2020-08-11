@@ -127,4 +127,9 @@ public class KafkaAggregatorService implements IAggregatorService {
 		}
 	}
 
+	@Override
+	public List<Period> getAggregationPeriods() {
+		return periods.getIntradayPeriods();
+	}
+
 }

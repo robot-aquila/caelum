@@ -5,6 +5,7 @@ import static org.easymock.EasyMock.*;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import java.util.List;
 import java.util.Properties;
 
 import org.easymock.Capture;
@@ -15,6 +16,7 @@ import org.junit.Test;
 import ru.prolib.caelum.core.CompositeService;
 import ru.prolib.caelum.core.ICloseableIterator;
 import ru.prolib.caelum.core.ITuple;
+import ru.prolib.caelum.core.Period;
 
 public class AggregatorServiceBuilderTest {
 	
@@ -35,6 +37,11 @@ public class AggregatorServiceBuilderTest {
 
 		@Override
 		public void clear(boolean global) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public List<Period> getAggregationPeriods() {
 			throw new UnsupportedOperationException();
 		}
 		

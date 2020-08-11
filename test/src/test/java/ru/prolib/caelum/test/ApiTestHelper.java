@@ -49,6 +49,7 @@ import ru.prolib.caelum.test.dto.ClearResponseDTO;
 import ru.prolib.caelum.test.dto.ItemResponseDTO;
 import ru.prolib.caelum.test.dto.ItemsResponseDTO;
 import ru.prolib.caelum.test.dto.LogMarkerResponseDTO;
+import ru.prolib.caelum.test.dto.PeriodsResponseDTO;
 import ru.prolib.caelum.test.dto.PingResponseDTO;
 import ru.prolib.caelum.test.dto.ResponseDTO;
 import ru.prolib.caelum.test.dto.SymbolResponseDTO;
@@ -367,6 +368,11 @@ public class ApiTestHelper {
 		assertNotNull(response.data);
 	}
 	
+	public static void assertNotError(PeriodsResponseDTO response) {
+		assertNotError((ResponseDTO) response);
+		assertNotNull(response.data);		
+	}
+	
 	public static void assertEqualsItemByItem(String msg, List<Item> expected, List<Item> actual) {
 		int count = Math.min(expected.size(), actual.size());
 		for ( int i = 0; i < count; i ++ ) {
@@ -446,16 +452,20 @@ public class ApiTestHelper {
 	private final Map<String, Set<String>> existingCategories = new HashMap<>();
 	private final Set<String> existingSymbols = new HashSet<>();
 	private final List<String> backnodeHosts;
-	private final boolean clearAfterEachTest;
+	private final boolean clearAfterEachTest, dumpRequestResponse;
 	private volatile long recentItemTime;
 	
-	public ApiTestHelper(Collection<String> backnode_hosts, boolean clear_after_each_test) {
+	public ApiTestHelper(Collection<String> backnode_hosts,
+			boolean clear_after_each_test,
+			boolean dump_request_response)
+	{
 		this.backnodeHosts = new ArrayList<>(backnode_hosts);
 		this.clearAfterEachTest = clear_after_each_test;
+		this.dumpRequestResponse = dump_request_response;
 	}
 	
-	public ApiTestHelper(boolean clear_after_each_test) {
-		this(new ArrayList<>(), clear_after_each_test);
+	public ApiTestHelper(boolean clear_after_each_test, boolean dump_request_response) {
+		this(new ArrayList<>(), clear_after_each_test, dump_request_response);
 	}
 	
 	public void setBacknodeHosts(Collection<String> backnode_hosts) {
@@ -642,12 +652,13 @@ public class ApiTestHelper {
 	 * @return request specification
 	 */
 	public RequestSpecification getSpec(String host) {
-		return new RequestSpecBuilder()
+		RequestSpecBuilder builder = new RequestSpecBuilder()
 				.setContentType(ContentType.JSON)
-				.setBaseUri("http://" + host + "/api/v1/")
-				.addFilter(new ResponseLoggingFilter())
-				.addFilter(new RequestLoggingFilter())
-				.build();		
+				.setBaseUri("http://" + host + "/api/v1/");
+		if ( dumpRequestResponse ) {
+			builder.addFilter(new ResponseLoggingFilter()).addFilter(new RequestLoggingFilter());
+		}
+		return builder.build();
 	}
 	
 	/**
@@ -690,6 +701,17 @@ public class ApiTestHelper {
 				.statusCode(200)
 				.extract()
 				.as(PingResponseDTO.class);
+	}
+	
+	public PeriodsResponseDTO apiGetPeriods(RequestSpecification spec) {
+		return given()
+				.spec(spec)
+			.when()
+				.get("periods")
+			.then()
+				.statusCode(200)
+				.extract()
+				.as(PeriodsResponseDTO.class);
 	}
 	
 	public ClearResponseDTO apiClear(RequestSpecification spec, boolean global) {

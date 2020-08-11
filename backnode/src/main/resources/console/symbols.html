@@ -1,0 +1,135 @@
+<html>
+    <head>
+        <title>Caelum: Symbols</title>
+        <link rel="stylesheet" type="text/css" href="style.css" />
+        <script src="js/jquery-3.5.1.min.js"></script>
+        <script src="js/jquery.validate.min.js"></script>
+        <script src="js/caelum-console.js"></script>
+        <script>
+jQuery(function($) {
+    
+    const refreshResponseInfo = function(params, response) {
+        let msg = 'Total ' + response.data.rows.length + ' symbols of category ' + params.category
+        msg += ' starting ' + (params.afterSymbol ? 'after ' + params.afterSymbol : 'from first known') + ' symbol'
+        msg += ' shown'
+        $('#responseInfo').text(msg)
+    }
+
+    const refreshCategories = createCategoryDropdown($, '#category', '#errorMsg')
+    refreshCategories()
+    
+    $('#refreshCategories').click(refreshCategories)
+    $('#clearAfterSymbol').click(createClear($('#afterSymbol')))
+    $('#clearLimit').click(createClear($('#limit')))
+    
+    const formHandler = function(form) {
+        const params = {
+            category: $('#category').val(),
+            afterSymbol: $('#afterSymbol').val() || null,
+            limit: $('#limit').val() || null
+        }
+        $.getJSON('/api/v1/symbols', params, function(response) {
+            if ( response.error == true ) {
+                $('#errorMsg').text('Symbols query failed: [' + response.code + '] ' + response.message)
+                return;
+            }
+            const target = $('#targetBody'); target.empty()
+            const data_rows = response.data.rows
+            let cols = $('#resultTableCols').val()
+            const total_elements = response.data.rows.length
+            const rows = Math.ceil(total_elements / cols)
+            if ( rows == 1 ) cols = total_elements
+            const do_not_replace = $('#doNotReplaceAfterSymbol').prop('checked')
+            refreshResponseInfo(params, response)
+            
+            for ( let row = 0; row < rows; row ++ ) {
+                let tr = $('<tr>')
+                for ( let col = 0; col < cols; col ++ ) {
+                    let element_index = row * cols + col;
+                    if ( ! do_not_replace && element_index == total_elements - 1 ) {
+                        $('#afterSymbol').val(data_rows[element_index])
+                    }
+                    $('<td>'+(element_index >= total_elements ? '' : data_rows[element_index])+'</td>').appendTo(tr);
+                }
+                target.append(tr)
+            }
+        })
+    }
+    
+    $('#myForm').validate({
+        errorLabelContainer: $('#errorMsg'),
+        rules: {
+            resultTableCols: {
+                required: true,
+                min: 1,
+                max: 24
+            },
+            afterSymbol: {
+                required: false
+            },
+            limit: {
+                required: false,
+                min: 1,
+                max: 5000
+            }
+        },
+        submitHandler: formHandler
+    })
+    
+})
+        </script>
+    </head>
+    <body>
+<h2>Caelum: Symbols</h2>
+<a href="index.html">Main</a>
+| <a href="items.html">Items</a>
+| <a href="tuples.html">Tuples</a>
+| <b>Symbols</b>
+| <a href="categories.html">Categories</a>
+| <a href="symbol_updates.html">Symbol updates</a>
+<p>
+<hr>
+
+<p>
+<form id="myForm">
+<table>
+    <tr>
+        <td nowrap>
+Select symbols of category <select name="category" id="category" ></select>
+<button id="refreshCategories" title="Refresh categories">O</button>
+starting after symbol <input type="text" name="afterSymbol" id="afterSymbol" size="14" value="" />
+<button id="clearAfterSymbol" title="Clear symbol after which should continue ">X</button>
+        </td>
+    </tr>
+    <tr>
+        <td>
+with limit of <input type="text" name="limit" id="limit" size="5" />
+<button id="clearLimit" title="Clear limit">X</button> symbols.
+        </td>
+    </tr>
+    <tr>
+        <td nowrap>
+<input type="checkbox" id="doNotReplaceAfterSymbol" />
+Do not replace starting symbol field with last obtained symbol
+        </td>
+    </tr>
+    <tr>
+        <td nowrap>
+Use <input name="resultTableCols" id="resultTableCols" size="3" maxlength="3" value="6" />
+column table and <button>Refresh</button>
+        </td>
+    </tr>
+</table>
+</form>
+<div class="error" id="errorMsg"></div>
+<div id="responseInfo"></div>
+
+<p>
+<table class="blueTable">
+    <tbody id="targetBody"></tbody>
+</table>
+
+<hr>
+Powered by <a href="https://github.com/robot-aquila" target="_blank">robot-aquila</a>
+    </body>
+</html>

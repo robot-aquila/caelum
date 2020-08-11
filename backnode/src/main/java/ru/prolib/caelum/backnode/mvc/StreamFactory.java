@@ -61,5 +61,9 @@ public class StreamFactory {
 	public StreamingOutput symbolUpdatesToJson(ICloseableIterator<SymbolUpdate> iterator, String symbol) {
 		return new StreamSymbolUpdatesToJson(jsonFactory, iterator, symbol, clock);
 	}
+	
+	public StreamingOutput stringsToJson(ICloseableIterator<String> iterator) {
+		return new StreamStringsToJson(jsonFactory, iterator, clock);
+	}
 
 }

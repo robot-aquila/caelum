@@ -316,5 +316,10 @@ public class KafkaAggregatorServiceTest {
 		
 		control.verify();
 	}
+	
+	@Test
+	public void testGetAggregationPeriods() {
+		assertEquals(periods.getIntradayPeriods(), service.getAggregationPeriods());
+	}
 
 }

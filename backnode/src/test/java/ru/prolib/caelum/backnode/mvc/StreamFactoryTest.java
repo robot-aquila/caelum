@@ -126,5 +126,19 @@ public class StreamFactoryTest {
 		assertSame(itMock, x.getIterator());
 		assertEquals("foo@bar", x.getRequest());
 	}
+	
+	@Test
+	public void testStringsToJson() {
+		ICloseableIterator<String> itMock = control.createMock(ICloseableIterator.class);
+		
+		StreamingOutput actual = service.stringsToJson(itMock);
+		
+		assertNotNull(actual);
+		assertThat(actual, is(instanceOf(StreamStringsToJson.class)));
+		StreamStringsToJson x = (StreamStringsToJson) actual;
+		assertSame(jsonFactoryMock, x.getJsonFactory());
+		assertSame(clockMock, x.getClock());
+		assertSame(itMock, x.getIterator());
+	}
 
 }

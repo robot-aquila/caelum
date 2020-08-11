@@ -39,6 +39,7 @@ import io.restassured.specification.RequestSpecification;
 import ru.prolib.caelum.test.dto.CategoriesResponseDTO;
 import ru.prolib.caelum.test.dto.ItemResponseDTO;
 import ru.prolib.caelum.test.dto.ItemsResponseDTO;
+import ru.prolib.caelum.test.dto.PeriodsResponseDTO;
 import ru.prolib.caelum.test.dto.PingResponseDTO;
 import ru.prolib.caelum.test.dto.SymbolResponseDTO;
 import ru.prolib.caelum.test.dto.SymbolUpdateDTO;
@@ -49,7 +50,7 @@ import ru.prolib.caelum.test.dto.TuplesResponseDTO;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class BacknodeIT {
-	static final ApiTestHelper ath = new ApiTestHelper(false);
+	static final ApiTestHelper ath = new ApiTestHelper(false, false);
 	
 	@Rule(order=Integer.MIN_VALUE)
 	public TestWatcher watchman = new TestWatcher() {
@@ -1063,7 +1064,7 @@ public class BacknodeIT {
 				TuplesResponseDTO response = ath.apiGetTuples(spec, "M1", cs.symbol, 6000, null, null);
 				assertNotError(response);
 				return response.data.rows.size() == 5000 ? r.complete(response) : false;
-			});
+			}, Duration.ofMinutes(1));
 		TuplesResponseDTO response = r.get(1, TimeUnit.SECONDS);
 		assertEquals(cs.symbol, response.data.symbol);
 		assertEquals("M1", response.data.period);
@@ -1174,6 +1175,38 @@ public class BacknodeIT {
 				assertEqualsTupleByTuple(period, expected_rows, actual_rows);
 			}
 		}
+	}
+	
+	@Test
+	public void C9101_Periods() throws Exception {
+		List<String> expected = Arrays.asList(
+				"M1",
+				"M2",
+				"M3",
+				"M5",
+				"M6",
+				"M10",
+				"M12",
+				"M15",
+				"M20",
+				"M30",
+				"H1",
+				"H2",
+				"H3",
+				"H4",
+				"H6",
+				"H8",
+				"H12",
+				"D1"
+			);
+		
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			PeriodsResponseDTO response = ath.apiGetPeriods(spec);
+			
+			assertNotError(response);
+			assertEquals(expected, response.data.rows);
+		}
+		
 	}
 
 }

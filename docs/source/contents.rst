@@ -10,6 +10,7 @@ Documentation Table of Contents
 
    Overview <index>
    Table of contents <self>
+   Basic concepts <basics>
    Getting started <getstart>
    Binary formats <binary_formats>
    Known limitations <limitations>

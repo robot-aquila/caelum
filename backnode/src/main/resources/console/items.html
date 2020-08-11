@@ -1,0 +1,202 @@
+<html>
+    <head>
+        <title>Caelum: Items</title>
+        <link rel="stylesheet" type="text/css" href="style.css" />
+        <link rel="stylesheet" type="text/css" href="js/jquery.datetimepicker.min.css" />
+        <script src="js/caelum-console.js"></script>
+        <script src="js/jquery-3.5.1.min.js"></script>
+        <script src="js/jquery.validate.min.js"></script>
+        <script src="js/jquery.datetimepicker.full.min.js"></script>
+        <script src="js/date.format.js"></script>
+        <script>
+jQuery(function($) {
+    
+    const refreshResponseInfo = function(params, response) {
+        let msg = 'Total ' + response.data.rows.length + ' items of symbol ' + response.data.symbol
+        msg += ' for period from ' + (params.from ? new Date(params.from).format(dt_format) : 'beginning')
+        msg += (params.to ? ' to ' + new Date(params.to).format(dt_format) : ' till now')
+        if ( params.fromOffset ) msg += ' starting from offset ' + params.fromOffset
+        msg += ' shown'
+        $('#responseInfo').text(msg)
+    };
+    
+    const refreshSymbols = createSymbolDropdown($, '#symbol', '#errorMsg', '#category')
+    const refreshCategories = createCategoryDropdown($, '#category', '#errorMsg', refreshSymbols)
+    $('#category').change(refreshSymbols)
+    refreshCategories()
+    
+    $('#refreshCategories').click(refreshCategories)
+    $('#refreshSymbols').click(refreshSymbols)
+    $('#clearFromOffset').click(createClear($('#fromOffset')))
+    $('#clearMagic').click(createClear($('#magic')))
+    $('#clearLimit').click(createClear($('#limit')))
+    $('#clearFromTime').click(createClear($('#fromTime')))
+    $('#clearToTime').click(createClear($('#toTime')))
+    
+    const fromTime = $('#fromTime')
+    const toTime = $('#toTime')
+    
+    fromTime.datetimepicker({
+        step: 5,
+        format: 'Y-m-d H:i',
+        onShow: function(ct) { this.setOptions({ maxDate: toTime.val() || false }) }
+    })
+    
+    toTime.datetimepicker({
+        step: 5,
+        format: 'Y-m-d H:i',
+        onShow: function(ct) { this.setOptions({ minDate: fromTime.val() || false }) }
+    })
+    
+    const formHandler = function(form) {
+        const params = {
+            symbol: $('#symbol').val(),
+            from: fromTime.val() ? Date.parse(fromTime.val() + ':00.000Z') : null,
+            to: toTime.val() ? Date.parse(toTime.val() + ':00.000Z') : null,
+            fromOffset: $('#fromOffset').val() || null,
+            magic: $('#magic').val() || null,
+            limit: $('#limit').val() || null
+        }
+        $.getJSON('/api/v1/items', params, function(response) {
+            const targetBody = $('#targetBody'); targetBody.empty()
+            const targetHead = $('#targetHead'); targetHead.empty()
+            if ( response.error == true ) {
+                $('#errorMsg').text('Items query failed: [' + response.code + '] ' + response.message);
+                return;
+            }
+            
+            const data_rows = response.data.rows
+            let cols = $('#resultTableCols').val()
+            const total_elements = response.data.rows.length
+            const rows = Math.ceil(total_elements / cols)
+            if ( rows == 1 ) cols = total_elements
+            const do_not_replace = $('#doNotReplaceFromOffsetAndMagic').prop('checked')
+            refreshResponseInfo(params, response)
+            
+            let tr = $('<tr>')
+            for ( let col = 0; col < cols; col ++ ) {
+                $('<td align="right">#</td>').appendTo(tr)
+                $('<td>Time</td>').appendTo(tr)
+                $('<td align="right">Value</td>').appendTo(tr)
+                $('<td align="right">Volume</td>').appendTo(tr)
+            }
+            targetHead.append(tr);
+            
+            if ( ! do_not_replace && total_elements > 0 ) {
+                $('#fromOffset').val(response.data.fromOffset);
+                $('#magic').val(response.data.magic);
+            }
+            
+            for ( let row = 0; row < rows; row ++ ) {
+                let tr = $('<tr>');
+                for ( let col = 0; col < cols; col ++ ) {
+                    let element_index = row * cols + col;
+                    if ( element_index >= total_elements ) {
+                        $('<td colspan="4">').appendTo(tr)
+                    } else {
+                        $('<td>' + element_index + '</td>').appendTo(tr)
+                        $('<td>' + new Date(data_rows[element_index][0]).format(dt_format, true) + '</td>').appendTo(tr)
+                        $('<td align="right">'+ data_rows[element_index][1] + '</td>').appendTo(tr)
+                        $('<td align="right">'+ data_rows[element_index][2] + '</td>').appendTo(tr)
+                    }
+                }
+                targetBody.append(tr)
+            }
+        });
+    }
+
+    $('#myForm').validate({
+        errorLabelContainer: $('#errorMsg'),
+        rules: {
+            resultTableCols: {
+                required: true,
+                min: 1,
+                max: 4
+            },
+            fromOffset: {
+                required: false,
+                digits: true,
+                min: 0
+            },
+            limit: {
+                required: false,
+                min: 1,
+                max: 5000
+            }
+        },
+        submitHandler: formHandler
+    });
+});
+            </script>
+    </head>
+    <body>
+<h2>Caelum: Items</h2>
+<a href="index.html">Main</a>
+| <b>Items</b>
+| <a href="tuples.html">Tuples</a>
+| <a href="symbols.html">Symbols</a>
+| <a href="categories.html">Categories</a>
+| <a href="symbol_updates.html">Symbol updates</a>
+<p>
+<hr>
+
+<p>
+<form id="myForm">
+<table>
+    <tr>
+        <td nowrap>
+Select items of category <select name="category" id="category" ></select>
+<button id="refreshCategories" title="Refresh categories">O</button>
+symbol <select name="symbol" id="symbol"></select>
+<button id="refreshSymbols" title="Refresh symbols">O</button>
+        </td>
+    </tr>
+    <tr>
+        <td nowrap>
+For period from <input type="text" id="fromTime" size="12" autocomplete="off" />
+<button id="clearFromTime" title="Clear period time from">X</button>
+to <input type="text" id="toTime" size="12" autocomplete="off" />
+<button id="clearToTime" title="Clear period time to">X</button>
+        </td>
+    </tr>
+    <tr>
+        <td nowrap>
+Or from offset <input type="text" name="fromOffset" id="fromOffset" size="16" />
+<button id="clearFromOffset" title="Clear offset">X</button>
+and magic word <input type="text" name="magic" id="magic" size="32" />
+<button id="clearMagic" title="Clear magic word">X</button>
+        </td>
+    </tr>
+    <tr>
+        <td nowrap>
+with limit of <input type="text" name="limit" id="limit" size="5" value="1000" />
+<button id="clearLimit" title="Clear limit">X</button> items.
+        </td>
+    </tr>
+    <tr>
+        <td nowrap>
+<input type="checkbox" id="doNotReplaceFromOffsetAndMagic" />
+Do not replace offset and magic word with last obtained data
+        </td>
+    </tr>
+    <tr>
+        <td nowrap>
+Use <input name="resultTableCols" id="resultTableCols" size="3" maxlength="3" value="2" />
+column table and <button>Refresh</button>
+        </td>
+    </tr>
+</table>
+</form>
+<div class="error" id="errorMsg"></div>
+<div id="responseInfo"></div>
+
+<p>
+<table class="blueTable">
+    <thead id="targetHead"></thead>
+    <tbody id="targetBody"></tbody>
+</table>
+
+<hr>
+Powered by <a href="https://github.com/robot-aquila" target="_blank">robot-aquila</a>
+    </body>
+</html>

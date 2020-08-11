@@ -16,6 +16,7 @@ import ru.prolib.caelum.aggregator.kafka.KafkaAggregatorService;
 import ru.prolib.caelum.core.ICloseableIterator;
 import ru.prolib.caelum.core.ITuple;
 import ru.prolib.caelum.core.Item;
+import ru.prolib.caelum.core.Period;
 import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.itemdb.IItemDatabaseService;
 import ru.prolib.caelum.itemdb.ItemDataRequest;
@@ -178,6 +179,17 @@ public class CaelumTest {
 		service.clear(true);
 		
 		control.verify();
+	}
+	
+	@Test
+	public void testGetAggregationPeriods() {
+		expect(aggrSvcMock.getAggregationPeriods()).andReturn(Arrays.asList(Period.M1, Period.M2, Period.M5));
+		control.replay();
+		
+		List<Period> actual = service.getAggregationPeriods();
+		
+		control.verify();
+		assertEquals(Arrays.asList(Period.M1, Period.M2, Period.M5), actual);
 	}
 
 }
