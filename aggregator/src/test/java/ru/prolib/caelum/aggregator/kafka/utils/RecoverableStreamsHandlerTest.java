@@ -155,11 +155,12 @@ public class RecoverableStreamsHandlerTest {
 	}
 	
 	@Test
-	public void testOnChange_Running_ShouldSkipIfRunningNextTime() {
+	public void testOnChange_Running_ShouldMarkAsAvailableIfRunningNextTime() {
 		control.resetToNice();
 		control.replay();
 		service.onChange(KafkaStreams.State.RUNNING, null);
 		control.resetToStrict();
+		listenerMock.onAvailable();
 		control.replay();
 		assertTrue(service.started());
 		
@@ -261,6 +262,7 @@ public class RecoverableStreamsHandlerTest {
 			switch ( state ) {
 			case RUNNING:
 			case ERROR:
+			case REBALANCING:
 				break;
 			default:
 				testOnChange_SkipIf(state, true, true);
@@ -270,6 +272,25 @@ public class RecoverableStreamsHandlerTest {
 				break;
 			}
 		}
+	}
+	
+	@Test
+	public void testOnChange_Rebalancing_ShouldMarkAsUnavailableIfFromRunning() {
+		listenerMock.onUnavailable();
+		control.replay();
+		
+		service.onChange(KafkaStreams.State.REBALANCING, KafkaStreams.State.RUNNING);
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testOnChange_Rebalancing_ShouldDoNothiingIfFromCreated() {
+		control.replay();
+		
+		service.onChange(KafkaStreams.State.REBALANCING, KafkaStreams.State.CREATED);
+		
+		control.verify();
 	}
 	
 	@Test
@@ -326,6 +347,25 @@ public class RecoverableStreamsHandlerTest {
 		service.start();
 		
 		control.verify();
+	}
+	
+	@Test
+	public void testAvailable() {
+		expect(streamsMock.state())
+			.andReturn(KafkaStreams.State.CREATED)
+			.andReturn(KafkaStreams.State.ERROR)
+			.andReturn(KafkaStreams.State.NOT_RUNNING)
+			.andReturn(KafkaStreams.State.PENDING_SHUTDOWN)
+			.andReturn(KafkaStreams.State.REBALANCING)
+			.andReturn(KafkaStreams.State.RUNNING);
+		control.replay();
+		
+		assertFalse(service.available()); // CREATED
+		assertFalse(service.available()); // ERROR
+		assertFalse(service.available()); // NOT_RUNNING
+		assertFalse(service.available()); // PENDING_SHUTDOWN
+		assertFalse(service.available()); // REBALANCING
+		assertTrue(service.available()); // RUNNING
 	}
 
 }

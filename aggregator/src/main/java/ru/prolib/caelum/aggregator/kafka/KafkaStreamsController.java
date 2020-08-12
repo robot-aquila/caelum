@@ -74,5 +74,15 @@ public class KafkaStreamsController implements IRecoverableStreamsController {
 	public void onClose(IRecoverableStreamsHandler handler) {
 		registry.deregister(descr);
 	}
+	
+	@Override
+	public void onAvailable(IRecoverableStreamsHandler handler) {
+		registry.setAvailability(descr, handler.available());
+	}
+	
+	@Override
+	public void onUnavailable(IRecoverableStreamsHandler handler) {
+		registry.setAvailability(descr, handler.available());
+	}
 
 }

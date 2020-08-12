@@ -4,6 +4,7 @@ import java.time.Clock;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -318,22 +319,24 @@ public class RecoverableStreamsService implements IRecoverableStreamsService,
 	private final int maxErrors;
 	private final StateTracker state;
 	private final AtomicInteger totalErrors;
+	private final AtomicBoolean availabilityChanged;
 	
 	RecoverableStreamsService(IRecoverableStreamsController builder,
 			int maxErrors,
 			StateTracker state,
-			AtomicInteger totalErrors)
+			AtomicInteger totalErrors,
+			AtomicBoolean availabilityChanged)
 	{
 		this.controller = builder;
 		this.maxErrors = maxErrors;
 		this.state = state;
 		this.totalErrors = totalErrors;
+		this.availabilityChanged = availabilityChanged;
 	}
 	
 	public RecoverableStreamsService(IRecoverableStreamsController controller, int maxErrors) {
-		this(controller, maxErrors, new StateTracker(), new AtomicInteger());
+		this(controller, maxErrors, new StateTracker(), new AtomicInteger(), new AtomicBoolean());
 	}
-	
 
 	private IRecoverableStreamsHandler createHandler() {
 		IRecoverableStreamsHandler handler = null;
@@ -474,6 +477,20 @@ public class RecoverableStreamsService implements IRecoverableStreamsService,
 	}
 	
 	@Override
+	public void onUnavailable() {
+		if ( availabilityChanged.compareAndSet(false, true) ) {
+			state.notifyChanged();
+		}
+	}
+	
+	@Override
+	public void onAvailable() {
+		if ( availabilityChanged.compareAndSet(false, true) ) {
+			state.notifyChanged();
+		}
+	}
+	
+	@Override
 	public void run() {
 		state.changeState(AggregatorState.PENDING);
 		boolean exit = false;
@@ -508,12 +525,17 @@ public class RecoverableStreamsService implements IRecoverableStreamsService,
 					break;
 				case RUNNING:
 					if ( handler != null ) {
-						if ( handler.unrecoverableError() ) {
+						if ( availabilityChanged.compareAndSet(true, false) ) {
+							if ( handler.available() ) {
+								controller.onAvailable(handler);
+							} else {
+								controller.onUnavailable(handler);
+							}
+						} else if ( handler.unrecoverableError() ) {
 							handler = closeHandler(handler);
 							state.changeState(AggregatorState.ERROR);
 						} else if ( handler.recoverableError() ) {
 							handler = closeHandler(handler);
-							System.out.println(totalErrors.get());
 							if ( totalErrors.get() >= maxErrors ) {
 								state.changeState(AggregatorState.ERROR);
 							} else {

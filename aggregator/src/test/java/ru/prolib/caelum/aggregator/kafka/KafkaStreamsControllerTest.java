@@ -106,5 +106,27 @@ public class KafkaStreamsControllerTest {
 		
 		control.verify();
 	}
+	
+	@Test
+	public void testOnAvailable() {
+		expect(handlerMock.available()).andReturn(true);
+		registryMock.setAvailability(descr, true);
+		control.replay();
+		
+		service.onAvailable(handlerMock);
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testOnUnavailable() {
+		expect(handlerMock.available()).andReturn(false);
+		registryMock.setAvailability(descr, false);
+		control.replay();
+		
+		service.onUnavailable(handlerMock);
+
+		control.verify();
+	}
 
 }

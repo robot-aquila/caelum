@@ -92,7 +92,8 @@ public class KafkaAggregatorServiceBuilder implements IAggregatorServiceBuilder 
 				streams_registry,
 				aggregator_list,
 				config.getListTuplesLimit(),
-				is_parallel_clear);
+				is_parallel_clear,
+				5000L);
 		return service;
 	}
 	

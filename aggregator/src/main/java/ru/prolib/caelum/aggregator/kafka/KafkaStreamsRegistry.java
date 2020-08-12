@@ -29,6 +29,10 @@ public class KafkaStreamsRegistry {
 		return entryByPeriod;
 	}
 	
+	protected KafkaAggregatorEntry createEntry(KafkaAggregatorDescr descr, KafkaStreams streams) {
+		return new KafkaAggregatorEntry(descr, streams, new KafkaStreamsAvailability());
+	}
+	
 	/**
 	 * Register streams of specified descriptor.
 	 * <p>
@@ -39,13 +43,12 @@ public class KafkaStreamsRegistry {
 		switch ( descr.getType() ) {
 		case ITEM:
 		case TUPLE:
+			// That actually doesn't matter who's exactly will provide the data
+			entryByPeriod.put(descr.getPeriod(), createEntry(descr, streams));
 			break;
 		default:
 			throw new IllegalArgumentException("Aggregator of type is not allowed to register: " + descr.getType());
 		}
-		KafkaAggregatorEntry entry = new KafkaAggregatorEntry(descr, streams);
-		// That actually doesn't matter who's exactly will provide the data
-		entryByPeriod.put(descr.getPeriod(), entry);
 	}
 	
 	/**
@@ -79,6 +82,10 @@ public class KafkaStreamsRegistry {
 			}
 		}
 		throw new IllegalStateException("No suitable aggregator was found to rebuild: " + period);
+	}
+	
+	public void setAvailability(KafkaAggregatorDescr descr, boolean is_available) {
+		entryByPeriod.get(descr.period).setAvailable(is_available);
 	}
 	
 }

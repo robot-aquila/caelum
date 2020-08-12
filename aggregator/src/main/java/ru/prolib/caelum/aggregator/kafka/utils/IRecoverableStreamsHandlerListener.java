@@ -36,5 +36,19 @@ public interface IRecoverableStreamsHandlerListener {
 	 * Depending on managing strategy it may consider as signal to stop recovering.
 	 */
 	default void onClose(boolean error_on_close) { }
+	
+	/**
+	 * Called when streams is temporarily unavailable for example due to rebalancing.
+	 * This may called several times after streams got started.
+	 * If streams is unavailable some calls of streams may lead to exceptions.
+	 */
+	default void onUnavailable() { }
+	
+	/**
+	 * Called when streams get back to work to normal running state after unavailability.
+	 * This method is always called after previous unavailability signal.
+	 * Some cases this may not called for example if streams got to error or shutdown state after rebalancing.
+	 */
+	default void onAvailable() { }
 
 }

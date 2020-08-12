@@ -11,6 +11,7 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import ru.prolib.caelum.backnode.BacknodeConfig;
 import ru.prolib.caelum.backnode.CommonResourceConfig;
 import ru.prolib.caelum.backnode.NodeService;
+import ru.prolib.caelum.backnode.StaticResourceServlet;
 import ru.prolib.caelum.backnode.mvc.StreamFactory;
 import ru.prolib.caelum.backnode.rest.IRestServiceBuilder;
 import ru.prolib.caelum.core.ByteUtils;
@@ -37,13 +38,13 @@ public class JettyServerBuilder implements IRestServiceBuilder {
 		
 		Server server = new Server(new InetSocketAddress(host, port));
 		server.setHandler(context);
-			
+		
 		CommonResourceConfig rc = new CommonResourceConfig();
 		rc.register(component);
 		
 		context.addServlet(new ServletHolder(new StaticResourceServlet()), "/console/*");
 		context.addServlet(new ServletHolder(new ServletContainer(rc)), "/*");
-
+		
 		return new JettyServerStarter(server);
 	}
 	

@@ -102,9 +102,18 @@ public class RecoverableStreamsHandler implements IRecoverableStreamsHandler, Ka
 	public void onChange(State newState, State oldState) {
 		final ConditionalBitwiseOperator op;
 		switch ( newState ) {
+		case REBALANCING:
+			if ( oldState == State.RUNNING ) {
+				listener.get().onUnavailable();
+			}
+			break;
 		case RUNNING:
-			state.accumulateAndGet(STARTED, op = new BitsSetIfUnset(CLOSED | ERROR | STARTED));
-			if ( op.applied() ) listener.get().onStarted();
+			int cs = state.accumulateAndGet(STARTED, op = new BitsSetIfUnset(CLOSED | ERROR | STARTED));
+			if ( op.applied() ) {
+				listener.get().onStarted();
+			} else if ( (cs & ERROR | cs & CLOSED) == 0 ) {
+				listener.get().onAvailable();
+			}
 			break;
 		case ERROR:
 			int s = state.accumulateAndGet(ERROR, op = new BitsSetIfUnset(CLOSED | ERROR));
@@ -148,6 +157,11 @@ public class RecoverableStreamsHandler implements IRecoverableStreamsHandler, Ka
 			cleanUpMutex.unlock();
 		}
 		streams.start();
+	}
+	
+	@Override
+	public boolean available() {
+		return streams.state() == KafkaStreams.State.RUNNING;
 	}
 
 }

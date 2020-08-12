@@ -158,6 +158,7 @@ public class KafkaAggregatorServiceBuilderTest {
 		assertEquals(Arrays.asList(aggregatorMock1, aggregatorMock2, aggregatorMock3), x.getAggregatorList());
 		assertEquals(400, x.getMaxLimit());
 		assertTrue(x.isClearAggregatorsInParallel());
+		assertEquals(5000L, x.getTimeout());
 		Properties expected_props = new Properties();
 		expected_props.putAll(mockedConfig.getProperties());
 		expected_props.put("caelum.aggregator.aggregation.period", "M1");

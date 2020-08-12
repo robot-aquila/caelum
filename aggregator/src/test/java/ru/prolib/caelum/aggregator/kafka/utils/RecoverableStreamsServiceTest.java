@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -37,6 +38,7 @@ public class RecoverableStreamsServiceTest {
 	Lock lockMock;
 	Condition condMock;
 	AtomicInteger totalErrors;
+	AtomicBoolean availabilityChanged;
 	Clock clockMock;
 	RecoverableStreamsService service;
 	StateTracker tracker, trackerMock;
@@ -53,7 +55,8 @@ public class RecoverableStreamsServiceTest {
 		handlerMock1 = control.createMock(IRecoverableStreamsHandler.class);
 		handlerMock2 = control.createMock(IRecoverableStreamsHandler.class);
 		totalErrors = new AtomicInteger(4);
-		service = new RecoverableStreamsService(ctrlMock, 100, trackerMock, totalErrors);
+		availabilityChanged = new AtomicBoolean();
+		service = new RecoverableStreamsService(ctrlMock, 100, trackerMock, totalErrors, availabilityChanged);
 		tracker = new StateTracker(lockMock, condMock, clockMock);
 	}
 	
@@ -682,6 +685,32 @@ public class RecoverableStreamsServiceTest {
 	}
 	
 	@Test
+	public void testOnUnavailable() {
+		assertFalse(availabilityChanged.get());
+		trackerMock.notifyChanged();
+		expectLastCall().andAnswer(() -> { assertTrue(availabilityChanged.get()); return null; });
+		control.replay();
+		
+		service.onUnavailable();
+		
+		control.verify();
+		assertTrue(availabilityChanged.get());
+	}
+	
+	@Test
+	public void testOnAvailable() {
+		assertFalse(availabilityChanged.get());
+		trackerMock.notifyChanged();
+		expectLastCall().andAnswer(() -> { assertTrue(availabilityChanged.get()); return null; });
+		control.replay();
+		
+		service.onAvailable();
+		
+		control.verify();
+		assertTrue(availabilityChanged.get());
+	}
+	
+	@Test
 	public void testRun_ShouldSwitchFromPendingToClose() {
 		trackerMock.changeState(AggregatorState.PENDING);
 		expect(trackerMock.getMode()).andReturn(CLOSE);
@@ -846,6 +875,54 @@ public class RecoverableStreamsServiceTest {
 		trackerMock.changeState(AggregatorState.DEAD);
 		control.replay();
 
+		service.run();
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testRun_ShouldKeepRunningIfAvailabilityChanged_NotifyAvailable() {
+		trackerMock.changeState(AggregatorState.PENDING);
+		// expect go to running first
+		expect(trackerMock.getMode()).andReturn(RUNNING);
+		trackerMock.changeState(AggregatorState.STARTING);
+		expect(ctrlMock.build(service)).andReturn(handlerMock1);
+		handlerMock1.start();
+		// expect changes
+		expect(trackerMock.getMode()).andAnswer(() -> { availabilityChanged.set(true); return RUNNING; });
+		expect(handlerMock1.available()).andAnswer(() -> { assertFalse(availabilityChanged.get()); return true; });
+		ctrlMock.onAvailable(handlerMock1);
+		// expect close
+		expect(trackerMock.getMode()).andReturn(CLOSE);
+		ctrlMock.onClose(handlerMock1);
+		handlerMock1.close();
+		trackerMock.changeState(AggregatorState.DEAD);
+		control.replay();
+		
+		service.run();
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testRun_ShouldKeepRunningIfAvailabilityChanged_NotifyUnavailable() {
+		trackerMock.changeState(AggregatorState.PENDING);
+		// expect go to running first
+		expect(trackerMock.getMode()).andReturn(RUNNING);
+		trackerMock.changeState(AggregatorState.STARTING);
+		expect(ctrlMock.build(service)).andReturn(handlerMock1);
+		handlerMock1.start();
+		// expect changes
+		expect(trackerMock.getMode()).andAnswer(() -> { availabilityChanged.set(true); return RUNNING; });
+		expect(handlerMock1.available()).andAnswer(() -> { assertFalse(availabilityChanged.get()); return false; });
+		ctrlMock.onUnavailable(handlerMock1);
+		// expect close
+		expect(trackerMock.getMode()).andReturn(CLOSE);
+		ctrlMock.onClose(handlerMock1);
+		handlerMock1.close();
+		trackerMock.changeState(AggregatorState.DEAD);
+		control.replay();
+		
 		service.run();
 		
 		control.verify();

@@ -28,18 +28,21 @@ public class KafkaAggregatorService implements IAggregatorService {
 	private final List<IAggregator> aggregatorList;
 	private final int maxLimit;
 	private final boolean clearAggregatorsInParallel;
+	private final long timeout;
 	
 	KafkaAggregatorService(Periods periods,
 			KafkaStreamsRegistry registry,
 			List<IAggregator> aggregatorList,
 			int maxLimit,
-			boolean clearAggregatorsInParallel)
+			boolean clearAggregatorsInParallel,
+			long timeout)
 	{
 		this.periods = periods;
 		this.registry = registry;
 		this.aggregatorList = aggregatorList;
 		this.maxLimit = maxLimit;
 		this.clearAggregatorsInParallel = clearAggregatorsInParallel;
+		this.timeout = timeout;
 	}
 	
 	public Periods getPeriods() {
@@ -60,6 +63,10 @@ public class KafkaAggregatorService implements IAggregatorService {
 	
 	public boolean isClearAggregatorsInParallel() {
 		return clearAggregatorsInParallel;
+	}
+	
+	public long getTimeout() {
+		return timeout;
 	}
 	
 	private int getLimit(AggregatedDataRequest request) {
@@ -99,9 +106,9 @@ public class KafkaAggregatorService implements IAggregatorService {
 		WindowStoreIterator<KafkaTuple> it = null;
 		if ( entry == null ) {
 			entry = registry.findSuitableAggregatorToRebuildOnFly(period);
-			it = new KafkaTupleAggregateIterator(entry.getStore().fetch(symbol, from, to), getDuration(period));
+			it = new KafkaTupleAggregateIterator(entry.getStore(timeout).fetch(symbol, from, to), getDuration(period));
 		} else {
-			it = entry.getStore().fetch(symbol, from, to);
+			it = entry.getStore(timeout).fetch(symbol, from, to);
 		}
 		return new TupleIterator(symbol, new WindowStoreIteratorLimited<KafkaTuple>(it, getLimit(request)));
 	}

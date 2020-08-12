@@ -10,4 +10,5 @@ public interface IRecoverableStreamsHandler {
 	boolean started();
 	void start();
 	void close();
+	boolean available();
 }

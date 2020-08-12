@@ -1,4 +1,4 @@
-package ru.prolib.caelum.backnode.rest.jetty;
+package ru.prolib.caelum.backnode;
 
 import java.io.BufferedInputStream;
 import java.io.File;
