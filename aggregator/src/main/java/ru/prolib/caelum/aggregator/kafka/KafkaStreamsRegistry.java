@@ -4,11 +4,15 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.kafka.streams.KafkaStreams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ru.prolib.caelum.core.Period;
 import ru.prolib.caelum.core.Periods;
 
 public class KafkaStreamsRegistry {
+	private static final Logger logger = LoggerFactory.getLogger(KafkaStreamsRegistry.class);
+	
 	private final Periods periods;
 	private final Map<Period, KafkaAggregatorEntry> entryByPeriod;
 
@@ -85,6 +89,7 @@ public class KafkaStreamsRegistry {
 	}
 	
 	public void setAvailability(KafkaAggregatorDescr descr, boolean is_available) {
+		logger.debug("Streams availability change: {} -> {}", descr.period, is_available);
 		entryByPeriod.get(descr.period).setAvailable(is_available);
 	}
 	
