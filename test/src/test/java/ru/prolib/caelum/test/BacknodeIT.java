@@ -1134,7 +1134,7 @@ public class BacknodeIT {
 				TuplesResponseDTO response = ath.apiGetTuples(spec, "M1", cs.symbol, 6000, null, null);
 				assertNotError(response);
 				return response.data.rows.size() == 5000 ? r.complete(response) : false;
-			}, Duration.ofMinutes(1));
+			}, Duration.ofMinutes(2L));
 		TuplesResponseDTO response = r.get(1, TimeUnit.SECONDS);
 		assertEquals(cs.symbol, response.data.symbol);
 		assertEquals("M1", response.data.period);

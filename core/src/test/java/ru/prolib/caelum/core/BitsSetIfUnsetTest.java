@@ -52,6 +52,7 @@ public class BitsSetIfUnsetTest {
 		assertEquals(expected, service.hashCode());
 	}
 
+	@SuppressWarnings("unlikely-arg-type")
 	@Test
 	public void testEquals() {
 		BitsSetIfUnset o = new BitsSetIfUnset(4);

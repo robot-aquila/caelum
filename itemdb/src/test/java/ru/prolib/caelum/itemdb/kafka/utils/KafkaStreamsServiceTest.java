@@ -80,6 +80,7 @@ public class KafkaStreamsServiceTest {
 		assertEquals(expected, service.hashCode());
 	}
 	
+	@SuppressWarnings("unlikely-arg-type")
 	@Test
 	public void testEquals() {
 		KafkaStreams streamsMock2 = control.createMock(KafkaStreams.class);

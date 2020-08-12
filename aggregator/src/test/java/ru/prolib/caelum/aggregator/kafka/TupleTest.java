@@ -70,6 +70,7 @@ public class TupleTest {
 		assertEquals(expected, service.hashCode());
 	}
 	
+	@SuppressWarnings("unlikely-arg-type")
 	@Test
 	public void testEquals_SpecialCases() {
 		assertTrue(service.equals(service));

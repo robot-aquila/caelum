@@ -26,7 +26,7 @@ public class KafkaItemSerdeTest {
 		assertEquals(expected, service.hashCode());
 	}
 
-	@SuppressWarnings("resource")
+	@SuppressWarnings("unlikely-arg-type")
 	@Test
 	public void testEquals() {
 		assertTrue(service.equals(service));

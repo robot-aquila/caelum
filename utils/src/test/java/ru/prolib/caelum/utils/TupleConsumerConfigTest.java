@@ -1,4 +1,4 @@
-package ru.prolib.caelum.test;
+package ru.prolib.caelum.utils;
 
 import static org.junit.Assert.*;
 

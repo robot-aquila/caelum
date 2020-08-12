@@ -93,7 +93,7 @@ public class KafkaAggregatorServiceBuilder implements IAggregatorServiceBuilder 
 				aggregator_list,
 				config.getListTuplesLimit(),
 				is_parallel_clear,
-				25000L);
+				config.getDefaultTimeout());
 		return service;
 	}
 	

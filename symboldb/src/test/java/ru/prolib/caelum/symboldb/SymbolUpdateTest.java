@@ -50,6 +50,7 @@ public class SymbolUpdateTest {
 		assertEquals(expected, service.hashCode());
 	}
 
+	@SuppressWarnings("unlikely-arg-type")
 	@Test
 	public void testEquals() {
 		LinkedHashMap<Integer, String> tokens1 = new LinkedHashMap<>(), tokens2 = new LinkedHashMap<>();

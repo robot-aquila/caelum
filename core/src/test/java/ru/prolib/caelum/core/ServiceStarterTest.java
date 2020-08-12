@@ -62,6 +62,7 @@ public class ServiceStarterTest {
 		assertEquals(expected, service.hashCode());
 	}
 	
+	@SuppressWarnings("unlikely-arg-type")
 	@Test
 	public void testEquals() {
 		assertTrue(service.equals(service));

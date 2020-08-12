@@ -121,6 +121,7 @@ public class KafkaAggregatorServiceBuilderTest {
 		mockedConfig.getProperties().put("caelum.aggregator.aggregation.period", " M1, M5, H1, M1, H1, M5, M5");
 		mockedConfig.getProperties().put("caelum.aggregator.list.tuples.limit", "400");
 		mockedConfig.getProperties().put("caelum.aggregator.kafka.force.parallel.clear", "1");
+		mockedConfig.getProperties().put("caelum.aggregator.kafka.default.timeout", "2345");
 		expect(mockedService.createPeriods()).andReturn(periods);
 		expect(mockedService.createConfig(periods)).andReturn(mockedConfig);
 		expect(mockedService.createStreamsRegistry(periods)).andReturn(streamsRegistryMock);
@@ -156,9 +157,9 @@ public class KafkaAggregatorServiceBuilderTest {
 		assertThat(actual, is(instanceOf(KafkaAggregatorService.class)));
 		KafkaAggregatorService x = (KafkaAggregatorService) actual;
 		assertEquals(Arrays.asList(aggregatorMock1, aggregatorMock2, aggregatorMock3), x.getAggregatorList());
-		assertEquals(400, x.getMaxLimit());
+		assertEquals(400, x.getMaxLimit()); // caelum.aggregator.list.tuples.limit
+		assertEquals(2345L, x.getTimeout()); // caelum.aggregator.kafka.default.timeout
 		assertTrue(x.isClearAggregatorsInParallel());
-		assertEquals(25000L, x.getTimeout());
 		Properties expected_props = new Properties();
 		expected_props.putAll(mockedConfig.getProperties());
 		expected_props.put("caelum.aggregator.aggregation.period", "M1");
@@ -214,6 +215,7 @@ public class KafkaAggregatorServiceBuilderTest {
 		assertEquals(expected, service.hashCode());
 	}
 	
+	@SuppressWarnings("unlikely-arg-type")
 	@Test
 	public void testEquals() {
 		assertTrue(service.equals(service));

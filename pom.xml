@@ -18,7 +18,7 @@
 		<module>service</module>
 		<module>itesym-ak</module>
 		<module>backnode</module>
-		<module>test</module>
+		<module>utils</module>
 	</modules>
   
 	<dependencies>

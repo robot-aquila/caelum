@@ -87,7 +87,7 @@ public class IteratorStubTest {
 		assertThrows(NoSuchElementException.class, () -> service.next());
 	}
 
-	@SuppressWarnings("resource")
+	@SuppressWarnings("unlikely-arg-type")
 	@Test
 	public void testEquals() {
 		IteratorStub<?> it1 = new IteratorStub<>(data2); it1.close();

@@ -1,11 +1,11 @@
-package ru.prolib.caelum.test;
+package ru.prolib.caelum.utils;
 
 import static org.junit.Assert.*;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import ru.prolib.caelum.test.TradeGenerator.SymbolDesc;
+import ru.prolib.caelum.utils.TradeGenerator.SymbolDesc;
 
 public class TradeGeneratorTest {
 

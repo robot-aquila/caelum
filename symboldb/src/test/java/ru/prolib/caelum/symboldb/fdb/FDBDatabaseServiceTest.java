@@ -185,6 +185,7 @@ public class FDBDatabaseServiceTest {
 		assertEquals(expected, service.hashCode());
 	}
 
+	@SuppressWarnings("unlikely-arg-type")
 	@Test
 	public void testEquals() {
 		FDBSymbolService targetMock2 = control.createMock(FDBSymbolService.class);

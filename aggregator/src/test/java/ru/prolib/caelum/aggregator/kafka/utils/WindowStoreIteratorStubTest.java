@@ -39,7 +39,7 @@ public class WindowStoreIteratorStubTest {
 		assertEquals(expected, service.hashCode());
 	}
 	
-	@SuppressWarnings("resource")
+	@SuppressWarnings({ "unlikely-arg-type" })
 	@Test
 	public void testEquals() {
 		List<KeyValue<Long, Integer>>
