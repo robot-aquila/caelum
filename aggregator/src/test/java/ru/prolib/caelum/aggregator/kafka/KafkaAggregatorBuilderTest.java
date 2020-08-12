@@ -221,11 +221,14 @@ public class KafkaAggregatorBuilderTest {
 		assertSame(registryMock, ctrl.getStreamsRegistry());
 		assertSame(mutexMock, ctrl.getCleanUpMutex());
 		assertSame(utils, ctrl.getUtils());
+		assertSame(registryMock, ctrl.getStreamsRegistry());
 	}
 	
 	@Test
 	public void testCreateAggregator() {
-		objects.setConfig(config).setUtils(utils);
+		objects.setConfig(config)
+			.setUtils(utils)
+			.setStreamsRegistry(registryMock);
 		
 		IAggregator actual = service.createAggregator(descr, streamsServiceMock);
 		

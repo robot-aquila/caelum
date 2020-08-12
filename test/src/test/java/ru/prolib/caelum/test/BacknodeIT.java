@@ -1021,6 +1021,7 @@ public class BacknodeIT {
 		start_time = start_time / window.toMillis() * window.toMillis(); // make it round
 
 		RequestSpecification spec = ath.getSpecRandom();
+		ath.awaitUntilAggregatorsReadyAK(spec);
 		CompletableFuture<TuplesResponseDTO> r = new CompletableFuture<>();
 		waitUntil(() -> {
 				TuplesResponseDTO response = ath.apiGetTuples(spec, "M1", cs.symbol);
@@ -1055,6 +1056,7 @@ public class BacknodeIT {
 		start_time = start_time / window.toMillis() * window.toMillis();
 		
 		RequestSpecification spec = ath.getSpecRandom();
+		ath.awaitUntilAggregatorsReadyAK(spec);
 		CompletableFuture<TuplesResponseDTO> r = new CompletableFuture<>();
 		final long _tb = start_time;
 		waitUntil(() -> {
@@ -1092,6 +1094,7 @@ public class BacknodeIT {
 		start_time = start_time / window.toMillis() * window.toMillis();
 		
 		RequestSpecification spec = ath.getSpecRandom();
+		ath.awaitUntilAggregatorsReadyAK(spec);
 		CompletableFuture<TuplesResponseDTO> r = new CompletableFuture<>();
 		final long _tb = start_time;
 		waitUntil(() -> {
@@ -1129,6 +1132,7 @@ public class BacknodeIT {
 		start_time = start_time / window.toMillis() * window.toMillis();
 		
 		RequestSpecification spec = ath.getSpecRandom();
+		ath.awaitUntilAggregatorsReadyAK(spec);
 		CompletableFuture<TuplesResponseDTO> r = new CompletableFuture<>();
 		waitUntil(() -> {
 				TuplesResponseDTO response = ath.apiGetTuples(spec, "M1", cs.symbol, 6000, null, null);
@@ -1180,6 +1184,7 @@ public class BacknodeIT {
 		}
 		final long _tb = start_time;
 		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			ath.awaitUntilAggregatorsReadyAK(spec);
 			for ( CatSym cs : cs_list ) {
 				CompletableFuture<TuplesResponseDTO> r = new CompletableFuture<>();
 				waitUntil(() -> {
@@ -1230,6 +1235,7 @@ public class BacknodeIT {
 				expected_rows = expected_rows.subList(0, 5000);
 			}
 			for ( RequestSpecification spec : ath.getSpecAll() ) {
+				ath.awaitUntilAggregatorsReadyAK(spec);
 				int expected_count = expected_rows.size();
 				CompletableFuture<TuplesResponseDTO> r = new CompletableFuture<>();
 				waitUntil(() -> {

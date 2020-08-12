@@ -48,6 +48,8 @@ import ru.prolib.caelum.test.dto.CategoriesResponseDTO;
 import ru.prolib.caelum.test.dto.ClearResponseDTO;
 import ru.prolib.caelum.test.dto.ItemResponseDTO;
 import ru.prolib.caelum.test.dto.ItemsResponseDTO;
+import ru.prolib.caelum.test.dto.KafkaAggregatorStatusDTO;
+import ru.prolib.caelum.test.dto.KafkaAggregatorStatusResponseDTO;
 import ru.prolib.caelum.test.dto.LogMarkerResponseDTO;
 import ru.prolib.caelum.test.dto.PeriodsResponseDTO;
 import ru.prolib.caelum.test.dto.PingResponseDTO;
@@ -370,7 +372,12 @@ public class ApiTestHelper {
 	
 	public static void assertNotError(PeriodsResponseDTO response) {
 		assertNotError((ResponseDTO) response);
-		assertNotNull(response.data);		
+		assertNotNull(response.data);
+	}
+	
+	public static void assertNotError(KafkaAggregatorStatusResponseDTO response) {
+		assertNotError((ResponseDTO) response);
+		assertNotNull(response.data);
 	}
 	
 	public static void assertEqualsItemByItem(String msg, List<Item> expected, List<Item> actual) {
@@ -446,6 +453,31 @@ public class ApiTestHelper {
 	
 	public static void waitUntil(Callable<Boolean> condition) {
 		waitUntil(condition, Duration.ofSeconds(20));
+	}
+	
+	public void awaitUntilAggregatorsReadyAK(RequestSpecification spec, Duration poll_interval, Duration timeout) {
+		final String running = "RUNNING";
+		waitUntil(() -> {
+			KafkaAggregatorStatusResponseDTO response = apiGetAggregatorStatusAK(spec);
+			if ( response.error == true ) return false;
+			for ( KafkaAggregatorStatusDTO status : response.data.rows ) {
+				if ( running.equals(status.state) == false
+					|| status.statusInfo.availability == false
+					|| running.equals(status.statusInfo.state) == false )
+				{
+					return false;
+				}
+			}
+			return true;
+		}, poll_interval, timeout);
+	}
+	
+	public void awaitUntilAggregatorsReadyAK(RequestSpecification spec, Duration timeout) {
+		awaitUntilAggregatorsReadyAK(spec, Duration.ofSeconds(1), timeout);
+	}
+	
+	public void awaitUntilAggregatorsReadyAK(RequestSpecification spec) {
+		awaitUntilAggregatorsReadyAK(spec, Duration.ofMinutes(2));
 	}
 	
 	private final Map<String, List<Item>> databaseReplica = new HashMap<>();
@@ -701,6 +733,17 @@ public class ApiTestHelper {
 				.statusCode(200)
 				.extract()
 				.as(PingResponseDTO.class);
+	}
+	
+	public KafkaAggregatorStatusResponseDTO apiGetAggregatorStatusAK(RequestSpecification spec) {
+		return given()
+				.spec(spec)
+			.when()
+				.get("aggregator/status")
+			.then()
+				.statusCode(200)
+				.extract()
+				.as(KafkaAggregatorStatusResponseDTO.class);
 	}
 	
 	public PeriodsResponseDTO apiGetPeriods(RequestSpecification spec) {

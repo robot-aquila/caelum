@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.List;
 
 import ru.prolib.caelum.aggregator.AggregatedDataRequest;
+import ru.prolib.caelum.aggregator.AggregatorStatus;
 import ru.prolib.caelum.core.ICloseableIterator;
 import ru.prolib.caelum.core.IItem;
 import ru.prolib.caelum.core.ITuple;
@@ -30,4 +31,5 @@ public interface ICaelum {
 	ICloseableIterator<SymbolUpdate> fetchSymbolUpdates(String symbol);
 	void clear(boolean global);
 	List<Period> getAggregationPeriods();
+	List<AggregatorStatus> getAggregatorStatus();
 }

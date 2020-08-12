@@ -2,6 +2,9 @@ package ru.prolib.caelum.service;
 
 import static org.junit.Assert.*;
 import static org.easymock.EasyMock.*;
+import static ru.prolib.caelum.core.Period.*;
+import static ru.prolib.caelum.aggregator.AggregatorState.*;
+import static ru.prolib.caelum.aggregator.AggregatorType.*;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -12,6 +15,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import ru.prolib.caelum.aggregator.AggregatedDataRequest;
+import ru.prolib.caelum.aggregator.AggregatorStatus;
 import ru.prolib.caelum.aggregator.kafka.KafkaAggregatorService;
 import ru.prolib.caelum.core.ICloseableIterator;
 import ru.prolib.caelum.core.ITuple;
@@ -183,13 +187,31 @@ public class CaelumTest {
 	
 	@Test
 	public void testGetAggregationPeriods() {
-		expect(aggrSvcMock.getAggregationPeriods()).andReturn(Arrays.asList(Period.M1, Period.M2, Period.M5));
+		expect(aggrSvcMock.getAggregationPeriods()).andReturn(Arrays.asList(M1, M2, M5));
 		control.replay();
 		
 		List<Period> actual = service.getAggregationPeriods();
 		
 		control.verify();
-		assertEquals(Arrays.asList(Period.M1, Period.M2, Period.M5), actual);
+		assertEquals(Arrays.asList(M1, M2, M5), actual);
+	}
+	
+	@Test
+	public void testGetAggregatorStatus() {
+		expect(aggrSvcMock.getAggregatorStatus()).andReturn(Arrays.asList(
+				new AggregatorStatus("AK", M1, ITEM, CREATED, null),
+				new AggregatorStatus("AK", H1, ITEM, CREATED, null)
+			));
+		control.replay();
+		
+		List<AggregatorStatus> actual = service.getAggregatorStatus();
+		
+		control.verify();
+		List<AggregatorStatus> expected = Arrays.asList(
+				new AggregatorStatus("AK", M1, ITEM, CREATED, null),
+				new AggregatorStatus("AK", H1, ITEM, CREATED, null)
+			);
+		assertEquals(expected, actual);
 	}
 
 }

@@ -8,6 +8,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.KafkaStreams.State;
 import org.apache.kafka.streams.StoreQueryParameters;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyWindowStore;
@@ -156,6 +157,28 @@ public class KafkaAggregatorEntryTest {
 		
 		service.setAvailable(true);
 		service.setAvailable(false);
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testIsAvailable() {
+		expect(stateMock1.isAvailable()).andReturn(true).andReturn(false);
+		control.replay();
+		
+		assertTrue(service.isAvailable());
+		assertFalse(service.isAvailable());
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testGetStreamsState() {
+		expect(streamsMock1.state()).andReturn(State.CREATED).andReturn(State.PENDING_SHUTDOWN);
+		control.replay();
+		
+		assertEquals(State.CREATED, service.getStreamsState());
+		assertEquals(State.PENDING_SHUTDOWN, service.getStreamsState());
 		
 		control.verify();
 	}

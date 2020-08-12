@@ -150,7 +150,8 @@ public class KafkaAggregatorBuilder {
 	}
 	
 	protected IAggregator createAggregator(KafkaAggregatorDescr descr, IRecoverableStreamsService streamsService) {
-		return new KafkaAggregator(descr, objects.getConfig(), streamsService, objects.getUtils());
+		return new KafkaAggregator(descr, objects.getConfig(), streamsService,
+				objects.getUtils(), objects.getStreamsRegistry());
 	}
 	
 	public IAggregator build() {

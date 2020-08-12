@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.List;
 
 import ru.prolib.caelum.aggregator.AggregatedDataRequest;
+import ru.prolib.caelum.aggregator.AggregatorStatus;
 import ru.prolib.caelum.aggregator.IAggregatorService;
 import ru.prolib.caelum.core.ICloseableIterator;
 import ru.prolib.caelum.core.IItem;
@@ -113,6 +114,11 @@ public class Caelum implements ICaelum {
 	@Override
 	public List<Period> getAggregationPeriods() {
 		return aggrService.getAggregationPeriods();
+	}
+
+	@Override
+	public List<AggregatorStatus> getAggregatorStatus() {
+		return aggrService.getAggregatorStatus();
 	}
 
 }

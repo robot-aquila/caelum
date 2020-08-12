@@ -2,6 +2,8 @@ package ru.prolib.caelum.aggregator.kafka;
 
 import static org.junit.Assert.*;
 import static ru.prolib.caelum.core.Period.*;
+import static ru.prolib.caelum.aggregator.AggregatorType.*;
+import static ru.prolib.caelum.aggregator.AggregatorState.*;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -20,6 +22,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import ru.prolib.caelum.aggregator.AggregatedDataRequest;
+import ru.prolib.caelum.aggregator.AggregatorStatus;
 import ru.prolib.caelum.aggregator.IAggregator;
 import ru.prolib.caelum.aggregator.kafka.utils.WindowStoreIteratorLimited;
 import ru.prolib.caelum.aggregator.kafka.utils.WindowStoreIteratorStub;
@@ -321,6 +324,22 @@ public class KafkaAggregatorServiceTest {
 	@Test
 	public void testGetAggregationPeriods() {
 		assertEquals(periods.getIntradayPeriods(), service.getAggregationPeriods());
+	}
+	
+	@Test
+	public void testGetAggregatorStatus() {
+		expect(aggrMock1.getStatus()).andReturn(new AggregatorStatus("AK", M1, ITEM, CREATED, null));
+		expect(aggrMock2.getStatus()).andReturn(new AggregatorStatus("AK", H1, ITEM, CREATED, null));
+		control.replay();
+		
+		List<AggregatorStatus> actual = service.getAggregatorStatus();
+		
+		control.verify();
+		List<AggregatorStatus> expected = Arrays.asList(
+				new AggregatorStatus("AK", M1, ITEM, CREATED, null),
+				new AggregatorStatus("AK", H1, ITEM, CREATED, null)
+			);
+		assertEquals(expected, actual);
 	}
 
 }

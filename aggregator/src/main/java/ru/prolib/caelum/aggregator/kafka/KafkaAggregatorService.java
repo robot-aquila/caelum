@@ -3,11 +3,14 @@ package ru.prolib.caelum.aggregator.kafka;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import org.apache.kafka.streams.state.WindowStoreIterator;
 
 import ru.prolib.caelum.aggregator.AggregatedDataRequest;
+import ru.prolib.caelum.aggregator.AggregatorStatus;
 import ru.prolib.caelum.aggregator.IAggregator;
 import ru.prolib.caelum.aggregator.IAggregatorService;
 import ru.prolib.caelum.aggregator.kafka.utils.WindowStoreIteratorLimited;
@@ -137,6 +140,17 @@ public class KafkaAggregatorService implements IAggregatorService {
 	@Override
 	public List<Period> getAggregationPeriods() {
 		return periods.getIntradayPeriods();
+	}
+
+	@Override
+	public List<AggregatorStatus> getAggregatorStatus() {
+		final Map<Period, AggregatorStatus> m = aggregatorList.stream()
+			.map(x -> x.getStatus())
+			.collect(Collectors.toMap(x -> x.getPeriod(), x -> x));
+		return periods.getIntradayPeriods().stream()
+			.filter(p -> m.containsKey(p))
+			.map(p -> m.get(p))
+			.collect(Collectors.toList());
 	}
 
 }

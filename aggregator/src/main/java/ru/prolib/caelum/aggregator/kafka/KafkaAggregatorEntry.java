@@ -87,4 +87,12 @@ class KafkaAggregatorEntry {
 	public void setAvailable(boolean is_available) {
 		state.setAvailable(is_available);
 	}
+	
+	public boolean isAvailable() {
+		return state.isAvailable();
+	}
+	
+	public KafkaStreams.State getStreamsState() {
+		return streams.state();
+	}
 }

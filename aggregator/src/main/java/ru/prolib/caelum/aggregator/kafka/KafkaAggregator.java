@@ -1,6 +1,7 @@
 package ru.prolib.caelum.aggregator.kafka;
 
 import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.streams.KafkaStreams;
 
 import ru.prolib.caelum.aggregator.AggregatorStatus;
 import ru.prolib.caelum.aggregator.IAggregator;
@@ -12,16 +13,19 @@ public class KafkaAggregator implements IAggregator {
 	private final KafkaAggregatorConfig config;
 	private final IRecoverableStreamsService streamsService;
 	private final KafkaUtils utils;
+	private final KafkaStreamsRegistry registry;
 	
 	public KafkaAggregator(KafkaAggregatorDescr descr,
 			KafkaAggregatorConfig config,
 			IRecoverableStreamsService streamsService,
-			KafkaUtils utils)
+			KafkaUtils utils,
+			KafkaStreamsRegistry registry)
 	{
 		this.descr = descr;
 		this.config = config;
 		this.streamsService = streamsService;
 		this.utils = utils;
+		this.registry = registry;
 	}
 	
 	public KafkaAggregatorDescr getDescriptor() {
@@ -39,25 +43,32 @@ public class KafkaAggregator implements IAggregator {
 	public KafkaUtils getUtils() {
 		return utils;
 	}
-
+	
+	public KafkaStreamsRegistry getStreamsRegistry() {
+		return registry;
+	}
+	
 	@Override
 	public AggregatorStatus getStatus() {
+		KafkaAggregatorEntry entry = registry.getByPeriod(descr.getPeriod());
 		return new AggregatorStatus(
+				"AK",
 				descr.getPeriod(),
 				descr.getType(),
 				streamsService.getState(),
-				new StringBuilder()
-					.append("source=").append(descr.getSource())
-					.append(" target=").append(descr.getTarget())
-					.append(" store=").append(descr.getStoreName())
-					.toString()
+				new KafkaAggregatorStatusInfo(descr.getSource(),
+						descr.getTarget(),
+						descr.getStoreName(),
+						entry != null ? entry.isAvailable() : false,
+						entry != null ? entry.getStreamsState() : KafkaStreams.State.NOT_RUNNING
+					)
 			);
 	}
 	
 	private String getChangelogTopic() {
 		return config.getApplicationId() + "-" + config.getStoreName() + "-changelog";
 	}
-
+	
 	@Override
 	public void clear(boolean global) {
 		final long timeout = config.getDefaultTimeout();

@@ -45,6 +45,11 @@ public class AggregatorServiceBuilderTest {
 			throw new UnsupportedOperationException();
 		}
 		
+		@Test
+		public List<AggregatorStatus> getAggregatorStatus() {
+			throw new UnsupportedOperationException();
+		}
+		
 	}
 	
 	static class TestBuilder implements IAggregatorServiceBuilder {

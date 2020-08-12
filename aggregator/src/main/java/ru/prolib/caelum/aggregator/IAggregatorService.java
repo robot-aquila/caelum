@@ -18,5 +18,7 @@ public interface IAggregatorService {
      * @return list of aggregation periods
      */
     List<Period> getAggregationPeriods();
+    
+    List<AggregatorStatus> getAggregatorStatus();
 
 }

@@ -5,6 +5,8 @@ import static ru.prolib.caelum.aggregator.AggregatorState.*;
 import static ru.prolib.caelum.aggregator.AggregatorType.*;
 
 import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.KafkaStreams.State;
 
 import static org.easymock.EasyMock.*;
 
@@ -32,6 +34,8 @@ public class KafkaAggregatorTest {
 	IRecoverableStreamsService streamsServiceMock;
 	KafkaUtils utilsMock;
 	AdminClient adminMock;
+	KafkaStreamsRegistry registryMock;
+	KafkaAggregatorEntry entryMock;
 	Periods periods;
 	KafkaAggregator service;
 
@@ -41,6 +45,8 @@ public class KafkaAggregatorTest {
 		streamsServiceMock = control.createMock(IRecoverableStreamsService.class);
 		utilsMock = control.createMock(KafkaUtils.class);
 		adminMock = control.createMock(AdminClient.class);
+		registryMock = control.createMock(KafkaStreamsRegistry.class);
+		entryMock = control.createMock(KafkaAggregatorEntry.class);
 		descr = new KafkaAggregatorDescr(ITEM, Period.M1, "d-source", "d-target", "d-store");
 		config = new KafkaAggregatorConfig(periods = new Periods());
 		config.getProperties().put(KafkaAggregatorConfig.AGGREGATION_PERIOD, "M1");
@@ -48,7 +54,7 @@ public class KafkaAggregatorTest {
 		config.getProperties().put(KafkaAggregatorConfig.AGGREGATION_STORE_PREFIX, "myStore-");
 		config.getProperties().put(KafkaAggregatorConfig.TARGET_TOPIC_PREFIX, "myTarget-");
 		config.getProperties().put(KafkaAggregatorConfig.DEFAULT_TIMEOUT, "35193");
-		service = new KafkaAggregator(descr, config, streamsServiceMock, utilsMock);
+		service = new KafkaAggregator(descr, config, streamsServiceMock, utilsMock, registryMock);
 	}
 	
 	@Test
@@ -57,18 +63,22 @@ public class KafkaAggregatorTest {
 		assertEquals(config, service.getConfig());
 		assertSame(streamsServiceMock, service.getStreamsService());
 		assertSame(utilsMock, service.getUtils());
+		assertSame(registryMock, service.getStreamsRegistry());
 	}
 	
 	@Test
 	public void testGetStatus() {
+		expect(registryMock.getByPeriod(Period.M1)).andReturn(entryMock);
 		expect(streamsServiceMock.getState()).andReturn(STARTING);
+		expect(entryMock.isAvailable()).andReturn(false);
+		expect(entryMock.getStreamsState()).andReturn(KafkaStreams.State.ERROR);
 		control.replay();
 		
 		AggregatorStatus actual = service.getStatus();
 		
 		control.verify();
-		AggregatorStatus expected = new AggregatorStatus(Period.M1,
-				ITEM, STARTING, "source=d-source target=d-target store=d-store");
+		AggregatorStatus expected = new AggregatorStatus("AK", Period.M1, ITEM, STARTING,
+				new KafkaAggregatorStatusInfo("d-source", "d-target", "d-store", false, State.ERROR));
 		assertEquals(expected, actual);
 	}
 	

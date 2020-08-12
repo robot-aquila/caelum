@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ru.prolib.caelum.aggregator.AggregatedDataRequest;
+import ru.prolib.caelum.aggregator.AggregatorStatus;
 import ru.prolib.caelum.backnode.mvc.StreamFactory;
 import ru.prolib.caelum.core.ByteUtils;
 import ru.prolib.caelum.core.Item;
@@ -43,6 +44,14 @@ import ru.prolib.caelum.symboldb.SymbolUpdate;
 public class NodeService {
 	static final Logger logger = LoggerFactory.getLogger(NodeService.class);
 	public static final Period DEFAULT_PERIOD = Period.M5;
+	
+	static class RowsWrapper<T> {
+		public final List<T> rows;
+		
+		public RowsWrapper(List<T> rows) {
+			this.rows = rows;
+		}
+	}
 	
 	private final ICaelum caelum;
 	private final StreamFactory streamFactory;
@@ -168,6 +177,10 @@ public class NodeService {
 		return new Result<Void>(System.currentTimeMillis(), null);
 	}
 	
+	private <T> Result<T> success(T data) {
+		return new Result<>(System.currentTimeMillis(), data);
+	}
+	
 	private long toLong(BigDecimal value) {
 		try {
 			return byteUtils.centsToLong(value);
@@ -234,6 +247,12 @@ public class NodeService {
 		return Response.status(200)
 			.entity(streamFactory.stringsToJson(new IteratorStub<>(rows)))
 			.build();
+	}
+	
+	@GET
+	@Path("/aggregator/status")
+	public Result<RowsWrapper<AggregatorStatus>> aggregatorStatus() {
+		return success(new RowsWrapper<>(caelum.getAggregatorStatus()));
 	}
 	
 	@GET

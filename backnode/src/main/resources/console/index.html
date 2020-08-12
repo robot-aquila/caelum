@@ -6,7 +6,97 @@
         <script src="js/jquery.validate.min.js"></script>
         <script>
 jQuery(function($) {
-
+    
+    const setErrorMsg = function(what_failed_msg, response) {
+        $('#errorMsg').text(what_failed_msg + ' query failed: [' + response.code + '] ' + response.message)
+    }
+    
+    const refreshPeriods = function() {
+        $.getJSON('/api/v1/periods', function(response) {
+            if ( response.error == true ) {
+                setErrorMsg('Periods', response)
+                return
+            }
+            const targetBody = $('#targetBodyPeriods')
+            targetBody.empty()
+            const data_rows = response.data.rows
+            let result = ''
+            for ( let i = 0; i < data_rows.length; i ++ ) {
+                result += data_rows[i]
+                if ( i < data_rows.length - 1 ) result += ', '
+            }
+            targetBody.text(result)
+        })
+    }
+    
+    const refreshAggregatorStatus = function() {
+        $.getJSON('/api/v1/aggregator/status', function(response) {
+            if ( response.error == true ) {
+                setErrorMsg('Aggregator status', response)
+                return
+            }
+            const targetBody = $('#targetBodyAggregatorStatus')
+            targetBody.empty()
+            const data_rows = response.data.rows
+            for ( let row = 0; row < data_rows.length; row ++ ) {
+            	let tr = $('<tr>')
+                let data_row = data_rows[row]
+                $('<td valign="top">' + data_row.implCode + '</td>').appendTo(tr)
+                $('<td valign="top">' + data_row.period + '</td>').appendTo(tr)
+                $('<td valign="top">' + data_row.type + '</td>').appendTo(tr)
+                $('<td valign="top">' + data_row.state + '</td>').appendTo(tr)
+                if ( data_row.implCode == 'AK' ) {
+                    const info = data_row.statusInfo
+                    $('<td align="right" nowrap>' +
+                        'Source&nbsp;topic:</br>' +
+                        'Target&nbsp;topic:</br>' +
+                        'Store&nbsp;name:</br>' +
+                        'Currently&nbsp;available:</br>' +
+                        'AK&nbsp;stream&nbsp;state:' +
+                        '</td>').appendTo(tr)
+                    $('<td nowrap>' +
+                        info.source + '<br/>' +
+                        info.target + '<br/>' +
+                        info.store + '<br/>' +
+                        (info.availability ? 'Yes' : 'No') + '<br/>' +
+                        info.state +
+                        '</td>').appendTo(tr)
+                } else {
+                    $('<td colspan="2">' + data_row.statusInfo + '</td>').appendTo(tr)
+                }
+                targetBody.append(tr)
+            }
+        })
+        return false
+    }
+    
+    const refreshAggregatorStatusAuto = function() {
+        if ( $('#refreshAggregatorStatusAuto').prop('checked') ) {
+            refreshAggregatorStatus()
+            let time = parseInt($('#refreshAggregatorStatusTime').val())
+            if ( isNaN(time)|| time < 100 ) time = 1000
+            setTimeout(refreshAggregatorStatusAuto, time)
+        }
+    }
+    $('#refreshAggregatorStatusAuto').change(refreshAggregatorStatusAuto)
+    
+    refreshPeriods()
+    refreshAggregatorStatus()
+    $('#refreshPeriods').click(refreshPeriods)
+    $('#refreshAggregatorStatus').click(refreshAggregatorStatus)
+    
+    $('#refreshAggregatorStatusForm').validate({
+        errorLabelContainer: $('#errorMsg'),
+        rules: {
+        	refreshAggregatorStatusTime: {
+                required: true,
+                min: 100,
+                max: 600000
+            },
+            submitHandler: refreshAggregatorStatusAuto
+        }
+    })
+    
 })
         </script>
     </head>
@@ -21,6 +111,35 @@ jQuery(function($) {
 <p>
 <hr>
 
+<div class="error" id="errorMsg"></div>
+
+<h3>Supported periods <button id="refreshPeriods">Refresh</button></h3>
+<div id="targetBodyPeriods"></div>
+
+<p>
+<h3>Aggregator status</h3>
+<form id="refreshAggregatorStatusForm">
+<table>
+<tr>
+    <td><button id="refreshAggregatorStatus">Refresh</button></td>
+    <td nowrap><input type="checkbox" id="refreshAggregatorStatusAuto" /> Auto update interval</td>
+    <td nowrap><input type="text" name="refreshAggregatorStatusTime" id="refreshAggregatorStatusTime" size="5" value="1000" /> ms</td>
+</tr>
+</table>
+</form>
+
+<table class="blueTable">
+    <thead id="targetHeadAggregatorStatus">
+        <tr>
+            <td>Impl</td>
+            <td>Period</td>
+            <td>Type</td>
+            <td>State</td>
+            <td colspan="2">Status Info</td>
+        </tr>
+    </thead>
+    <tbody id="targetBodyAggregatorStatus"></tbody>
+</table>
 
 
 <hr>
