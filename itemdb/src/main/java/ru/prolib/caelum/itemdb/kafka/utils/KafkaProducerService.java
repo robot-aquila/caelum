@@ -16,7 +16,7 @@ public class KafkaProducerService implements IService {
 
 	@Override
 	public void start() throws ServiceException {
-		
+		producer.initTransactions();
 	}
 
 	@Override

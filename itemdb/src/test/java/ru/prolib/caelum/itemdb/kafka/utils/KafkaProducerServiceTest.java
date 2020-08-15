@@ -27,6 +27,7 @@ public class KafkaProducerServiceTest {
 	
 	@Test
 	public void testStart() {
+		producerMock1.initTransactions();
 		control.replay();
 		
 		service.start();

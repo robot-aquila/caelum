@@ -85,6 +85,11 @@ public class Caelum implements ICaelum {
 	public void registerItem(IItem item) {
 		itemDbService.registerItem(item);
 	}
+	
+	@Override
+	public void registerItem(Collection<IItem> items) {
+		itemDbService.registerItem(items);
+	}
 
 	@Override
 	public ICloseableIterator<String> fetchCategories() {

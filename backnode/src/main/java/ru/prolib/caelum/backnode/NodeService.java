@@ -1,6 +1,7 @@
 package ru.prolib.caelum.backnode;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,7 @@ import ru.prolib.caelum.aggregator.AggregatedDataRequest;
 import ru.prolib.caelum.aggregator.AggregatorStatus;
 import ru.prolib.caelum.backnode.mvc.StreamFactory;
 import ru.prolib.caelum.core.ByteUtils;
+import ru.prolib.caelum.core.IItem;
 import ru.prolib.caelum.core.Item;
 import ru.prolib.caelum.core.IteratorStub;
 import ru.prolib.caelum.core.Period;
@@ -294,7 +296,7 @@ public class NodeService {
 		if ( raw_time.size() != count || raw_bd_value.size() != count || raw_bd_volume.size() != count ) {
 			throw new BadRequestException();
 		}
-		Item[] items = new Item[count];
+		List<IItem> items = new ArrayList<>(count);
 		for ( int i = 0; i < count; i ++ ) {
 			long time;
 			BigDecimal bd_value, bd_volume;
@@ -313,13 +315,11 @@ public class NodeService {
 			} catch ( NumberFormatException e ) {
 				throw new BadRequestException("Illegal volume at position #" + i + ": " + raw_bd_volume.get(i));
 			}
-			items[i] = Item.ofDecimax15(validateSymbol(raw_symbol.get(i)), validateTime(time),
+			items.add(Item.ofDecimax15(validateSymbol(raw_symbol.get(i)), validateTime(time),
 					toLong(bd_value), toNumberOfDecimals(bd_value),
-					toLong(bd_volume), toNumberOfDecimals(bd_volume));
+					toLong(bd_volume), toNumberOfDecimals(bd_volume)));
 		}
-		for ( Item item : items ) {
-			caelum.registerItem(item);
-		}
+		caelum.registerItem(items);
 		return success();
 	}
 	

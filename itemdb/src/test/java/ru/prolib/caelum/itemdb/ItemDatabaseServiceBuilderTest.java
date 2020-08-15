@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Properties;
 
 import org.easymock.Capture;
@@ -27,17 +28,22 @@ public class ItemDatabaseServiceBuilderTest {
 			this.config_file = config_file;
 			this.services = services;
 		}
-
+		
 		@Override
 		public IItemIterator fetch(ItemDataRequest request) {
 			throw new UnsupportedOperationException();
 		}
-
+		
 		@Override
 		public IItemIterator fetch(ItemDataRequestContinue request) {
 			throw new UnsupportedOperationException();
 		}
-
+		
+		@Override
+		public void registerItem(Collection<IItem> items) {
+			throw new UnsupportedOperationException();
+		}
+		
 		@Override
 		public void registerItem(IItem item) {
 			throw new UnsupportedOperationException();

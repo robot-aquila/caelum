@@ -473,11 +473,11 @@ public class ApiTestHelper {
 	}
 	
 	public void awaitUntilAggregatorsReadyAK(RequestSpecification spec, Duration timeout) {
-		awaitUntilAggregatorsReadyAK(spec, Duration.ofSeconds(1), timeout);
+		awaitUntilAggregatorsReadyAK(spec, Duration.ofSeconds(5), timeout);
 	}
 	
 	public void awaitUntilAggregatorsReadyAK(RequestSpecification spec) {
-		awaitUntilAggregatorsReadyAK(spec, Duration.ofMinutes(2));
+		awaitUntilAggregatorsReadyAK(spec, Duration.ofMinutes(5));
 	}
 	
 	private final Map<String, List<Item>> databaseReplica = new HashMap<>();

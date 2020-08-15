@@ -198,7 +198,7 @@ public class KafkaUtilsTest {
 	@Test
 	public void testCreateIteratorStub() {
 		IItemIterator actual = service.createIteratorStub(consumerMock,
-				new KafkaItemInfo("boo", 1, "foo", 0, 400L, 800L), 150, 718256L);
+				new KafkaItemInfo("boo", 1, "foo", 0, 400L, 800L), 150, 622893L, 718256L);
 		
 		assertNotNull(actual);
 		assertThat(actual, is(instanceOf(ItemIterator.class)));
@@ -206,6 +206,7 @@ public class KafkaUtilsTest {
 		assertSame(consumerMock, o.getConsumer());
 		assertEquals(new KafkaItemInfo("boo", 1, "foo", 0, 400L, 800L), o.getItemInfo());
 		assertEquals(150, o.getLimit());
+		assertEquals(Long.valueOf(622893L), o.getStartTime());
 		assertEquals(Long.valueOf(718256L), o.getEndTime());
 		Iterator<ConsumerRecord<String, KafkaItem>> it = o.getSourceIterator();
 		assertThat(it, is(instanceOf(IteratorStub.class)));
@@ -213,9 +214,9 @@ public class KafkaUtilsTest {
 	}
 	
 	@Test
-	public void testCreateIteratorStub_ShouldBeOkIfEndTimeIsNull() {
+	public void testCreateIteratorStub_ShouldBeOkIfStartTimeAndEndTimeAreNull() {
 		IItemIterator actual = service.createIteratorStub(consumerMock,
-				new KafkaItemInfo("boo", 1, "foo", 0, 400L, 800L), 150, null);
+				new KafkaItemInfo("boo", 1, "foo", 0, 400L, 800L), 150, null, null);
 		
 		assertNotNull(actual);
 		assertThat(actual, is(instanceOf(ItemIterator.class)));
@@ -223,6 +224,7 @@ public class KafkaUtilsTest {
 		assertSame(consumerMock, o.getConsumer());
 		assertEquals(new KafkaItemInfo("boo", 1, "foo", 0, 400L, 800L), o.getItemInfo());
 		assertEquals(150, o.getLimit());
+		assertNull(o.getStartTime());
 		assertNull(o.getEndTime());
 		Iterator<ConsumerRecord<String, KafkaItem>> it = o.getSourceIterator();
 		assertThat(it, is(instanceOf(IteratorStub.class)));
@@ -231,38 +233,44 @@ public class KafkaUtilsTest {
 	
 	@Test
 	public void testCreateIterator() {
-		IItemIterator actual = service.createIterator(consumerMock,
-				new KafkaItemInfo("bug", 5, "juk", 3, 100L, 800L), 750, 2889000187L, clockMock);
+		KafkaItemInfo item_info = new KafkaItemInfo("bug", 5, "juk", 3, 100L, 800L); 
+		IItemIterator actual = service.createIterator(consumerMock, item_info, 750, 250112L, 288187L, clockMock);
 		
 		assertNotNull(actual);
 		assertThat(actual, is(instanceOf(ItemIterator.class)));
 		ItemIterator o = (ItemIterator) actual;
 		assertSame(consumerMock, o.getConsumer());
-		assertEquals(new KafkaItemInfo("bug", 5, "juk", 3, 100L, 800L), o.getItemInfo());
+		assertEquals(item_info, o.getItemInfo());
 		assertEquals(750, o.getLimit());
-		assertEquals(Long.valueOf(2889000187L), o.getEndTime());
+		assertEquals(Long.valueOf(250112L), o.getStartTime());
+		assertEquals(Long.valueOf(288187L), o.getEndTime());
 		Iterator<ConsumerRecord<String, KafkaItem>> it = o.getSourceIterator();
 		assertThat(it, is(instanceOf(SeamlessConsumerRecordIterator.class)));
-		assertSame(consumerMock, ((SeamlessConsumerRecordIterator<String, KafkaItem>) it).getConsumer());
-		assertSame(clockMock, ((SeamlessConsumerRecordIterator<String, KafkaItem>) it).getClock());
+		SeamlessConsumerRecordIterator<String, KafkaItem> x = (SeamlessConsumerRecordIterator<String, KafkaItem>) it;
+		assertEquals(consumerMock, x.getConsumer());
+		assertEquals(item_info, x.getItemInfo());
+		assertEquals(clockMock, x.getClock());
 	}
 	
 	@Test
-	public void testCreateIterator_ShouldBeOkIfEndTimeIsNull() {
-		IItemIterator actual = service.createIterator(consumerMock,
-				new KafkaItemInfo("pop", 4, "gap", 1, null, null), 240, null, clockMock);
+	public void testCreateIterator_ShouldBeOkIfStartTimeAndEndTimeAreNull() {
+		KafkaItemInfo item_info = new KafkaItemInfo("pop", 4, "gap", 1, null, null);
+		IItemIterator actual = service.createIterator(consumerMock, item_info, 240, null, null, clockMock);
 		
 		assertNotNull(actual);
 		assertThat(actual, is(instanceOf(ItemIterator.class)));
 		ItemIterator o = (ItemIterator) actual;
 		assertSame(consumerMock, o.getConsumer());
-		assertEquals(new KafkaItemInfo("pop", 4, "gap", 1, null, null), o.getItemInfo());
+		assertEquals(item_info, o.getItemInfo());
 		assertEquals(240, o.getLimit());
+		assertNull(o.getStartTime());
 		assertNull(o.getEndTime());
 		Iterator<ConsumerRecord<String, KafkaItem>> it = o.getSourceIterator();
 		assertThat(it, is(instanceOf(SeamlessConsumerRecordIterator.class)));
-		assertSame(consumerMock, ((SeamlessConsumerRecordIterator<String, KafkaItem>) it).getConsumer());
-		assertSame(clockMock, ((SeamlessConsumerRecordIterator<String, KafkaItem>) it).getClock());
+		SeamlessConsumerRecordIterator<String, KafkaItem> x = (SeamlessConsumerRecordIterator<String, KafkaItem>) it;
+		assertEquals(consumerMock, x.getConsumer());
+		assertEquals(item_info, x.getItemInfo());
+		assertEquals(clockMock, x.getClock());
 	}
 	
 	@Test

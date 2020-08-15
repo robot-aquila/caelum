@@ -23,6 +23,7 @@ public interface ICaelum {
 	void registerSymbol(Collection<String> symbols);
 	void registerSymbolUpdate(SymbolUpdate update);
 	void registerItem(IItem item);
+	void registerItem(Collection<IItem> items);
 	ICloseableIterator<ITuple> fetch(AggregatedDataRequest request);
 	IItemIterator fetch(ItemDataRequest request);
 	IItemIterator fetch(ItemDataRequestContinue request);

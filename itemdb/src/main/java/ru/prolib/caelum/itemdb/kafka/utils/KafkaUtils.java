@@ -75,16 +75,16 @@ public class KafkaUtils {
 	}
 	
 	public IItemIterator createIteratorStub(KafkaConsumer<String, KafkaItem> consumer,
-			KafkaItemInfo item_info, int limit, Long end_time)
+			KafkaItemInfo item_info, int limit, Long start_time, Long end_time)
 	{
-		return new ItemIterator(consumer, new IteratorStub<>(), item_info, limit, end_time);
+		return new ItemIterator(consumer, new IteratorStub<>(), item_info, limit, start_time, end_time);
 	}
 	
 	public IItemIterator createIterator(KafkaConsumer<String, KafkaItem> consumer,
-			KafkaItemInfo item_info, int limit, Long end_time, Clock clock)
+			KafkaItemInfo item_info, int limit, Long start_time, Long end_time, Clock clock)
 	{
-		return new ItemIterator(consumer, new SeamlessConsumerRecordIterator<>(consumer, clock),
-				item_info, limit, end_time);
+		return new ItemIterator(consumer, new SeamlessConsumerRecordIterator<>(consumer, item_info, clock),
+				item_info, limit, start_time, end_time);
 	}
 	
 	public long getOffset(KafkaConsumer<?, ?> consumer, TopicPartition tp, Long timestamp, long default_offset) {

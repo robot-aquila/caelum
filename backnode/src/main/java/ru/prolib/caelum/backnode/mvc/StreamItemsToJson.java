@@ -3,6 +3,7 @@ package ru.prolib.caelum.backnode.mvc;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.time.Clock;
+import java.util.NoSuchElementException;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.StreamingOutput;
@@ -75,12 +76,16 @@ public class StreamItemsToJson implements StreamingOutput {
 			
 			int total = 0, limit = request.getLimit() == null ? Integer.MAX_VALUE : request.getLimit();
 			while ( iterator.hasNext() && total < limit ) {
-				IItem item = iterator.next();
-				gen.writeStartArray();
-				gen.writeNumber(item.getTime());
-				gen.writeString(formatter.format(item.getValue(), item.getDecimals()));
-				gen.writeString(formatter.format(item.getVolume(), item.getVolumeDecimals()));
-				gen.writeEndArray();
+				try {
+					IItem item = iterator.next();
+					gen.writeStartArray();
+					gen.writeNumber(item.getTime());
+					gen.writeString(formatter.format(item.getValue(), item.getDecimals()));
+					gen.writeString(formatter.format(item.getVolume(), item.getVolumeDecimals()));
+					gen.writeEndArray();
+				} catch ( NoSuchElementException e ) {
+					// Sometimes we will get that exception because of AK lag
+				}
 			}
 			
 			gen.writeEndArray(); // end of rows

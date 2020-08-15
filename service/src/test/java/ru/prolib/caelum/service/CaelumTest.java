@@ -18,6 +18,7 @@ import ru.prolib.caelum.aggregator.AggregatedDataRequest;
 import ru.prolib.caelum.aggregator.AggregatorStatus;
 import ru.prolib.caelum.aggregator.kafka.KafkaAggregatorService;
 import ru.prolib.caelum.core.ICloseableIterator;
+import ru.prolib.caelum.core.IItem;
 import ru.prolib.caelum.core.ITuple;
 import ru.prolib.caelum.core.Item;
 import ru.prolib.caelum.core.Period;
@@ -133,6 +134,20 @@ public class CaelumTest {
 		control.replay();
 		
 		service.registerItem(item);
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testRegisterItem_List() {
+		List<IItem> items = Arrays.asList(
+				Item.ofDecimax15("foo", 15739304L, 15000, 2, 1000, 4),
+				Item.ofDecimax15("bar", 15739305L,   280, 1,   50, 5)
+			);
+		itemDbSvcMock.registerItem(items);
+		control.replay();
+		
+		service.registerItem(items);
 		
 		control.verify();
 	}

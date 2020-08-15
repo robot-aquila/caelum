@@ -19,7 +19,7 @@ public class ItemIterator implements IItemIterator {
 	private final Iterator<ConsumerRecord<String, KafkaItem>> it;
 	private final KafkaItemInfo itemInfo;
 	private final int limit;
-	private final Long endTime;
+	private final Long startTime, endTime;
 	private boolean finished = false, closed = false;
 	private ConsumerRecord<String, KafkaItem> nextRecord;
 	private long recordCount;
@@ -28,13 +28,16 @@ public class ItemIterator implements IItemIterator {
 	public ItemIterator(KafkaConsumer<String, KafkaItem> consumer,
 			Iterator<ConsumerRecord<String, KafkaItem>> it,
 			KafkaItemInfo item_info,
-			int limit, Long end_time)
+			int limit,
+			Long startTime,
+			Long endTime)
 	{
 		this.consumer = consumer;
 		this.it = it;
 		this.itemInfo = item_info;
 		this.limit = limit;
-		this.endTime = end_time;
+		this.startTime = startTime;
+		this.endTime = endTime;
 	}
 	
 	public KafkaConsumer<String, KafkaItem> getConsumer() {
@@ -51,6 +54,10 @@ public class ItemIterator implements IItemIterator {
 	
 	public int getLimit() {
 		return limit;
+	}
+	
+	public Long getStartTime() {
+		return startTime;
 	}
 	
 	public Long getEndTime() {
@@ -113,16 +120,25 @@ public class ItemIterator implements IItemIterator {
 			// Get the next record.
 			try {
 				nextRecord = it.next();
+			} catch ( NoSuchElementException e ) {
+				finish();
+				return false;
 			} catch ( Throwable e ) {
 				throw new IllegalStateException(new StringBuilder()
 						.append("Error while getting next record:")
 						.append("itemInfo=").append(itemInfo)
 						.append(" lastOffset=").append(lastOffset)
 						.append(" limit=").append(limit)
+						.append(" startTime=").append(startTime)
 						.append(" endTime=").append(endTime)
 						.toString(), e);
 			}
 			lastOffset = nextRecord.offset();
+			// Sometimes AK fails seeking correct offset corresponding with expected time.
+			// We can't check correctnes of offset but can check record timestamp.
+			if ( startTime != null && nextRecord.timestamp() < startTime ) {
+				continue;
+			}
 			// Test for end time
 			if ( endTime != null && nextRecord.timestamp() >= endTime ) {
 				finish();
@@ -169,8 +185,7 @@ public class ItemIterator implements IItemIterator {
 		if ( nextRecord == null && ! advance() ) {
 			throw new NoSuchElementException();
 		}
-		Item data = new Item(itemInfo.getSymbol(), nextRecord.timestamp(),
-				nextRecord.offset(), nextRecord.value());
+		Item data = new Item(itemInfo.getSymbol(), nextRecord.timestamp(), nextRecord.offset(), nextRecord.value());
 		advance();
 		return data;
 	}

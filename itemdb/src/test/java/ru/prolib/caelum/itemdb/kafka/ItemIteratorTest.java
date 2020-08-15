@@ -44,9 +44,10 @@ public class ItemIteratorTest {
 	}
 	
 	IMocksControl control;
+	KafkaItemInfo itemInfo;
 	KafkaConsumer<String, KafkaItem> consumerMock;
 	List<ConsumerRecord<String, KafkaItem>> itData;
-	Iterator<ConsumerRecord<String, KafkaItem>> it;
+	Iterator<ConsumerRecord<String, KafkaItem>> it, itMock;
 	ItemIterator service;
 
 	@Before
@@ -55,7 +56,9 @@ public class ItemIteratorTest {
 		consumerMock = control.createMock(KafkaConsumer.class);
 		itData = new ArrayList<>();
 		it = new IteratorStub<>(itData);
-		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, 100L, 200L), 5, 10000L);
+		itMock = control.createMock(Iterator.class);
+		itemInfo = new KafkaItemInfo("foo", 2, "bar", 0, 100L, 200L);
+		service = new ItemIterator(consumerMock, it, itemInfo, 5, 99L, 10000L);
 	}
 	
 	@Test
@@ -64,6 +67,7 @@ public class ItemIteratorTest {
 		assertEquals(it, service.getSourceIterator());
 		assertEquals(new KafkaItemInfo("foo", 2, "bar", 0, 100L, 200L), service.getItemInfo());
 		assertEquals(5, service.getLimit());
+		assertEquals(Long.valueOf(   99L), service.getStartTime());
 		assertEquals(Long.valueOf(10000L), service.getEndTime());
 	}
 	
@@ -78,7 +82,8 @@ public class ItemIteratorTest {
 	
 	@Test
 	public void testHasNext_IfHasNoData() {
-		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, null, null), 10, 10000L);
+		itemInfo = new KafkaItemInfo("foo", 2, "bar", 0, null, null);
+		service = new ItemIterator(consumerMock, it, itemInfo, 10, null, null);
 		
 		assertFalse(service.hasNext());
 		assertTrue(service.finished());
@@ -124,7 +129,8 @@ public class ItemIteratorTest {
 		itData.add(CR("foo", "bar", 0, 105L, 5005L, 47L, 115L));
 		itData.add(CR("foo", "bar", 0, 106L, 5006L, 44L, 850L));
 		// last offset + 1 !!!
-		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, 100L, 104L), 5, 10000L);
+		itemInfo = new KafkaItemInfo("foo", 2, "bar", 0, 100L, 104L);
+		service = new ItemIterator(consumerMock, it, itemInfo, 5, 99L, 10000L);
 		
 		for ( int i = 0; i < 3; i ++ ) {
 			assertTrue("At #" + i, service.hasNext());
@@ -142,7 +148,8 @@ public class ItemIteratorTest {
 		itData.add(CR("foo", "bar", 0, 104L, 5004L, 42L, 230L));
 		itData.add(CR("foo", "bar", 0, 105L, 5005L, 47L, 115L));
 		itData.add(CR("foo", "bar", 0, 106L, 5006L, 44L, 850L));
-		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, 100L, 200L), 5, 5004L);
+		itemInfo = new KafkaItemInfo("foo", 2, "bar", 0, 100L, 200L);
+		service = new ItemIterator(consumerMock, it, itemInfo, 5, 99L, 5004L);
 		
 		for ( int i = 0; i < 3; i ++ ) {
 			assertTrue("At #" + i, service.hasNext());
@@ -160,7 +167,8 @@ public class ItemIteratorTest {
 		itData.add(CR("foo", "bar", 0, 104L, 5004L, 42L, 230L));
 		itData.add(CR("foo", "bar", 0, 105L, 5005L, 47L, 115L));
 		itData.add(CR("foo", "bar", 0, 106L, 5006L, 44L, 850L));
-		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, 100L, 1000L), 1000, null);
+		itemInfo = new KafkaItemInfo("foo", 2, "bar", 0, 100L, 1000L);
+		service = new ItemIterator(consumerMock, it, itemInfo, 1000, 99L, null);
 
 		for ( int i = 0; i < 6; i ++ ) {
 			assertTrue("At#" + i, service.hasNext());
@@ -184,6 +192,56 @@ public class ItemIteratorTest {
 	}
 	
 	@Test
+	public void testHasNext_ShouldProcessNoSuchElementExceptionThrownByUnderlyingIterator() {
+		itemInfo = new KafkaItemInfo("foo", 2, "bar", 0, 100L, 200L);
+		service = new ItemIterator(consumerMock, itMock, itemInfo, 5, 99L, 10000L);
+		expect(itMock.hasNext()).andReturn(true);
+		expect(itMock.next()).andThrow(new NoSuchElementException());
+		control.replay();
+		
+		assertFalse(service.hasNext());
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testHasNext_ShouldSkipRecordsWithTimePriorToStartTime() {
+		itemInfo = new KafkaItemInfo("foo", 2, "bar", 0, 100L, 200L);
+		service = new ItemIterator(consumerMock, it, itemInfo, 5, 9000L, 10000L);
+		itData.add(CR("foo", "bar", 0, 101L, 8995L, 45L, 200L));
+		itData.add(CR("foo", "bar", 0, 102L, 8996L, 43L, 130L));
+		itData.add(CR("foo", "bar", 0, 103L, 8997L, 41L, 250L));
+		itData.add(CR("foo", "bar", 0, 104L, 8998L, 42L, 400L));
+		itData.add(CR("foo", "bar", 0, 105L, 8999L, 48L, 300L));
+		control.replay();
+		
+		assertFalse(service.hasNext());
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testHasNext_ShouldIgnoreStartTimeCheckingIfNotDefined() {
+		itemInfo = new KafkaItemInfo("foo", 2, "bar", 0, 100L, 200L);
+		service = new ItemIterator(consumerMock, it, itemInfo, 5, null, 10000L);
+		itData.add(CR("foo", "bar", 0, 101L, 8995L, 45L, 200L));
+		itData.add(CR("foo", "bar", 0, 102L, 8996L, 43L, 130L));
+		itData.add(CR("foo", "bar", 0, 103L, 8997L, 41L, 250L));
+		itData.add(CR("foo", "bar", 0, 104L, 8998L, 42L, 400L));
+		itData.add(CR("foo", "bar", 0, 105L, 8999L, 48L, 300L));
+		control.replay();
+		
+		assertTrue(service.hasNext()); service.next();
+		assertTrue(service.hasNext()); service.next();
+		assertTrue(service.hasNext()); service.next();
+		assertTrue(service.hasNext()); service.next();
+		assertTrue(service.hasNext()); service.next();
+		assertFalse(service.hasNext());
+		
+		control.verify();
+	}
+	
+	@Test
 	public void testNext_ThrowsIfClosed() {
 		itData.add(CR("foo", "bar", 0, 2L, 5001L, 26L, 190L));
 		control.resetToNice();
@@ -204,7 +262,8 @@ public class ItemIteratorTest {
 	
 	@Test
 	public void testNext_ThrowsIfHasNoData() {
-		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, null, null), 10, 10000L);
+		itemInfo = new KafkaItemInfo("foo", 2, "bar", 0, null, null);
+		service = new ItemIterator(consumerMock, it, itemInfo, 10, 99L, 10000L);
 		
 		assertThrows(NoSuchElementException.class, () -> service.next());
 	}
@@ -244,7 +303,8 @@ public class ItemIteratorTest {
 		itData.add(CR("foo", "bar", 0, 105L, 5005L, 47L, 115L));
 		itData.add(CR("foo", "bar", 0, 106L, 5006L, 44L, 850L));
 		// last offset + 1 !!!
-		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, 100L, 104L), 5, 10000L);
+		itemInfo = new KafkaItemInfo("foo", 2, "bar", 0, 100L, 104L);
+		service = new ItemIterator(consumerMock, it, itemInfo, 5, 99L, 10000L);
 		for ( int i = 0; i < 3; i ++ ) {
 			assertTrue("At #" + i, service.hasNext());
 			service.next();
@@ -261,7 +321,8 @@ public class ItemIteratorTest {
 		itData.add(CR("foo", "bar", 0, 104L, 5004L, 42L, 230L));
 		itData.add(CR("foo", "bar", 0, 105L, 5005L, 47L, 115L));
 		itData.add(CR("foo", "bar", 0, 106L, 5006L, 44L, 850L));
-		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, 100L, 200L), 5, 5004L);
+		itemInfo = new KafkaItemInfo("foo", 2, "bar", 0, 100L, 200L);
+		service = new ItemIterator(consumerMock, it, itemInfo, 5, 99L, 5004L);
 		for ( int i = 0; i < 3; i ++ ) {
 			service.next();
 		}
@@ -277,7 +338,8 @@ public class ItemIteratorTest {
 		itData.add(CR("foo", "bar", 0, 104L, 5004L, 42L, 230L));
 		itData.add(CR("foo", "bar", 0, 105L, 5005L, 47L, 115L));
 		itData.add(CR("foo", "bar", 0, 106L, 5006L, 44L, 850L));
-		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, 100L, 200L), 1000, null);
+		itemInfo = new KafkaItemInfo("foo", 2, "bar", 0, 100L, 200L);
+		service = new ItemIterator(consumerMock, it, itemInfo, 1000, null, null);
 		
 		List<IItem> actual = new ArrayList<>();
 		while ( service.hasNext() ) {
@@ -309,8 +371,72 @@ public class ItemIteratorTest {
 	}
 	
 	@Test
+	public void testNext_ShouldProcessNoSuchElementExceptionThrownByUnderlyingIterator() {
+		itemInfo = new KafkaItemInfo("foo", 2, "bar", 0, 100L, 200L);
+		service = new ItemIterator(consumerMock, itMock, itemInfo, 5, 99L, 10000L);
+		expect(itMock.hasNext()).andReturn(true);
+		expect(itMock.next()).andThrow(new NoSuchElementException());
+		control.replay();
+		
+		assertThrows(NoSuchElementException.class, () -> service.next());
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testNext_ShouldSkipRecordsWithTimePriorToStartTime() {
+		itemInfo = new KafkaItemInfo("foo", 2, "bar", 0, 100L, 200L);
+		service = new ItemIterator(consumerMock, it, itemInfo, 5, 9000L, 10000L);
+		itData.add(CR("foo", "bar", 0, 101L, 9001L, 45L, 200L));
+		itData.add(CR("foo", "bar", 0, 102L, 8996L, 43L, 130L));
+		itData.add(CR("foo", "bar", 0, 103L, 9002L, 41L, 250L));
+		itData.add(CR("foo", "bar", 0, 104L, 8998L, 42L, 400L));
+		itData.add(CR("foo", "bar", 0, 105L, 9003L, 48L, 300L));
+		control.replay();
+		
+		assertTrue(service.hasNext());
+		assertEquals(ID("bar", 9001L, 101L, 45L, 200L), service.next());
+		assertTrue(service.hasNext());
+		assertEquals(ID("bar", 9002L, 103L, 41L, 250L), service.next());
+		assertTrue(service.hasNext());
+		assertEquals(ID("bar", 9003L, 105L, 48L, 300L), service.next());
+		assertFalse(service.hasNext());
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testNext_ShouldIgnoreStartTimeCheckingIfNotDefined() {
+		itemInfo = new KafkaItemInfo("foo", 2, "bar", 0, 100L, 200L);
+		service = new ItemIterator(consumerMock, it, itemInfo, 5, null, 10000L);
+		itData.add(CR("foo", "bar", 0, 101L, 9001L, 45L, 200L));
+		itData.add(CR("foo", "bar", 0, 102L, 8996L, 43L, 130L));
+		itData.add(CR("foo", "bar", 0, 103L, 9002L, 41L, 250L));
+		itData.add(CR("foo", "bar", 0, 104L, 8998L, 42L, 400L));
+		itData.add(CR("foo", "bar", 0, 105L, 9003L, 48L, 300L));
+		control.replay();
+		
+		List<IItem> actual = new ArrayList<>();
+		for ( int i = 0; i < 5; i ++ ) {
+			assertTrue("At #" + i, service.hasNext());
+			actual.add(service.next());
+		}
+		assertFalse(service.hasNext());
+		
+		List<IItem> expected = Arrays.asList(
+				ID("bar", 9001L, 101L, 45L, 200L),
+				ID("bar", 8996L, 102L, 43L, 130L),
+				ID("bar", 9002L, 103L, 41L, 250L),
+				ID("bar", 8998L, 104L, 42L, 400L),
+				ID("bar", 9003L, 105L, 48L, 300L)
+			);
+		assertEquals(expected, actual);
+	}
+	
+	@Test
 	public void testNext_Iterate() {
-		service = new ItemIterator(consumerMock, it, new KafkaItemInfo("foo", 2, "bar", 0, 100L, 200L), 25, 10000L);
+		itemInfo = new KafkaItemInfo("foo", 2, "bar", 0, 100L, 200L);
+		service = new ItemIterator(consumerMock, it, itemInfo, 25, 99L, 10000L);
 		itData.add(CR("foo", "bar", 0, 101L, 5001L, 45L, 200L));
 		itData.add(CR("foo", "bar", 0, 102L, 5002L, 49L, 100L));
 		itData.add(CR("foo", "bar", 0, 103L, 5003L, 43L, 500L));
