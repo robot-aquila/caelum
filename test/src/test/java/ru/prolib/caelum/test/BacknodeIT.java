@@ -141,13 +141,19 @@ public class BacknodeIT {
 	// C1*** - Test Cases of features related to items
 	
 	@Test
-	public void C1001_PutItem_PutAndTestResponse() {
+	public void C1001_PutItem_PutAndTestResponse() throws Exception {
 		CatSym cs = ath.newSymbol();
 		Item item1 = ath.registerItem(cs, ath.getRecentItemTimePlus1());
 		
 		assertNotError(ath.apiPutItem(ath.getSpecRandom(), item1));
 		
-		ItemsResponseDTO response = ath.apiGetItems(cs.symbol);
+		CompletableFuture<ItemsResponseDTO> r = new CompletableFuture<>();
+		waitUntil(() -> {
+			ItemsResponseDTO response = ath.apiGetItems(cs.symbol);
+			assertNotError(response);
+			return response.data.rows.size() == 1 ? r.complete(response) : false;
+		});
+		ItemsResponseDTO response = r.get(1, TimeUnit.SECONDS);
 		assertNotError(response);
 		assertEquals(1, response.data.rows.size());
 		assertEquals(item1, toItems(cs, response.data.rows).get(0));
@@ -1264,6 +1270,8 @@ public class BacknodeIT {
 							System.out.println("First: " + response.data.rows.get(0));
 							System.out.println(" Last: " + response.data.rows.get(count - 1));
 						}
+						List<Tuple> actual_tuples = toTuples(response.data.rows);
+						if ( expected_rows.get(0).equals(actual_tuples.get(0)) == false ) return false;
 						return response.data.rows.size() == 5000 ? r.complete(response) : false;
 					}, Duration.ofSeconds(1L), Duration.ofSeconds(30L));
 				TuplesResponseDTO response = r.get(1, TimeUnit.SECONDS);
