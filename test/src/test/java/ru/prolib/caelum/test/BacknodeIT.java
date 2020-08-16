@@ -1065,7 +1065,9 @@ public class BacknodeIT {
 		ath.awaitUntilAggregatorsReadyAK(spec);
 		CompletableFuture<TuplesResponseDTO> r = new CompletableFuture<>();
 		waitUntil(() -> {
+				System.out.println(Instant.now() + " starting request...");
 				TuplesResponseDTO response = ath.apiGetTuples(spec, "M1", cs.symbol);
+				System.out.println(Instant.now() + " request finished");
 				assertNotError(response);
 				int count = response.data.rows.size();
 				System.out.println("Response rows count: " + response.data.rows.size());
@@ -1074,7 +1076,7 @@ public class BacknodeIT {
 					System.out.println(" Last: " + response.data.rows.get(count - 1));
 				}
 				return response.data.rows.size() == 100 ? r.complete(response) : false;
-			}, Duration.ofSeconds(10L), Duration.ofMinutes(2L));
+			}, Duration.ofSeconds(1L), Duration.ofSeconds(30L));
 		TuplesResponseDTO response = r.get(1, TimeUnit.SECONDS);
 		assertEquals(cs.symbol, response.data.symbol);
 		assertEquals("M1", response.data.period);
@@ -1116,7 +1118,7 @@ public class BacknodeIT {
 					System.out.println(" Last: " + response.data.rows.get(count - 1));
 				}
 				return response.data.rows.size() == 60 ? r.complete(response) : false;
-			}, Duration.ofSeconds(10L), Duration.ofMinutes(2L));
+			}, Duration.ofSeconds(1L), Duration.ofSeconds(30L));
 		TuplesResponseDTO response = r.get(1, TimeUnit.SECONDS);
 		assertEquals(cs.symbol, response.data.symbol);
 		assertEquals("M1", response.data.period);
@@ -1160,7 +1162,7 @@ public class BacknodeIT {
 					System.out.println(" Last: " + response.data.rows.get(count - 1));
 				}
 				return response.data.rows.size() == 20 ? r.complete(response) : false;
-			}, Duration.ofSeconds(10L), Duration.ofMinutes(2L));
+			}, Duration.ofSeconds(1L), Duration.ofSeconds(30L));
 		TuplesResponseDTO response = r.get(1, TimeUnit.SECONDS);
 		assertEquals(cs.symbol, response.data.symbol);
 		assertEquals("M1", response.data.period);
@@ -1203,7 +1205,7 @@ public class BacknodeIT {
 					System.out.println(" Last: " + response.data.rows.get(count - 1));
 				}
 				return response.data.rows.size() == 5000 ? r.complete(response) : false;
-			}, Duration.ofSeconds(10L), Duration.ofMinutes(2L));
+			}, Duration.ofSeconds(1L), Duration.ofSeconds(30L));
 		TuplesResponseDTO response = r.get(1, TimeUnit.SECONDS);
 		assertEquals(cs.symbol, response.data.symbol);
 		assertEquals("M1", response.data.period);
@@ -1263,7 +1265,7 @@ public class BacknodeIT {
 							System.out.println(" Last: " + response.data.rows.get(count - 1));
 						}
 						return response.data.rows.size() == 5000 ? r.complete(response) : false;
-					}, Duration.ofSeconds(10L), Duration.ofMinutes(5L));
+					}, Duration.ofSeconds(1L), Duration.ofSeconds(30L));
 				TuplesResponseDTO response = r.get(1, TimeUnit.SECONDS);
 				assertEquals(cs.symbol, response.data.symbol);
 				assertEquals("M1", response.data.period);
@@ -1323,7 +1325,7 @@ public class BacknodeIT {
 							System.out.println(" Last: " + response.data.rows.get(count - 1));
 						}
 						return response.data.rows.size() == expected_count ? r.complete(response) : false;
-					}, Duration.ofSeconds(10L), Duration.ofMinutes(5L));
+					}, Duration.ofSeconds(1L), Duration.ofSeconds(30L));
 				TuplesResponseDTO response = r.get(1, TimeUnit.SECONDS);
 				assertEquals(cs.symbol, response.data.symbol);
 				assertEquals(period, response.data.period);

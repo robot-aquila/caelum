@@ -1152,26 +1152,27 @@ public class ApiTestHelper {
 	}
 	
 	public void setUp() {
-		
-	}
-	
-	public void tearDown() {
 		if ( clearAfterEachTest == true ) {
 			clearData();
 		}
+	}
+	
+	public void tearDown() {
+		//if ( clearAfterEachTest == true ) {
+		//	clearData();
+		//}
 	}
 	
 	public void setUpBeforeClass() {
 		if ( clearAfterEachTest == false ) {
 			clearData();
 		}
-		
 	}
 	
 	public void tearDownAfterClass() {
-		if ( clearAfterEachTest == false ) {
-			clearData();
-		}
+		//if ( clearAfterEachTest == false ) {
+		//	clearData();
+		//}
 	}
 
 }

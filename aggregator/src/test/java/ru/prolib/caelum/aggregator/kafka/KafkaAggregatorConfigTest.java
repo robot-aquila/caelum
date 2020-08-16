@@ -40,6 +40,9 @@ public class KafkaAggregatorConfigTest {
 		assertEquals("M1,H1",					props.get("caelum.aggregator.aggregation.period"));
 		assertEquals("5000",					props.get("caelum.aggregator.list.tuples.limit"));
 		assertEquals("",						props.get("caelum.aggregator.kafka.force.parallel.clear"));
+		assertEquals("5",						props.get("caelum.aggregator.kafka.linger.ms"));
+		assertEquals("/tmp/kafka-streams",		props.get("caelum.aggregator.kafka.state.dir"));
+		assertEquals("2",						props.get("caelum.aggregator.kafka.num.stream.threads"));
 	}
 	
 	@Test
@@ -126,12 +129,19 @@ public class KafkaAggregatorConfigTest {
 		assertNotSame(service.getProperties(), props);
 		assertNotSame(props, service.getKafkaProperties()); // it's a new properties every call
 		
-		assertEquals(5, props.size());
+		assertEquals(11, props.size());
 		assertEquals("omega-m5", props.get("application.id"));
 		assertEquals("191.15.34.5:19987", props.get("bootstrap.servers"));
 		assertEquals(KafkaItemSerdes.keySerde().getClass(), props.get("default.key.serde"));
 		assertEquals(KafkaItemSerdes.itemSerde().getClass(), props.get("default.value.serde"));
+		assertEquals("5", props.get("linger.ms"));
+		assertEquals("/tmp/kafka-streams", props.get("state.dir"));
+		assertEquals("2", props.get("num.stream.threads"));
+		// forced settings
 		assertEquals("exactly_once", props.get("processing.guarantee"));
+		assertEquals("500", props.get("acceptable.recovery.lag"));
+		assertEquals("500", props.get("max.poll.records"));
+		assertEquals("60000", props.get("transaction.timeout.ms"));
 	}
 	
 	@Test

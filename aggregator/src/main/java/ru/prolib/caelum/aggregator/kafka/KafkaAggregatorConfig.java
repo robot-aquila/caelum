@@ -5,6 +5,9 @@ import java.util.Properties;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.kafka.clients.admin.AdminClientConfig;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.producer.ProducerConfig;
+//import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.streams.StreamsConfig;
 
 import ru.prolib.caelum.aggregator.AggregatorConfig;
@@ -21,6 +24,9 @@ public class KafkaAggregatorConfig extends AggregatorConfig {
 	public static final String MAX_ERRORS				= "caelum.aggregator.kafka.max.errors";
 	public static final String DEFAULT_TIMEOUT			= "caelum.aggregator.kafka.default.timeout";
 	public static final String FORCE_PARALLEL_CLEAR		= "caelum.aggregator.kafka.force.parallel.clear";
+	public static final String LINGER_MS				= "caelum.aggregator.kafka.linger.ms";
+	public static final String STATE_DIR				= "caelum.aggregator.kafka.state.dir";
+	public static final String NUM_STREAM_THREADS		= "caelum.aggregator.kafka.num.stream.threads";
 
 	private final Periods periods;
 	
@@ -44,6 +50,9 @@ public class KafkaAggregatorConfig extends AggregatorConfig {
 		props.put(MAX_ERRORS, "99");
 		props.put(DEFAULT_TIMEOUT, "60000");
 		props.put(FORCE_PARALLEL_CLEAR, "");
+		props.put(LINGER_MS, "5");
+		props.put(STATE_DIR, "/tmp/kafka-streams");
+		props.put(NUM_STREAM_THREADS, "2");
 	}
 	
 	private String getSuffix() {
@@ -104,10 +113,17 @@ public class KafkaAggregatorConfig extends AggregatorConfig {
 	public Properties getKafkaProperties() {
 		Properties conf = new Properties();
 		conf.put(StreamsConfig.APPLICATION_ID_CONFIG, getApplicationId());
-		conf.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, props.get(BOOTSTRAP_SERVERS));
+		conf.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, getString(BOOTSTRAP_SERVERS));
 		conf.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, KafkaItemSerdes.keySerde().getClass());
 		conf.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, KafkaItemSerdes.itemSerde().getClass());
+		conf.put(StreamsConfig.STATE_DIR_CONFIG, getString(STATE_DIR));
+		conf.put(StreamsConfig.NUM_STREAM_THREADS_CONFIG, getString(NUM_STREAM_THREADS));
+		conf.put(ProducerConfig.LINGER_MS_CONFIG, getString(LINGER_MS));
+		
 		conf.put(StreamsConfig.PROCESSING_GUARANTEE_CONFIG, StreamsConfig.EXACTLY_ONCE);
+		conf.put(StreamsConfig.ACCEPTABLE_RECOVERY_LAG_CONFIG, "500");
+		conf.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "500");
+		conf.put(ProducerConfig.TRANSACTION_TIMEOUT_CONFIG, "60000");
 		return conf;
 	}
 	
