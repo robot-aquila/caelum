@@ -5,9 +5,7 @@ import java.util.Properties;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.kafka.clients.admin.AdminClientConfig;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
-//import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.streams.StreamsConfig;
 
 import ru.prolib.caelum.aggregator.AggregatorConfig;
@@ -27,6 +25,7 @@ public class KafkaAggregatorConfig extends AggregatorConfig {
 	public static final String LINGER_MS				= "caelum.aggregator.kafka.linger.ms";
 	public static final String STATE_DIR				= "caelum.aggregator.kafka.state.dir";
 	public static final String NUM_STREAM_THREADS		= "caelum.aggregator.kafka.num.stream.threads";
+	public static final String STORE_RETENTION_TIME		= "caelum.aggregator.kafka.store.retention.time";
 
 	private final Periods periods;
 	
@@ -53,12 +52,12 @@ public class KafkaAggregatorConfig extends AggregatorConfig {
 		props.put(LINGER_MS, "5");
 		props.put(STATE_DIR, "/tmp/kafka-streams");
 		props.put(NUM_STREAM_THREADS, "2");
+		props.put(STORE_RETENTION_TIME, "31536000000000");
 	}
 	
 	private String getSuffix() {
 		return getString(AGGREGATION_PERIOD).toLowerCase();
 	}
-	
 
 	public String getApplicationId() {
 		return getString(APPLICATION_ID_PREFIX) + getSuffix();
@@ -66,6 +65,10 @@ public class KafkaAggregatorConfig extends AggregatorConfig {
 
 	public String getStoreName() {
 		return getString(AGGREGATION_STORE_PREFIX) + getSuffix();
+	}
+	
+	public long getStoreRetentionTime() {
+		return getLong(STORE_RETENTION_TIME);
 	}
 	
 	public String getAggregationPeriodCode() {
@@ -121,9 +124,9 @@ public class KafkaAggregatorConfig extends AggregatorConfig {
 		conf.put(ProducerConfig.LINGER_MS_CONFIG, getString(LINGER_MS));
 		
 		conf.put(StreamsConfig.PROCESSING_GUARANTEE_CONFIG, StreamsConfig.EXACTLY_ONCE);
-		conf.put(StreamsConfig.ACCEPTABLE_RECOVERY_LAG_CONFIG, "500");
-		conf.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "500");
-		conf.put(ProducerConfig.TRANSACTION_TIMEOUT_CONFIG, "60000");
+		//conf.put(StreamsConfig.ACCEPTABLE_RECOVERY_LAG_CONFIG, "500");
+		//conf.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "500");
+		//conf.put(ProducerConfig.TRANSACTION_TIMEOUT_CONFIG, "60000");
 		return conf;
 	}
 	

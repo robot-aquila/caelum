@@ -1,5 +1,7 @@
 package ru.prolib.caelum.aggregator.kafka;
 
+import java.time.Duration;
+
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
@@ -27,6 +29,7 @@ public class KafkaAggregatorTopologyBuilder {
 			.windowedBy(TimeWindows.of(config.getAggregationPeriodDuration()))
 			.aggregate(KafkaTuple::new, new KafkaItemAggregator(),
 				Materialized.<String, KafkaTuple, WindowStore<Bytes, byte[]>>as(config.getStoreName())
+					.withRetention(Duration.ofMillis(config.getStoreRetentionTime()))
 					.withValueSerde(KafkaTupleSerdes.tupleSerde()));
 
 		if ( target_topic != null ) {

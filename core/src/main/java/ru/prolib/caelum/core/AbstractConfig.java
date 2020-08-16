@@ -135,6 +135,10 @@ public abstract class AbstractConfig {
 		return val;
 	}
 	
+	public long getLong(String key) {
+		return Long.valueOf(getString(key));
+	}
+	
 	public String getOneOfList(String key, List<String> list) {
 		String val = getString(key);
 		if ( ! list.contains(val) ) {

@@ -142,5 +142,12 @@ public class AbstractConfigTest {
 		IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> service.getBoolean("tumbe"));
 		assertEquals("Expected boolean type of key: tumbe but value is: solution", e.getMessage());
 	}
+	
+	@Test
+	public void testGetLong1() {
+		service.getProperties().put("umbra", "31536000000000");
+		
+		assertEquals(31536000000000L, service.getLong("umbra"));
+	}
 
 }

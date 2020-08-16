@@ -43,6 +43,7 @@ public class KafkaAggregatorConfigTest {
 		assertEquals("5",						props.get("caelum.aggregator.kafka.linger.ms"));
 		assertEquals("/tmp/kafka-streams",		props.get("caelum.aggregator.kafka.state.dir"));
 		assertEquals("2",						props.get("caelum.aggregator.kafka.num.stream.threads"));
+		assertEquals("31536000000000",			props.get("caelum.aggregator.kafka.store.retention.time"));
 	}
 	
 	@Test
@@ -76,6 +77,13 @@ public class KafkaAggregatorConfigTest {
 		service.getProperties().put("caelum.aggregator.aggregation.period", "H4");
 		
 		assertEquals("kappa-store-h4", service.getStoreName());
+	}
+	
+	@Test
+	public void testGetStoreRetentionTime() {
+		service.getProperties().put("caelum.aggregator.kafka.store.retention.time", "2215992773");
+		
+		assertEquals(2215992773L, service.getStoreRetentionTime());
 	}
 	
 	@Test
@@ -129,7 +137,7 @@ public class KafkaAggregatorConfigTest {
 		assertNotSame(service.getProperties(), props);
 		assertNotSame(props, service.getKafkaProperties()); // it's a new properties every call
 		
-		assertEquals(11, props.size());
+		assertEquals(8, props.size());
 		assertEquals("omega-m5", props.get("application.id"));
 		assertEquals("191.15.34.5:19987", props.get("bootstrap.servers"));
 		assertEquals(KafkaItemSerdes.keySerde().getClass(), props.get("default.key.serde"));
@@ -139,9 +147,9 @@ public class KafkaAggregatorConfigTest {
 		assertEquals("2", props.get("num.stream.threads"));
 		// forced settings
 		assertEquals("exactly_once", props.get("processing.guarantee"));
-		assertEquals("500", props.get("acceptable.recovery.lag"));
-		assertEquals("500", props.get("max.poll.records"));
-		assertEquals("60000", props.get("transaction.timeout.ms"));
+		//assertEquals("500", props.get("acceptable.recovery.lag"));
+		//assertEquals("500", props.get("max.poll.records"));
+		//assertEquals("60000", props.get("transaction.timeout.ms"));
 	}
 	
 	@Test
