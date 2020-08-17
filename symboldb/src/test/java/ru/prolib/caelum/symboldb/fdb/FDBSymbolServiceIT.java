@@ -160,6 +160,14 @@ public class FDBSymbolServiceIT {
 	}
 	
 	@Test
+	public void testListCategories_ShouldBeOkIfNoCategories() throws Exception {
+		
+		List<String> actual = toList(service.listCategories());
+		
+		assertEquals(Arrays.asList(), actual);
+	}
+	
+	@Test
 	public void testListSymbols_All() throws Exception {
 		db.run((t) -> {
 			t.set(space.get(Tuple.from(0x02, "", "buggy")).pack(), TB);

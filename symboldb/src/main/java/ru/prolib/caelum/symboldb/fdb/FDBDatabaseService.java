@@ -84,6 +84,7 @@ public class FDBDatabaseService implements IService {
 				throw new ServiceException("Database open failed", e);
 			}
 		}
+		db.options().setTransactionTimeout(15000);
 		target.setDatabase(db);
 	}
 

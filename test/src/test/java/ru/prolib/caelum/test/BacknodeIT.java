@@ -1264,14 +1264,14 @@ public class BacknodeIT {
 						TuplesResponseDTO response = ath.apiGetTuples(spec, "M1", cs.symbol, null, _tb+60000000L, null);
 						assertNotError(response);
 						System.out.println("Symbol=" + cs.symbol);
-						System.out.println("Response rows count: " + response.data.rows.size());
 						int count = response.data.rows.size();
+						System.out.println("Response rows count: " + count);
 						if ( count > 0 ) {
 							System.out.println("First: " + response.data.rows.get(0));
 							System.out.println(" Last: " + response.data.rows.get(count - 1));
+							List<Tuple> actual_tuples = toTuples(response.data.rows);
+							if ( expected_rows.get(0).equals(actual_tuples.get(0)) == false ) return false;
 						}
-						List<Tuple> actual_tuples = toTuples(response.data.rows);
-						if ( expected_rows.get(0).equals(actual_tuples.get(0)) == false ) return false;
 						return response.data.rows.size() == 5000 ? r.complete(response) : false;
 					}, Duration.ofSeconds(1L), Duration.ofSeconds(30L));
 				TuplesResponseDTO response = r.get(1, TimeUnit.SECONDS);

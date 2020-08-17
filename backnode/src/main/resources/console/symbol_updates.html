@@ -2,11 +2,181 @@
     <head>
         <title>Caelum: Symbol updates</title>
         <link rel="stylesheet" type="text/css" href="style.css" />
+        <link rel="stylesheet" type="text/css" href="js/jquery.datetimepicker.min.css" />
+        <script src="js/caelum-console.js"></script>
         <script src="js/jquery-3.5.1.min.js"></script>
         <script src="js/jquery.validate.min.js"></script>
+        <script src="js/jquery.datetimepicker.full.min.js"></script>
+        <script src="js/date.format.js"></script>
         <script>
 jQuery(function($) {
-
+    
+    // Add new symbol update form definitions
+    const ansuSetErrorMsg = function(message) {
+        let element = $('#ansuErrorMsg')
+        element.text(message)
+        element.show()
+    }
+    const form = $('#ansuForm')
+    $('#ansuToggleForm').click(function() {
+        if ( form.is(':hidden') ) {
+            form.show()
+        } else {
+            form.hide()
+        }
+    })
+    form.hide()
+    const ansuRefreshSymbols = createSymbolDropdown($, '#ansuSymbol', '#ansuErrorMsg', '#ansuCategory')
+    const ansuRefreshCategories = createCategoryDropdown($, '#ansuCategory', '#ansuErrorMsg', ansuRefreshSymbols)
+    $('#ansuCategory').change(ansuRefreshSymbols)
+    ansuRefreshCategories()
+    $('#ansuRefreshCategories').click(ansuRefreshCategories)
+    $('#ansuRefreshSymbols').click(ansuRefreshSymbols)
+    $('#ansuClearNewSymbol').click(createClear($('#ansuNewSymbol')))
+    $('#ansuClearTime').click(createClear($('#ansuTime')))
+    
+    const ansuTime = $('#ansuTime')
+    ansuTime.datetimepicker({
+        step: 5,
+        format: 'Y-m-d H:i:s'
+    })
+    const ansuGetHiddenTokens = function() {
+        let list = $('#ansuTokensTargetBody').find('input')
+        let result = { }
+        for ( let i = 0; i < list.length; i ++ ) {
+            let element = list[i]
+            result[element.name] = element.value
+        }
+        return result;
+    }
+    const ansuProcessResponse = function(params, response) {
+        if ( response.error ) {
+            ansuSetErrorMsg('Request failed: : [' + response.code + '] ' + response.message)
+            return
+        }
+        $('#ansuNewSymbol').val('')
+        $('#ansuTime').val('')
+        $('#ansuTokensTargetBody').empty()
+    }
+    const ansuFormHandler = function(form) {
+        let params = ansuGetHiddenTokens()
+        let time = Date.parse(ansuTime.val() + 'Z')
+        if ( ! time || isNaN(time) ) {
+            ansuSetErrorMsg('Invalid time or time was not defined')
+            return
+        }
+        let symbol = $('#ansuNewSymbol').val() || null
+        let need_refresh_cats = true
+        if ( ! symbol ) {
+            symbol = $('#ansuSymbol').val()
+            need_refresh_cats = false
+        }
+        if ( ! symbol ) {
+            ansuSetErrorMsg('Invalid symbol or symbol was not defined')
+            return
+        }
+        params['time'] = time
+        params['symbol'] = symbol
+        $.ajax({
+            type: 'PUT',
+            url: '/api/v1/symbol/update',
+            data: params
+        }).done(function(data, textStatus, jqXHR) {
+            ansuProcessResponse(params, data)
+            if ( need_refresh_cats ) ansuRefreshCategories()
+        }).fail(function(jqXHR, textStatus, errorThrown) {
+            ansuProcessResponse(params, JSON.parse(jqXHR.responseText))
+        })
+    }
+    $('#ansuForm').validate({
+            errorLabelContainer: $('#ansuErrorMsg'),
+            rules: {
+                ansuTime: {
+                    required: true
+                },
+                ansuTokenID: {
+                    required: false,
+                    min: 1
+                }
+            },
+            submitHandler: ansuFormHandler
+        })
+    $('#ansuAddToken').click(function() {
+        ansuGetHiddenTokens()
+        const ansuTokenID = $('#ansuTokenID')
+        const ansuTokenVal = $('#ansuTokenValue')
+        const token_id = ansuTokenID.val()
+        const token_val = ansuTokenVal.val()
+        const tokens = ansuGetHiddenTokens()
+        if ( tokens.hasOwnProperty(token_id) ) {
+            ansuSetErrorMsg('Token already exists: ' + token_id)
+            return false
+        }
+        let tr = $('<tr>')
+        let td1 = $('<td valign="top" align="center">')
+        let td2 = $('<td valign="top">' + token_id + '</td>')
+        let td3 = $('<td valign="top">' + token_val + '</td>')
+        let input = $('<input type="hidden" name="' + token_id + '" value="' + token_val + '" />')
+        let button = $('<button>X</button>')
+        td1.append(input)
+        td1.append(button)
+        tr.append(td1)
+        tr.append(td2)
+        tr.append(td3)
+        tr.appendTo($('#ansuTokensTargetBody'))
+        button.click(function() { tr.remove(); return false })
+        ansuTokenID.val('')
+        ansuTokenVal.val('')
+        return false
+    })
+    
+    // Display updates form definitions
+    const refreshResponseInfo = function(params, response) {
+        let msg = 'Total ' + response.data.rows.length + ' updates of symbol ' + response.data.symbol
+        msg += ' shown'
+        $('#responseInfo').text(msg)
+    };
+    const refreshSymbols = createSymbolDropdown($, '#symbol', '#errorMsg', '#category')
+    const refreshCategories = createCategoryDropdown($, '#category', '#errorMsg', refreshSymbols)
+    $('#category').change(refreshSymbols)
+    refreshCategories()
+    $('#refreshCategories').click(refreshCategories)
+    $('#refreshSymbols').click(refreshSymbols)
+    
+    const formHandler = function(form) {
+        const params = {
+            symbol: $('#symbol').val()
+        }
+        $.getJSON('/api/v1/symbol/updates', params, function(response) {
+            const targetBody = $('#targetBody'); targetBody.empty()
+            if ( response.error == true ) {
+                $('#errorMsg').text('Symbol updates query failed: [' + response.code + '] ' + response.message)
+                return
+            }
+            
+            const data_rows = response.data.rows
+            const rows = data_rows.length
+            refreshResponseInfo(params, response)
+            for ( let i = 0; i < rows; i ++ ) {
+            	let time = new Date(data_rows[i].time).format(dt_format, true)
+                let tr = $('<tr>')
+                $('<td valign="top" nowrap>' + time + '</td>').appendTo(tr)
+                let tokens_msg = ''
+                let tokens = data_rows[i].tokens
+                for ( let propName in tokens ) {
+                    tokens_msg += propName + ' => ' + tokens[propName] + '<br/>'
+                }
+                $('<td>' + tokens_msg + '</td>').appendTo(tr)
+                targetBody.append(tr)
+            }
+        })
+    }
+    
+    $('#myForm').validate({
+        errorLabelContainer: $('#errorMsg'),
+        rules: { },
+        submitHandler: formHandler
+    })
 })
         </script>
     </head>
@@ -21,7 +191,101 @@ jQuery(function($) {
 <p>
 <hr>
 
+<p>
+<button id="ansuToggleForm">Toggle add update form</button>
+<form id="ansuForm" >
+<table>
+    <tr>
+        <td nowrap>
+Enter symbol manually <input type="text" id="ansuNewSymbol" size="12" />
+<button id="ansuClearNewSymbol" title="Clear symbol">X</button>
+        </td>
+    </tr>
+    <tr>
+        <td nowrap>
+or use category <select name="ansuCategory" id="ansuCategory" ></select>
+<button id="ansuRefreshCategories" title="Refresh categories">O</button>
+symbol <select name="ansuSymbol" id="ansuSymbol"></select>
+<button id="ansuRefreshSymbols" title="Refresh symbols">O</button>
+        </td>
+    </tr>
+    <tr>
+        <td nowrap>
+Timestamp (UTC) <input type="text" id="ansuTime" size="19" autocomplete="off" />
+<button id="ansuClearTime" title="Clear time">X</button>
+        </td>
+    </tr>
+    <tr>
+        <td nowrap><b>List of update tokens:</b></td>
+    </tr>
+    <tr>
+        <td nowrap>
+            <table class="blueTable">
+                <thead><tr><td>Remove</td><td>Token ID</td><td>Value</td></tr></thead>
+                <tbody id="ansuTokensTargetBody"></tbody>
+            </table>
+        </td>
+    </tr>
+    <tr>
+        <td nowrap>
+            <button>Send update</button>
+        </td>
+    </tr>
+    <tr>
+        <td nowrap><div class="error" id="ansuErrorMsg"></div></td>
+    </tr>
+    <tr>
+        <td><hr /></td>
+    </tr>
+    <tr>
+        <td nowrap>
+Add token ID: <input type="text" id="ansuTokenID" name="ansuTokenID" size="14" />
+with value:
+        </td>
+    </tr>
+    <tr>
+        <td nowrap valign="top">
+<textarea cols="58" rows="6" id="ansuTokenValue" name="ansuTokenValue" ></textarea>
+        </td>
+    </tr>
+    <tr>
+        <td nowrap>
+<button id="ansuAddToken">Add token</button>
+        </td>
+    </tr>
+</table>
+<hr>
+</form>
 
+<p>
+<form id="myForm">
+<table>
+    <tr>
+        <td nowrap>
+Select updates of category <select name="category" id="category" ></select>
+<button id="refreshCategories" title="Refresh categories">O</button>
+symbol <select name="symbol" id="symbol"></select>
+<button id="refreshSymbols" title="Refresh symbols">O</button>
+        </td>
+    </tr>
+    <tr>
+        <td nowrap><button>Refresh</button></td>
+    </tr>
+</table>
+</form>
+<div class="error" id="errorMsg"></div>
+<div id="responseInfo"></div>
+
+<p>
+<table class="blueTable">
+    <thead id="targetHead">
+        <tr>
+            <td>Time</td>
+            <td>Tokens</td>
+        </tr>
+    </thead>
+    <tbody id="targetBody"></tbody>
+</table>
 
 <hr>
 Powered by <a href="https://github.com/robot-aquila" target="_blank">robot-aquila</a>

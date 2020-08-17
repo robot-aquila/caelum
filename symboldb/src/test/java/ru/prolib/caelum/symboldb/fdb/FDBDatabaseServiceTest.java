@@ -17,6 +17,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.apple.foundationdb.Database;
+import com.apple.foundationdb.DatabaseOptions;
 import com.apple.foundationdb.FDB;
 
 import ru.prolib.caelum.core.ServiceException;
@@ -32,6 +33,7 @@ public class FDBDatabaseServiceTest {
 	IMocksControl control;
 	FDB fdbMock;
 	Database dbMock;
+	DatabaseOptions optMock;
 	File fileMock;
 	FDBSymbolService targetMock;
 	Writer writerMock;
@@ -45,6 +47,7 @@ public class FDBDatabaseServiceTest {
 		fileMock = control.createMock(File.class);
 		targetMock = control.createMock(FDBSymbolService.class);
 		writerMock = control.createMock(Writer.class);
+		optMock = control.createMock(DatabaseOptions.class);
 		service = new FDBDatabaseService(targetMock, "fdb.cluster contents");
 		mockedService = partialMockBuilder(FDBDatabaseService.class)
 				.addMockedMethod("createFDB", int.class)
@@ -101,6 +104,8 @@ public class FDBDatabaseServiceTest {
 		writerMock.write("fdb.cluster contents");
 		writerMock.close();
 		expect(fdbMock.open("/foo/bumbr.temp")).andReturn(dbMock);
+		expect(dbMock.options()).andReturn(optMock);
+		optMock.setTransactionTimeout(15000L);
 		targetMock.setDatabase(dbMock);
 		control.replay();
 		replay(mockedService);
@@ -121,6 +126,8 @@ public class FDBDatabaseServiceTest {
 				.createMock();
 		expect(mockedService.createFDB(620)).andReturn(fdbMock);
 		expect(fdbMock.open()).andReturn(dbMock);
+		expect(dbMock.options()).andReturn(optMock);
+		optMock.setTransactionTimeout(15000L);
 		targetMock.setDatabase(dbMock);
 		control.replay();
 		replay(mockedService);
@@ -141,6 +148,8 @@ public class FDBDatabaseServiceTest {
 				.createMock();
 		expect(mockedService.createFDB(620)).andReturn(fdbMock);
 		expect(fdbMock.open()).andReturn(dbMock);
+		expect(dbMock.options()).andReturn(optMock);
+		optMock.setTransactionTimeout(15000L);
 		targetMock.setDatabase(dbMock);
 		control.replay();
 		replay(mockedService);

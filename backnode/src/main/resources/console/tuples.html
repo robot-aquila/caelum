@@ -50,7 +50,7 @@ jQuery(function($) {
     })
     
     const formHandler = function(form) {
-    	const period = $('#period').val();
+        const period = $('#period').val();
         const params = {
             symbol: $('#symbol').val(),
             from: fromTime.val() ? Date.parse(fromTime.val() + ':00.000Z') : null,
@@ -61,8 +61,8 @@ jQuery(function($) {
             const targetBody = $('#targetBody'); targetBody.empty()
             const targetHead = $('#targetHead'); targetHead.empty()
             if ( response.error == true ) {
-                $('#errorMsg').text('Items query failed: [' + response.code + '] ' + response.message);
-                return;
+                $('#errorMsg').text('Items query failed: [' + response.code + '] ' + response.message)
+                return
             }
             
             const data_rows = response.data.rows
@@ -99,7 +99,7 @@ jQuery(function($) {
                 }
                 targetBody.append(tr)
             }
-        });
+        })
     }
     
     $('#myForm').validate({
@@ -117,8 +117,8 @@ jQuery(function($) {
             }
         },
         submitHandler: formHandler
-    });
-});
+    })
+})
             </script>
     </head>
     <body>
