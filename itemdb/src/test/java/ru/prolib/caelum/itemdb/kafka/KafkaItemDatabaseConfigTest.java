@@ -1,6 +1,7 @@
 package ru.prolib.caelum.itemdb.kafka;
 
 import static org.junit.Assert.*;
+import static org.easymock.EasyMock.*;
 
 import java.util.Properties;
 
@@ -16,10 +17,10 @@ public class KafkaItemDatabaseConfigTest {
 	}
 	
 	void verifyDefaultProperties(Properties props) {
-		assertEquals("localhost:8082",			props.get("caelum.itemdb.kafka.bootstrap.servers"));
-		assertEquals("caelum-item",				props.get("caelum.itemdb.kafka.source.topic"));
-		assertEquals("5000",					props.get("caelum.itemdb.list.items.limit"));
-		assertEquals("caelum-itemdb-producer1",	props.get("caelum.itemdb.kafka.transactional.id"));
+		assertEquals("localhost:8082",	props.get("caelum.itemdb.kafka.bootstrap.servers"));
+		assertEquals("caelum-item",		props.get("caelum.itemdb.kafka.source.topic"));
+		assertEquals("5000",			props.get("caelum.itemdb.list.items.limit"));
+		assertEquals("",				props.get("caelum.itemdb.kafka.transactional.id"));
 	}
 	
 	@Test
@@ -47,12 +48,40 @@ public class KafkaItemDatabaseConfigTest {
 	}
 	
 	@Test
-	public void testGetProducerKafkaProperties() {
+	public void testGetProducerKafkaProperties_ShouldUseTransactionalIdIfDefined() {
+		service.getProperties().put("caelum.itemdb.kafka.transactional.id", "lumivaara");
+		
 		Properties props = service.getProducerKafkaProperties();
 		
 		assertEquals(2, props.size());
 		assertEquals("localhost:8082", props.get("bootstrap.servers"));
-		assertEquals("caelum-itemdb-producer1", props.get("transactional.id"));
+		assertEquals("lumivaara", props.get("transactional.id"));
+	}
+	
+	@Test
+	public void testGetProducerKafkaProperties_ShouldUseGeneratedTransactionalIdIfNotDefined() {
+		service = partialMockBuilder(KafkaItemDatabaseConfig.class)
+				.withConstructor()
+				.addMockedMethod("randomUUID")
+				.createMock();
+		expect(service.randomUUID()).andReturn("046b6c7f-0b8a-43b9-b35d-6489e6daee91");
+		service.getProperties().put("caelum.itemdb.kafka.bootstrap.servers", "172.19.206.14:1234");
+		service.getProperties().put("caelum.itemdb.kafka.transactional.id", "");
+		replay(service);
+		
+		Properties props = service.getProducerKafkaProperties();
+		
+		verify(service);
+		assertEquals(2, props.size());
+		assertEquals("172.19.206.14:1234", props.get("bootstrap.servers"));
+		assertEquals("046b6c7f-0b8a-43b9-b35d-6489e6daee91", props.get("transactional.id"));
+	}
+	
+	@Test
+	public void testRandomUUID() {
+		String actual = service.randomUUID();
+		
+		assertTrue(actual.matches("^[\\da-z]{8}-[\\da-z]{4}-[\\da-z]{4}-[\\da-z]{4}-[\\da-z]{12}$"));
 	}
 	
 	@Test

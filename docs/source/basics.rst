@@ -3,6 +3,15 @@
 Basic concepts
 ==============
 
+TODO: The case???
+
+The main concept is to provide consumer-like interface to gather all critical data, process and access it ASAP.
+There are dependencies between incoming data and resources needed to process and store all data in suitable time.
+How much resources and which resources needed is an issue which outside of scope. The solution is to change
+configuration instead of software. You can choose number of nodes and their specification exactly to that needed to
+process all incoming volume of data, up enought nodes and enjoy of the result. Processed data can pass thru to be
+consumed by software of higher level or to be consumed external consumers via unified APIs.
+
 These are just few terms you have to know to understand how it works:
 
 .. contents::

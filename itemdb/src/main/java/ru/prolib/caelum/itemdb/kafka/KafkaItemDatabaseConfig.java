@@ -1,6 +1,7 @@
 package ru.prolib.caelum.itemdb.kafka;
 
 import java.util.Properties;
+import java.util.UUID;
 
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -18,9 +19,18 @@ public class KafkaItemDatabaseConfig extends ItemDatabaseConfig {
 		super.setDefaults();
 		props.put(BOOTSTRAP_SERVERS, "localhost:8082");
 		props.put(SOURCE_TOPIC, "caelum-item");
-		props.put(TRANSACTIONAL_ID, "caelum-itemdb-producer1");
+		props.put(TRANSACTIONAL_ID, "");
 	}
-
+	
+	protected String randomUUID() {
+		return UUID.randomUUID().toString();
+	}
+	
+	protected String getTransactionalId() {
+		String trans_id = props.getProperty(TRANSACTIONAL_ID);
+		return trans_id == null || "".equals(trans_id) ? randomUUID() : trans_id;
+	}
+	
 	public Properties getConsumerKafkaProperties() {
 		Properties conf = new Properties();
 		conf.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, props.get(BOOTSTRAP_SERVERS));
@@ -33,7 +43,7 @@ public class KafkaItemDatabaseConfig extends ItemDatabaseConfig {
 	public Properties getProducerKafkaProperties() {
 		Properties conf = new Properties();
 		conf.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, props.get(BOOTSTRAP_SERVERS));
-		conf.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, props.get(TRANSACTIONAL_ID));
+		conf.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, getTransactionalId());
 		return conf;
 	}
 	
