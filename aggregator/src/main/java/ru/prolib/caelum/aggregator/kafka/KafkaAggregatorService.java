@@ -10,12 +10,11 @@ import java.util.stream.Collectors;
 import org.apache.kafka.streams.state.WindowStoreIterator;
 
 import ru.prolib.caelum.aggregator.AggregatedDataRequest;
+import ru.prolib.caelum.aggregator.AggregatedDataResponse;
 import ru.prolib.caelum.aggregator.AggregatorStatus;
 import ru.prolib.caelum.aggregator.IAggregator;
 import ru.prolib.caelum.aggregator.IAggregatorService;
 import ru.prolib.caelum.aggregator.kafka.utils.WindowStoreIteratorLimited;
-import ru.prolib.caelum.core.ICloseableIterator;
-import ru.prolib.caelum.core.ITuple;
 import ru.prolib.caelum.core.Period;
 import ru.prolib.caelum.core.Periods;
 
@@ -90,7 +89,7 @@ public class KafkaAggregatorService implements IAggregatorService {
 	}
 	
 	@Override
-	public ICloseableIterator<ITuple> fetch(AggregatedDataRequest request) {
+	public AggregatedDataResponse fetch(AggregatedDataRequest request) {
 		final String symbol = request.getSymbol();
 		final Period period = request.getPeriod();
 		KafkaAggregatorEntry entry = registry.getByPeriod(period);
@@ -107,13 +106,25 @@ public class KafkaAggregatorService implements IAggregatorService {
 		}
 		Instant from = T(from_aligned), to = T(to_aligned);
 		WindowStoreIterator<KafkaTuple> it = null;
+		KafkaAggregatorStoreInfo store_info = null;
 		if ( entry == null ) {
 			entry = registry.findSuitableAggregatorToRebuildOnFly(period);
-			it = new KafkaTupleAggregateIterator(entry.getStore(timeout).fetch(symbol, from, to), getDuration(period));
+			store_info = entry.getStoreInfo(symbol, timeout);
+			if ( store_info.askAnotherHost() == false ) {
+				it = new KafkaTupleAggregateIterator(store_info.getStore().fetch(symbol, from, to), getDuration(period));
+			}
 		} else {
-			it = entry.getStore(timeout).fetch(symbol, from, to);
+			store_info = entry.getStoreInfo(symbol, timeout);
+			if ( store_info.askAnotherHost() == false ) {
+				it = store_info.getStore().fetch(symbol, from, to);
+			}
 		}
-		return new TupleIterator(symbol, new WindowStoreIteratorLimited<KafkaTuple>(it, getLimit(request)));
+		return store_info.askAnotherHost() ?
+			new AggregatedDataResponse(store_info.getHostInfo()) :
+			new AggregatedDataResponse(
+				store_info.getHostInfo(),
+				new TupleIterator(symbol, new WindowStoreIteratorLimited<KafkaTuple>(it, getLimit(request)))
+			);
 	}
 	
 	protected CompletableFuture<Void> createClear(IAggregator aggregator, final boolean global) {

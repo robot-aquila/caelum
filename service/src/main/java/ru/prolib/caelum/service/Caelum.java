@@ -4,11 +4,11 @@ import java.util.Collection;
 import java.util.List;
 
 import ru.prolib.caelum.aggregator.AggregatedDataRequest;
+import ru.prolib.caelum.aggregator.AggregatedDataResponse;
 import ru.prolib.caelum.aggregator.AggregatorStatus;
 import ru.prolib.caelum.aggregator.IAggregatorService;
 import ru.prolib.caelum.core.ICloseableIterator;
 import ru.prolib.caelum.core.IItem;
-import ru.prolib.caelum.core.ITuple;
 import ru.prolib.caelum.core.Period;
 import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.itemdb.IItemDatabaseService;
@@ -67,7 +67,7 @@ public class Caelum implements ICaelum {
 	}
 
 	@Override
-	public ICloseableIterator<ITuple> fetch(AggregatedDataRequest request) {
+	public AggregatedDataResponse fetch(AggregatedDataRequest request) {
 		return aggrService.fetch(request);
 	}
 

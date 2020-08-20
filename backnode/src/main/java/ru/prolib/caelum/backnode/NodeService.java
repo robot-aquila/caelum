@@ -1,6 +1,11 @@
 package ru.prolib.caelum.backnode;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -18,18 +23,24 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
+import javax.ws.rs.core.UriInfo;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ru.prolib.caelum.aggregator.AggregatedDataRequest;
+import ru.prolib.caelum.aggregator.AggregatedDataResponse;
 import ru.prolib.caelum.aggregator.AggregatorStatus;
 import ru.prolib.caelum.backnode.mvc.StreamFactory;
 import ru.prolib.caelum.core.ByteUtils;
+import ru.prolib.caelum.core.HostInfo;
 import ru.prolib.caelum.core.IItem;
 import ru.prolib.caelum.core.Item;
 import ru.prolib.caelum.core.IteratorStub;
@@ -224,18 +235,40 @@ public class NodeService {
 		return success();
 	}
 	
+	private URL replaceHostAndPort(UriInfo uriInfo, HostInfo hostInfo) throws MalformedURLException {
+		URL myUrl = uriInfo.getRequestUri().toURL();
+		URL toUrl = new URL(myUrl.getProtocol(), hostInfo.getHost(),
+				hostInfo.getPort(), myUrl.getPath() + "?" + myUrl.getQuery());
+		return toUrl;
+	}
+	
 	@GET
 	@Path("/tuples/{period}")
 	public Response tuples(
+			@Context UriInfo uriInfo,
 			@PathParam("period") @NotNull final Period period,
 			@QueryParam("symbol") @NotNull final String symbol,
 			@QueryParam("from") final Long from,
 			@QueryParam("to") final Long to,
-			@QueryParam("limit") final Integer limit)
+			@QueryParam("limit") final Integer limit) throws IOException
 	{
 		AggregatedDataRequest request = toAggrDataRequest(symbol, period, from, to, limit);
+		AggregatedDataResponse response = caelum.fetch(request);
+		if ( response.askAnotherHost() ) {
+			URL url = replaceHostAndPort(uriInfo, response.getHostInfo());
+			final HttpURLConnection con = (HttpURLConnection) url.openConnection();
+			con.setConnectTimeout(10000);
+			con.setReadTimeout(10000);
+			con.connect();
+			final InputStream input = con.getInputStream();
+			return Response.status(con.getResponseCode())
+				.entity((StreamingOutput)(output) -> {
+					IOUtils.copy(input, output);
+					input.close();
+				}).build();
+		}
 		return Response.status(200)
-			.entity(streamFactory.tuplesToJson(caelum.fetch(request), request))
+			.entity(streamFactory.tuplesToJson(response.getResult(), request))
 			.build();
 	}
 	

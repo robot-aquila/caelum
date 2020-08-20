@@ -19,11 +19,13 @@ import org.junit.Test;
 import ru.prolib.caelum.aggregator.IAggregator;
 import ru.prolib.caelum.aggregator.IAggregatorService;
 import ru.prolib.caelum.core.CompositeService;
+import ru.prolib.caelum.core.HostInfo;
 import ru.prolib.caelum.core.Periods;
 import ru.prolib.caelum.itemdb.kafka.utils.KafkaUtils;
 
 public class KafkaAggregatorServiceBuilderTest {
 	IMocksControl control;
+	HostInfo hostInfo;
 	Periods periods;
 	KafkaAggregatorBuilder builderMock;
 	CompositeService servicesMock;
@@ -37,6 +39,7 @@ public class KafkaAggregatorServiceBuilderTest {
 
 	@Before
 	public void setUp() throws Exception {
+		hostInfo = new HostInfo("tutumbr", 2519);
 		periods = new Periods();
 		control = createStrictControl();
 		builderMock = control.createMock(KafkaAggregatorBuilder.class);
@@ -62,7 +65,7 @@ public class KafkaAggregatorServiceBuilderTest {
 				.addMockedMethod("createPeriods")
 				.addMockedMethod("createUtils")
 				.addMockedMethod("createConfig", Periods.class)
-				.addMockedMethod("createStreamsRegistry", Periods.class)
+				.addMockedMethod("createStreamsRegistry", HostInfo.class, Periods.class)
 				.addMockedMethod("createTopologyBuilder")
 				.addMockedMethod("createLock")
 				.withArgs(builderMock)
@@ -100,9 +103,10 @@ public class KafkaAggregatorServiceBuilderTest {
 	
 	@Test
 	public void testCreateStreamsRegistry() {
-		KafkaStreamsRegistry actual = service.createStreamsRegistry(periods);
+		KafkaStreamsRegistry actual = service.createStreamsRegistry(hostInfo, periods);
 		
 		assertNotNull(actual);
+		assertEquals(hostInfo, actual.getHostInfo());
 		assertSame(periods, actual.getPeriods());
 	}
 	
@@ -122,9 +126,10 @@ public class KafkaAggregatorServiceBuilderTest {
 		mockedConfig.getProperties().put("caelum.aggregator.list.tuples.limit", "400");
 		mockedConfig.getProperties().put("caelum.aggregator.kafka.force.parallel.clear", "1");
 		mockedConfig.getProperties().put("caelum.aggregator.kafka.default.timeout", "2345");
+		mockedConfig.getProperties().put("caelum.aggregator.kafka.application.server", "gap:1345");
 		expect(mockedService.createPeriods()).andReturn(periods);
 		expect(mockedService.createConfig(periods)).andReturn(mockedConfig);
-		expect(mockedService.createStreamsRegistry(periods)).andReturn(streamsRegistryMock);
+		expect(mockedService.createStreamsRegistry(new HostInfo("gap", 1345), periods)).andReturn(streamsRegistryMock);
 		expect(mockedService.createTopologyBuilder()).andReturn(topologyBuilderMock);
 		expect(mockedService.createLock()).andReturn(mutexMock);
 		expect(mockedService.createUtils()).andReturn(utilsMock);

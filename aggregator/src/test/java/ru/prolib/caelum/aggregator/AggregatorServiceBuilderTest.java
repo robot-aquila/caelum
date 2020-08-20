@@ -14,8 +14,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import ru.prolib.caelum.core.CompositeService;
-import ru.prolib.caelum.core.ICloseableIterator;
-import ru.prolib.caelum.core.ITuple;
 import ru.prolib.caelum.core.Period;
 
 public class AggregatorServiceBuilderTest {
@@ -31,7 +29,7 @@ public class AggregatorServiceBuilderTest {
 		}
 
 		@Override
-		public ICloseableIterator<ITuple> fetch(AggregatedDataRequest request) {
+		public AggregatedDataResponse fetch(AggregatedDataRequest request) {
 			throw new UnsupportedOperationException();
 		}
 

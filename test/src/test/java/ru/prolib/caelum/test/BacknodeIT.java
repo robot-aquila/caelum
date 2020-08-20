@@ -25,6 +25,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -35,6 +36,8 @@ import org.junit.Test;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.junit.runners.MethodSorters;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.restassured.specification.RequestSpecification;
 import ru.prolib.caelum.test.dto.CategoriesResponseDTO;
@@ -48,8 +51,12 @@ import ru.prolib.caelum.test.dto.SymbolUpdatesResponseDTO;
 import ru.prolib.caelum.test.dto.SymbolsResponseDTO;
 import ru.prolib.caelum.test.dto.TuplesResponseDTO;
 
+/**
+ * Define CAELUM_BACKNODE_HOSTS environment variable with list of host:port separated by comma.
+ */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class BacknodeIT {
+	static final Logger logger = LoggerFactory.getLogger(BacknodeIT.class);
 	static final ApiTestHelper ath = new ApiTestHelper(false, false);
 	
 	@Rule(order=Integer.MIN_VALUE)
@@ -77,7 +84,10 @@ public class BacknodeIT {
 	
 	@BeforeClass
 	public static void setUpBeforeClass() {
-		ath.setBacknodeHosts(Arrays.asList("localhost:9698"));
+		String hosts = System.getenv().get("CAELUM_BACKNODE_HOSTS");
+		if ( hosts == null || "".equals(hosts) ) hosts = "localhost:9698";
+		logger.debug("Hosts Under Test: {}", hosts);
+		ath.setBacknodeHosts(Arrays.asList(StringUtils.split(hosts, ',')));
 		ath.setUpBeforeClass();
 	}
 	

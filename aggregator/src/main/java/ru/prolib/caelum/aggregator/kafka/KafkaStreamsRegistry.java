@@ -7,22 +7,29 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ru.prolib.caelum.core.HostInfo;
 import ru.prolib.caelum.core.Period;
 import ru.prolib.caelum.core.Periods;
 
 public class KafkaStreamsRegistry {
 	private static final Logger logger = LoggerFactory.getLogger(KafkaStreamsRegistry.class);
 	
+	private final HostInfo hostInfo;
 	private final Periods periods;
 	private final Map<Period, KafkaAggregatorEntry> entryByPeriod;
 
-	KafkaStreamsRegistry(Periods periods, Map<Period, KafkaAggregatorEntry> entry_by_period) {
+	KafkaStreamsRegistry(HostInfo hostInfo, Periods periods, Map<Period, KafkaAggregatorEntry> entry_by_period) {
+		this.hostInfo = hostInfo;
 		this.periods = periods;
 		this.entryByPeriod = entry_by_period;
 	}
 	
-	public KafkaStreamsRegistry(Periods periods) {
-		this(periods, new ConcurrentHashMap<>());
+	public KafkaStreamsRegistry(HostInfo hostInfo, Periods periods) {
+		this(hostInfo, periods, new ConcurrentHashMap<>());
+	}
+	
+	public HostInfo getHostInfo() {
+		return hostInfo;
 	}
 	
 	public Periods getPeriods() {
@@ -34,7 +41,7 @@ public class KafkaStreamsRegistry {
 	}
 	
 	protected KafkaAggregatorEntry createEntry(KafkaAggregatorDescr descr, KafkaStreams streams) {
-		return new KafkaAggregatorEntry(descr, streams, new KafkaStreamsAvailability());
+		return new KafkaAggregatorEntry(hostInfo, descr, streams, new KafkaStreamsAvailability());
 	}
 	
 	/**

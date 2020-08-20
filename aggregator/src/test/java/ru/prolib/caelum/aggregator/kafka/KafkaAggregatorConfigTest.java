@@ -10,6 +10,7 @@ import org.apache.commons.lang3.SystemUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import ru.prolib.caelum.core.HostInfo;
 import ru.prolib.caelum.core.Period;
 import ru.prolib.caelum.core.Periods;
 import ru.prolib.caelum.itemdb.kafka.KafkaItemSerdes;
@@ -44,6 +45,7 @@ public class KafkaAggregatorConfigTest {
 		assertEquals("/tmp/kafka-streams",		props.get("caelum.aggregator.kafka.state.dir"));
 		assertEquals("2",						props.get("caelum.aggregator.kafka.num.stream.threads"));
 		assertEquals("31536000000000",			props.get("caelum.aggregator.kafka.store.retention.time"));
+		assertEquals("localhost:9698",			props.get("caelum.aggregator.kafka.application.server"));
 	}
 	
 	@Test
@@ -132,12 +134,14 @@ public class KafkaAggregatorConfigTest {
 		service.getProperties().put("caelum.aggregator.kafka.bootstrap.servers", "191.15.34.5:19987");
 		service.getProperties().put("caelum.aggregator.kafka.pfx.application.id", "omega-");
 		service.getProperties().put("caelum.aggregator.aggregation.period", "M5");
+		service.getProperties().put("caelum.aggregator.kafka.application.server", "172.15.26.19:5002");
+		
 		
 		Properties props = service.getKafkaProperties();
 		assertNotSame(service.getProperties(), props);
 		assertNotSame(props, service.getKafkaProperties()); // it's a new properties every call
 		
-		assertEquals(8, props.size());
+		assertEquals(9, props.size());
 		assertEquals("omega-m5", props.get("application.id"));
 		assertEquals("191.15.34.5:19987", props.get("bootstrap.servers"));
 		assertEquals(KafkaItemSerdes.keySerde().getClass(), props.get("default.key.serde"));
@@ -145,6 +149,7 @@ public class KafkaAggregatorConfigTest {
 		assertEquals("5", props.get("linger.ms"));
 		assertEquals("/tmp/kafka-streams", props.get("state.dir"));
 		assertEquals("2", props.get("num.stream.threads"));
+		assertEquals("172.15.26.19:5002", props.get("application.server"));
 		// forced settings
 		assertEquals("exactly_once", props.get("processing.guarantee"));
 		//assertEquals("500", props.get("acceptable.recovery.lag"));
@@ -199,6 +204,20 @@ public class KafkaAggregatorConfigTest {
 		assertTrue(mockedService.isParallelClear());
 		
 		verify(mockedService);
+	}
+	
+	@Test
+	public void testGetApplicationServer() {
+		service.getProperties().put("caelum.aggregator.kafka.application.server", "bambata:250");
+		
+		assertEquals(new HostInfo("bambata", 250), service.getApplicationServer());
+	}
+	
+	@Test
+	public void testGetApplicationServer_ShouldUseDefaultPortIfNotSpecified() {
+		service.getProperties().put("caelum.aggregator.kafka.application.server", "chukaban");
+		
+		assertEquals(new HostInfo("chukaban", 9698), service.getApplicationServer());
 	}
 
 }

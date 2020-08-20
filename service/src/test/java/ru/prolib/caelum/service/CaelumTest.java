@@ -15,11 +15,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import ru.prolib.caelum.aggregator.AggregatedDataRequest;
+import ru.prolib.caelum.aggregator.AggregatedDataResponse;
 import ru.prolib.caelum.aggregator.AggregatorStatus;
 import ru.prolib.caelum.aggregator.kafka.KafkaAggregatorService;
 import ru.prolib.caelum.core.ICloseableIterator;
 import ru.prolib.caelum.core.IItem;
-import ru.prolib.caelum.core.ITuple;
 import ru.prolib.caelum.core.Item;
 import ru.prolib.caelum.core.Period;
 import ru.prolib.caelum.itemdb.IItemIterator;
@@ -94,7 +94,7 @@ public class CaelumTest {
 	@Test
 	public void testFetch_AggrDataRequest() {
 		AggregatedDataRequest requestMock = control.createMock(AggregatedDataRequest.class);
-		ICloseableIterator<ITuple> resultMock = control.createMock(ICloseableIterator.class);
+		AggregatedDataResponse resultMock = control.createMock(AggregatedDataResponse.class);
 		expect(aggrSvcMock.fetch(requestMock)).andReturn(resultMock);
 		control.replay();
 		

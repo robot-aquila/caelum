@@ -22,12 +22,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import ru.prolib.caelum.aggregator.AggregatedDataRequest;
+import ru.prolib.caelum.aggregator.AggregatedDataResponse;
 import ru.prolib.caelum.aggregator.AggregatorStatus;
 import ru.prolib.caelum.aggregator.IAggregator;
 import ru.prolib.caelum.aggregator.kafka.utils.WindowStoreIteratorLimited;
 import ru.prolib.caelum.aggregator.kafka.utils.WindowStoreIteratorStub;
-import ru.prolib.caelum.core.ICloseableIterator;
-import ru.prolib.caelum.core.ITuple;
+import ru.prolib.caelum.core.HostInfo;
 import ru.prolib.caelum.core.Periods;
 
 @SuppressWarnings("unchecked")
@@ -46,6 +46,7 @@ public class KafkaAggregatorServiceTest {
 	}
 	
 	IMocksControl control;
+	HostInfo hostInfo;
 	Periods periods;
 	KafkaStreamsRegistry registryMock;
 	ReadOnlyWindowStore<String, KafkaTuple> storeMock;
@@ -60,6 +61,7 @@ public class KafkaAggregatorServiceTest {
 	public void setUp() throws Exception {
 		request = null;
 		control = createStrictControl();
+		hostInfo = new HostInfo("192.168.99.100", 17520);
 		periods = new Periods();
 		registryMock = control.createMock(KafkaStreamsRegistry.class);
 		storeMock = control.createMock(ReadOnlyWindowStore.class);
@@ -89,94 +91,120 @@ public class KafkaAggregatorServiceTest {
 	@Test
 	public void testFetch_ExistingAggregator() {
 		expect(registryMock.getByPeriod(M5)).andReturn(entryMock);
-		expect(entryMock.getStore(1700L)).andReturn(storeMock);
+		expect(entryMock.getStoreInfo("foo@bar", 1700L)).andReturn(new KafkaAggregatorStoreInfo(hostInfo, storeMock));
 		expect(storeMock.fetch("foo@bar", T("2020-07-03T00:15:00Z"), T("2020-07-03T11:59:59.999Z"))).andReturn(itMock);
 		control.replay();
-		ICloseableIterator<ITuple> actual, expected;
+		AggregatedDataResponse actual, expected;
 		
 		actual = service.fetch(new AggregatedDataRequest("foo@bar", M5,
 				T("2020-07-03T00:15:00Z").toEpochMilli(), T("2020-07-03T12:00:00Z").toEpochMilli(), 1000));
 		
 		control.verify();
-		expected = new TupleIterator("foo@bar", new WindowStoreIteratorLimited<>(itMock, 1000L));
+		expected = new AggregatedDataResponse(hostInfo,
+				new TupleIterator("foo@bar", new WindowStoreIteratorLimited<>(itMock, 1000L))
+			);
 		assertEquals(expected, actual);
 	}
 	
 	@Test
 	public void testFetch_ExistingAggregator_MaxLimitReached() {
 		expect(registryMock.getByPeriod(M5)).andReturn(entryMock);
-		expect(entryMock.getStore(1700L)).andReturn(storeMock);
+		expect(entryMock.getStoreInfo("foo@bar", 1700L)).andReturn(new KafkaAggregatorStoreInfo(hostInfo, storeMock));
 		expect(storeMock.fetch("foo@bar", T("2020-07-03T00:15:00Z"), T("2020-07-03T11:59:59.999Z"))).andReturn(itMock);
 		control.replay();
-		ICloseableIterator<ITuple> actual, expected;
+		AggregatedDataResponse actual, expected;
 		
 		actual = service.fetch(new AggregatedDataRequest("foo@bar", M5,
 				T("2020-07-03T00:15:00Z").toEpochMilli(), T("2020-07-03T12:00:00Z").toEpochMilli(), 750000));
 		
 		control.verify();
-		expected = new TupleIterator("foo@bar", new WindowStoreIteratorLimited<>(itMock, 5000L));
+		expected = new AggregatedDataResponse(hostInfo,
+				new TupleIterator("foo@bar", new WindowStoreIteratorLimited<>(itMock, 5000L))
+			);
 		assertEquals(expected, actual);		
 	}
 	
 	@Test
 	public void testFetch_ExistingAggregator_TimeAlignment() {
 		expect(registryMock.getByPeriod(M5)).andReturn(entryMock);
-		expect(entryMock.getStore(1700L)).andReturn(storeMock);
+		expect(entryMock.getStoreInfo("foo@bar", 1700L)).andReturn(new KafkaAggregatorStoreInfo(hostInfo, storeMock));
 		expect(storeMock.fetch("foo@bar", T("2020-07-03T00:15:00Z"), T("2020-07-03T11:59:59.999Z")))
 			.andReturn(itMock);
 		control.replay();
-		ICloseableIterator<ITuple> actual, expected;
+		AggregatedDataResponse actual, expected;
 		
 		actual = service.fetch(new AggregatedDataRequest("foo@bar", M5,
 				T("2020-07-03T00:18:26.091Z").toEpochMilli(), T("2020-07-03T11:57:08.007Z").toEpochMilli(), 2000));
 		
 		control.verify();
-		expected = new TupleIterator("foo@bar", new WindowStoreIteratorLimited<>(itMock, 2000L));
+		expected = new AggregatedDataResponse(hostInfo,
+				new TupleIterator("foo@bar", new WindowStoreIteratorLimited<>(itMock, 2000L))
+			);
 		assertEquals(expected, actual);
 	}
 	
 	@Test
 	public void testFetch_ExistingAggregator_ShouldUseZeroTimeIfTimeFromWasNotSpecified() {
 		expect(registryMock.getByPeriod(M5)).andReturn(entryMock);
-		expect(entryMock.getStore(1700L)).andReturn(storeMock);
+		expect(entryMock.getStoreInfo("foo@bar", 1700L)).andReturn(new KafkaAggregatorStoreInfo(hostInfo, storeMock));
 		expect(storeMock.fetch("foo@bar", Instant.EPOCH, T(899999L))).andReturn(itMock);
 		control.replay();
-		ICloseableIterator<ITuple> actual, expected;
+		AggregatedDataResponse actual, expected;
 		
 		actual = service.fetch(new AggregatedDataRequest("foo@bar", M5, null, 845297L, 2000));
 		
 		control.verify();
-		expected = new TupleIterator("foo@bar", new WindowStoreIteratorLimited<>(itMock, 2000L));
+		expected = new AggregatedDataResponse(hostInfo,
+				new TupleIterator("foo@bar", new WindowStoreIteratorLimited<>(itMock, 2000L))
+			);
 		assertEquals(expected, actual);
 	}
 	
 	@Test
 	public void testFetch_ExistingAggregator_ShouldUseLongMaxIfTimeToWasNotSpecified() {
 		expect(registryMock.getByPeriod(M1)).andReturn(entryMock);
-		expect(entryMock.getStore(1700L)).andReturn(storeMock);
+		expect(entryMock.getStoreInfo("car@man", 1700L)).andReturn(new KafkaAggregatorStoreInfo(hostInfo, storeMock));
 		expect(storeMock.fetch("car@man", T(60000L), T(Long.MAX_VALUE))).andReturn(itMock);
 		control.replay();
-		ICloseableIterator<ITuple> actual, expected;
+		AggregatedDataResponse actual, expected;
 		
 		actual = service.fetch(new AggregatedDataRequest("car@man", M1, 115257L, null, 1500));
 		
 		control.verify();
-		expected = new TupleIterator("car@man", new WindowStoreIteratorLimited<>(itMock, 1500L));
+		expected = new AggregatedDataResponse(hostInfo,
+				new TupleIterator("car@man", new WindowStoreIteratorLimited<>(itMock, 1500L))
+			);
 		assertEquals(expected, actual);
 	}
 	
 	@Test
 	public void testFetch_ExistingAggregator_ShouldUseDefaultLimitIfLimitWasNotSpecified() {
 		expect(registryMock.getByPeriod(M1)).andReturn(entryMock);
-		expect(entryMock.getStore(1700L)).andReturn(storeMock);
+		expect(entryMock.getStoreInfo("gap@map", 1700L)).andReturn(new KafkaAggregatorStoreInfo(hostInfo, storeMock));
 		expect(storeMock.fetch("gap@map", T(60000L), T(959999L))).andReturn(itMock);
 		control.replay();
-		ICloseableIterator<ITuple> actual, expected;
+		AggregatedDataResponse actual, expected;
 		
 		actual = service.fetch(new AggregatedDataRequest("gap@map", M1, 115257L, 939713L, 3500));
 		
 		control.verify();
-		expected = new TupleIterator("gap@map", new WindowStoreIteratorLimited<>(itMock, 3500L));
+		expected = new AggregatedDataResponse(hostInfo,
+				new TupleIterator("gap@map", new WindowStoreIteratorLimited<>(itMock, 3500L))
+			);
+		assertEquals(expected, actual);
+	}
+	
+	@Test
+	public void testFetch_ExistingAggregator_ShouldReturnHostInfoIfDataOnAnotherHost() {
+		expect(registryMock.getByPeriod(M1)).andReturn(entryMock);
+		expect(entryMock.getStoreInfo("gap@map", 1700L)).andReturn(new KafkaAggregatorStoreInfo(hostInfo));
+		control.replay();
+		AggregatedDataResponse actual, expected;
+		
+		actual = service.fetch(new AggregatedDataRequest("gap@map", M1, null, null, null));
+		
+		control.verify();
+		expected = new AggregatedDataResponse(hostInfo);
 		assertEquals(expected, actual);
 	}
 	
@@ -184,16 +212,19 @@ public class KafkaAggregatorServiceTest {
 	public void testFetch_AggregateOnFly() {
 		expect(registryMock.getByPeriod(H1)).andReturn(null);
 		expect(registryMock.findSuitableAggregatorToRebuildOnFly(H1)).andReturn(entryMock);
-		expect(entryMock.getStore(1700L)).andReturn(storeMock);
+		expect(entryMock.getStoreInfo("foo@bar", 1700L)).andReturn(new KafkaAggregatorStoreInfo(hostInfo, storeMock));
 		expect(storeMock.fetch("foo@bar", T("2020-07-03T12:00:00Z"), T("2020-07-03T23:59:59.999Z"))).andReturn(itStub);
 		control.replay();
-		ICloseableIterator<ITuple> actual, expected;
+		AggregatedDataResponse actual, expected;
 		
 		actual = service.fetch(new AggregatedDataRequest("foo@bar", H1,
 				T("2020-07-03T12:00:00Z").toEpochMilli(), T("2020-07-04T00:00:00Z").toEpochMilli(), 5000));
 		
-		expected = new TupleIterator("foo@bar", new WindowStoreIteratorLimited<>(
-				new KafkaTupleAggregateIterator(itStub, Duration.ofHours(1)), 5000L));
+		control.verify();
+		expected = new AggregatedDataResponse(hostInfo,
+				new TupleIterator("foo@bar", new WindowStoreIteratorLimited<>(
+					new KafkaTupleAggregateIterator(itStub, Duration.ofHours(1)), 5000L))
+			);
 		assertEquals(expected, actual);
 	}
 	
@@ -201,16 +232,19 @@ public class KafkaAggregatorServiceTest {
 	public void testFetch_AggregateOnFly_MaxLimitReached() {
 		expect(registryMock.getByPeriod(H1)).andReturn(null);
 		expect(registryMock.findSuitableAggregatorToRebuildOnFly(H1)).andReturn(entryMock);
-		expect(entryMock.getStore(1700L)).andReturn(storeMock);
+		expect(entryMock.getStoreInfo("foo@bar", 1700L)).andReturn(new KafkaAggregatorStoreInfo(hostInfo, storeMock));
 		expect(storeMock.fetch("foo@bar", T("2020-07-03T12:00:00Z"), T("2020-07-03T23:59:59.999Z"))).andReturn(itStub);
 		control.replay();
-		ICloseableIterator<ITuple> actual, expected;
+		AggregatedDataResponse actual, expected;
 		
 		actual = service.fetch(new AggregatedDataRequest("foo@bar", H1,
 				T("2020-07-03T12:00:00Z").toEpochMilli(), T("2020-07-04T00:00:00Z").toEpochMilli(), 25000));
 		
-		expected = new TupleIterator("foo@bar", new WindowStoreIteratorLimited<>(
-				new KafkaTupleAggregateIterator(itStub, Duration.ofHours(1)), 5000L));
+		control.verify();
+		expected = new AggregatedDataResponse(hostInfo,
+				new TupleIterator("foo@bar", new WindowStoreIteratorLimited<>(
+					new KafkaTupleAggregateIterator(itStub, Duration.ofHours(1)), 5000L))
+			);
 		assertEquals(expected, actual);
 	}
 
@@ -218,16 +252,19 @@ public class KafkaAggregatorServiceTest {
 	public void testFetch_AggregateOnFly_TimeAlignment() {
 		expect(registryMock.getByPeriod(H1)).andReturn(null);
 		expect(registryMock.findSuitableAggregatorToRebuildOnFly(H1)).andReturn(entryMock);
-		expect(entryMock.getStore(1700L)).andReturn(storeMock);
+		expect(entryMock.getStoreInfo("foo@bar", 1700L)).andReturn(new KafkaAggregatorStoreInfo(hostInfo, storeMock));
 		expect(storeMock.fetch("foo@bar", T("2020-07-03T08:00:00Z"), T("2020-07-03T12:59:59.999Z"))).andReturn(itStub);
 		control.replay();
-		ICloseableIterator<ITuple> actual, expected;
+		AggregatedDataResponse actual, expected;
 		
 		actual = service.fetch(new AggregatedDataRequest("foo@bar", H1,
 				T("2020-07-03T08:13:51.091Z").toEpochMilli(), T("2020-07-03T12:49:02.574Z").toEpochMilli(), 700));
 		
-		expected = new TupleIterator("foo@bar", new WindowStoreIteratorLimited<>(
-				new KafkaTupleAggregateIterator(itStub, Duration.ofHours(1)), 700L));
+		control.verify();
+		expected = new AggregatedDataResponse(hostInfo,
+				new TupleIterator("foo@bar", new WindowStoreIteratorLimited<>(
+					new KafkaTupleAggregateIterator(itStub, Duration.ofHours(1)), 700L))
+			);
 		assertEquals(expected, actual);
 	}
 	
@@ -235,15 +272,18 @@ public class KafkaAggregatorServiceTest {
 	public void testFetch_AggregateOnFly_ShouldUseZeroTimeIfTimeFromWasNotSpecified() {
 		expect(registryMock.getByPeriod(H1)).andReturn(null);
 		expect(registryMock.findSuitableAggregatorToRebuildOnFly(H1)).andReturn(entryMock);
-		expect(entryMock.getStore(1700L)).andReturn(storeMock);
+		expect(entryMock.getStoreInfo("foo@bar", 1700L)).andReturn(new KafkaAggregatorStoreInfo(hostInfo, storeMock));
 		expect(storeMock.fetch("foo@bar", Instant.EPOCH, T("2020-07-03T12:59:59.999Z"))).andReturn(itStub);
 		control.replay();
-		ICloseableIterator<ITuple> actual, expected;
+		AggregatedDataResponse actual, expected;
 		
 		actual = service.fetch(new AggregatedDataRequest("foo@bar", H1, null, TL("2020-07-03T12:49:02.574Z"), 700));
 		
-		expected = new TupleIterator("foo@bar", new WindowStoreIteratorLimited<>(
-				new KafkaTupleAggregateIterator(itStub, Duration.ofHours(1)), 700L));
+		control.verify();
+		expected = new AggregatedDataResponse(hostInfo,
+				new TupleIterator("foo@bar", new WindowStoreIteratorLimited<>(
+					new KafkaTupleAggregateIterator(itStub, Duration.ofHours(1)), 700L))
+			);
 		assertEquals(expected, actual);
 	}
 	
@@ -251,15 +291,18 @@ public class KafkaAggregatorServiceTest {
 	public void testFetch_AggregateOnFly_ShouldUseLongMaxIfTimeToWasNotSpecified() {
 		expect(registryMock.getByPeriod(H1)).andReturn(null);
 		expect(registryMock.findSuitableAggregatorToRebuildOnFly(H1)).andReturn(entryMock);
-		expect(entryMock.getStore(1700L)).andReturn(storeMock);
+		expect(entryMock.getStoreInfo("foo@bar", 1700L)).andReturn(new KafkaAggregatorStoreInfo(hostInfo, storeMock));
 		expect(storeMock.fetch("foo@bar", T("2020-07-03T08:00:00Z"), T(Long.MAX_VALUE))).andReturn(itStub);
 		control.replay();
-		ICloseableIterator<ITuple> actual, expected;
+		AggregatedDataResponse actual, expected;
 		
 		actual = service.fetch(new AggregatedDataRequest("foo@bar", H1, TL("2020-07-03T08:13:51.091Z"), null, 700));
 		
-		expected = new TupleIterator("foo@bar", new WindowStoreIteratorLimited<>(
-				new KafkaTupleAggregateIterator(itStub, Duration.ofHours(1)), 700L));
+		control.verify();
+		expected = new AggregatedDataResponse(hostInfo,
+				new TupleIterator("foo@bar", new WindowStoreIteratorLimited<>(
+					new KafkaTupleAggregateIterator(itStub, Duration.ofHours(1)), 700L))
+			);
 		assertEquals(expected, actual);
 	}
 	
@@ -267,16 +310,34 @@ public class KafkaAggregatorServiceTest {
 	public void testFetch_AggregateOnFly_ShouldUseDefaultLimitIfLimitWasNotSpecified() {
 		expect(registryMock.getByPeriod(H1)).andReturn(null);
 		expect(registryMock.findSuitableAggregatorToRebuildOnFly(H1)).andReturn(entryMock);
-		expect(entryMock.getStore(1700L)).andReturn(storeMock);
+		expect(entryMock.getStoreInfo("foo@bar", 1700L)).andReturn(new KafkaAggregatorStoreInfo(hostInfo, storeMock));
 		expect(storeMock.fetch("foo@bar", Instant.EPOCH, T("2020-07-03T12:59:59.999Z"))).andReturn(itStub);
 		control.replay();
-		ICloseableIterator<ITuple> actual, expected;
+		AggregatedDataResponse actual, expected;
 		
 		request = new AggregatedDataRequest("foo@bar", H1, 0L, TL("2020-07-03T12:49:02.574Z"), null);
 		actual = service.fetch(request);
 		
-		expected = new TupleIterator("foo@bar", new WindowStoreIteratorLimited<>(
-				new KafkaTupleAggregateIterator(itStub, Duration.ofHours(1)), 5000L));
+		control.verify();
+		expected = new AggregatedDataResponse(hostInfo,
+				new TupleIterator("foo@bar", new WindowStoreIteratorLimited<>(
+					new KafkaTupleAggregateIterator(itStub, Duration.ofHours(1)), 5000L))
+			);
+		assertEquals(expected, actual);
+	}
+	
+	@Test
+	public void testFetch_AggregateOnFly_ShouldReturnHostInfoIfDataOnAnotherHost() {
+		expect(registryMock.getByPeriod(H1)).andReturn(null);
+		expect(registryMock.findSuitableAggregatorToRebuildOnFly(H1)).andReturn(entryMock);
+		expect(entryMock.getStoreInfo("foo@bar", 1700L)).andReturn(new KafkaAggregatorStoreInfo(hostInfo));
+		control.replay();
+		AggregatedDataResponse actual, expected;
+		
+		actual = service.fetch(new AggregatedDataRequest("foo@bar", H1, null, null, null));
+		
+		control.verify();
+		expected = new AggregatedDataResponse(hostInfo);
 		assertEquals(expected, actual);
 	}
 	

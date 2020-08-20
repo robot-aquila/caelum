@@ -4,10 +4,10 @@ import java.util.Collection;
 import java.util.List;
 
 import ru.prolib.caelum.aggregator.AggregatedDataRequest;
+import ru.prolib.caelum.aggregator.AggregatedDataResponse;
 import ru.prolib.caelum.aggregator.AggregatorStatus;
 import ru.prolib.caelum.core.ICloseableIterator;
 import ru.prolib.caelum.core.IItem;
-import ru.prolib.caelum.core.ITuple;
 import ru.prolib.caelum.core.Period;
 import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.itemdb.ItemDataRequest;
@@ -24,7 +24,7 @@ public interface ICaelum {
 	void registerSymbolUpdate(SymbolUpdate update);
 	void registerItem(IItem item);
 	void registerItem(Collection<IItem> items);
-	ICloseableIterator<ITuple> fetch(AggregatedDataRequest request);
+	AggregatedDataResponse fetch(AggregatedDataRequest request);
 	IItemIterator fetch(ItemDataRequest request);
 	IItemIterator fetch(ItemDataRequestContinue request);
 	ICloseableIterator<String> fetchCategories();

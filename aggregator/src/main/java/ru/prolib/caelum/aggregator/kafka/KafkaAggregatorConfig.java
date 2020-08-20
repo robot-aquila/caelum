@@ -3,12 +3,14 @@ package ru.prolib.caelum.aggregator.kafka;
 import java.time.Duration;
 import java.util.Properties;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.streams.StreamsConfig;
 
 import ru.prolib.caelum.aggregator.AggregatorConfig;
+import ru.prolib.caelum.core.HostInfo;
 import ru.prolib.caelum.core.Period;
 import ru.prolib.caelum.core.Periods;
 import ru.prolib.caelum.itemdb.kafka.KafkaItemSerdes;
@@ -26,6 +28,7 @@ public class KafkaAggregatorConfig extends AggregatorConfig {
 	public static final String STATE_DIR				= "caelum.aggregator.kafka.state.dir";
 	public static final String NUM_STREAM_THREADS		= "caelum.aggregator.kafka.num.stream.threads";
 	public static final String STORE_RETENTION_TIME		= "caelum.aggregator.kafka.store.retention.time";
+	public static final String APPLICATION_SERVER		= "caelum.aggregator.kafka.application.server";
 
 	private final Periods periods;
 	
@@ -53,6 +56,7 @@ public class KafkaAggregatorConfig extends AggregatorConfig {
 		props.put(STATE_DIR, "/tmp/kafka-streams");
 		props.put(NUM_STREAM_THREADS, "2");
 		props.put(STORE_RETENTION_TIME, "31536000000000");
+		props.put(APPLICATION_SERVER, "localhost:9698");
 	}
 	
 	private String getSuffix() {
@@ -113,6 +117,11 @@ public class KafkaAggregatorConfig extends AggregatorConfig {
 		return getBoolean(FORCE_PARALLEL_CLEAR, isOsUnix());
 	}
 	
+	public HostInfo getApplicationServer() {
+		String chunks[] = StringUtils.split(getString(APPLICATION_SERVER), ':');
+		return new HostInfo(chunks[0], chunks.length == 1 ? 9698 : Integer.parseInt(chunks[1]));
+	}
+	
 	public Properties getKafkaProperties() {
 		Properties conf = new Properties();
 		conf.put(StreamsConfig.APPLICATION_ID_CONFIG, getApplicationId());
@@ -121,6 +130,7 @@ public class KafkaAggregatorConfig extends AggregatorConfig {
 		conf.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, KafkaItemSerdes.itemSerde().getClass());
 		conf.put(StreamsConfig.STATE_DIR_CONFIG, getString(STATE_DIR));
 		conf.put(StreamsConfig.NUM_STREAM_THREADS_CONFIG, getString(NUM_STREAM_THREADS));
+		conf.put(StreamsConfig.APPLICATION_SERVER_CONFIG, getString(APPLICATION_SERVER));
 		conf.put(ProducerConfig.LINGER_MS_CONFIG, getString(LINGER_MS));
 		
 		conf.put(StreamsConfig.PROCESSING_GUARANTEE_CONFIG, StreamsConfig.EXACTLY_ONCE);

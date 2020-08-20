@@ -20,6 +20,7 @@ import ru.prolib.caelum.aggregator.IAggregator;
 import ru.prolib.caelum.aggregator.IAggregatorService;
 import ru.prolib.caelum.aggregator.IAggregatorServiceBuilder;
 import ru.prolib.caelum.core.CompositeService;
+import ru.prolib.caelum.core.HostInfo;
 import ru.prolib.caelum.core.Periods;
 import ru.prolib.caelum.itemdb.kafka.utils.KafkaUtils;
 
@@ -51,8 +52,8 @@ public class KafkaAggregatorServiceBuilder implements IAggregatorServiceBuilder 
 		return new KafkaAggregatorTopologyBuilder();
 	}
 	
-	protected KafkaStreamsRegistry createStreamsRegistry(Periods periods) {
-		return new KafkaStreamsRegistry(periods);
+	protected KafkaStreamsRegistry createStreamsRegistry(HostInfo hostInfo, Periods periods) {
+		return new KafkaStreamsRegistry(hostInfo, periods);
 	}
 	
 	protected Lock createLock() {
@@ -69,7 +70,7 @@ public class KafkaAggregatorServiceBuilder implements IAggregatorServiceBuilder 
 		boolean is_parallel_clear = config.isParallelClear();
 		logger.debug("isParallelClear: {}", is_parallel_clear);
 		
-		KafkaStreamsRegistry streams_registry = createStreamsRegistry(periods);
+		KafkaStreamsRegistry streams_registry = createStreamsRegistry(config.getApplicationServer(), periods);
 		Set<String> aggregation_period_list = new LinkedHashSet<>(Arrays.asList(StringUtils.splitByWholeSeparator(
 				config.getString(KafkaAggregatorConfig.AGGREGATION_PERIOD), ","))
 			.stream()

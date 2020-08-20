@@ -17,6 +17,7 @@ import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 
+import ru.prolib.caelum.core.HostInfo;
 import ru.prolib.caelum.core.Period;
 import ru.prolib.caelum.core.Periods;
 
@@ -26,6 +27,7 @@ public class KafkaStreamsRegistryTest {
 	KafkaStreams streamsMock1, streamsMock2, streamsMock3;
 	Periods periodsMock;
 	KafkaAggregatorEntry entryMock1, entryMock2, entryMock3;
+	HostInfo hostInfo;
 	Map<Period, KafkaAggregatorEntry> byPeriod;
 	KafkaStreamsRegistry service, mockedService;
 
@@ -43,23 +45,26 @@ public class KafkaStreamsRegistryTest {
 		entryMock1 = control.createMock(KafkaAggregatorEntry.class);
 		entryMock2 = control.createMock(KafkaAggregatorEntry.class);
 		entryMock3 = control.createMock(KafkaAggregatorEntry.class);
-		service = new KafkaStreamsRegistry(periodsMock, byPeriod);
+		hostInfo = new HostInfo("bambr", 1234);
+		service = new KafkaStreamsRegistry(hostInfo, periodsMock, byPeriod);
 		mockedService = partialMockBuilder(KafkaStreamsRegistry.class)
-				.withConstructor(Periods.class, Map.class)
-				.withArgs(periodsMock, byPeriod)
+				.withConstructor(HostInfo.class, Periods.class, Map.class)
+				.withArgs(hostInfo, periodsMock, byPeriod)
 				.addMockedMethod("createEntry")
 				.createMock();
 	}
 	
 	@Test
-	public void testCtor2() {
+	public void testCtor3() {
+		assertEquals(hostInfo, service.getHostInfo());
 		assertSame(periodsMock, service.getPeriods());
 		assertSame(byPeriod, service.getEntryByPeriodMap());
 	}
 	
 	@Test
-	public void testCtor1() {
-		service = new KafkaStreamsRegistry(periodsMock);
+	public void testCtor2() {
+		service = new KafkaStreamsRegistry(hostInfo, periodsMock);
+		assertEquals(hostInfo, service.getHostInfo());
 		assertSame(periodsMock, service.getPeriods());
 		assertNotNull(service.getEntryByPeriodMap());
 		assertThat(service.getEntryByPeriodMap(), is(instanceOf(ConcurrentHashMap.class)));
@@ -70,6 +75,7 @@ public class KafkaStreamsRegistryTest {
 		KafkaAggregatorEntry actual = service.createEntry(descr1, streamsMock1);
 		
 		assertNotNull(actual);
+		assertEquals(hostInfo, actual.getHostInfo());
 		assertEquals(descr1, actual.getDescriptor());
 		assertEquals(streamsMock1, actual.getStreams());
 		assertNotNull(actual.getState());

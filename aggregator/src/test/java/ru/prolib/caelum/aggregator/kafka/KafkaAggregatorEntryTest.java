@@ -4,12 +4,20 @@ import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.*;
 import static ru.prolib.caelum.aggregator.AggregatorType.*;
 import static ru.prolib.caelum.core.Period.*;
+
+import java.util.Arrays;
+import java.util.HashSet;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KafkaStreams.State;
+import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.StoreQueryParameters;
+import org.apache.kafka.streams.state.HostInfo;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyWindowStore;
 import org.easymock.Capture;
@@ -20,15 +28,16 @@ import static org.easymock.EasyMock.*;
 import org.junit.Before;
 import org.junit.Test;
 
+@SuppressWarnings({ "rawtypes", "unchecked", "unlikely-arg-type" })
 public class KafkaAggregatorEntryTest {
 	IMocksControl control;
 	KafkaStreams streamsMock1, streamsMock2;
 	KafkaAggregatorDescr descr1, descr2;
+	ru.prolib.caelum.core.HostInfo hostInfo1, hostInfo2;
 	KafkaStreamsAvailability stateMock1, stateMock2;
-	ReadOnlyWindowStore<Object, Object> storeMock;
+	ReadOnlyWindowStore<String, KafkaTuple> storeMock;
 	KafkaAggregatorEntry service;
 
-	@SuppressWarnings("unchecked")
 	@Before
 	public void setUp() throws Exception {
 		control = createStrictControl();
@@ -36,14 +45,17 @@ public class KafkaAggregatorEntryTest {
 		streamsMock2 = control.createMock(KafkaStreams.class);
 		descr1 = new KafkaAggregatorDescr(ITEM, M5, "items1", "tuples1", "store1");
 		descr2 = new KafkaAggregatorDescr(TUPLE, M1, "items2", "tuples2", "store2");
+		hostInfo1 = new ru.prolib.caelum.core.HostInfo("foobar", 10023);
+		hostInfo2 = new ru.prolib.caelum.core.HostInfo("lowpan", 44321);
 		stateMock1 = control.createMock(KafkaStreamsAvailability.class);
 		stateMock2 = control.createMock(KafkaStreamsAvailability.class);
 		storeMock = control.createMock(ReadOnlyWindowStore.class);
-		service = new KafkaAggregatorEntry(descr1, streamsMock1, stateMock1);
+		service = new KafkaAggregatorEntry(hostInfo1, descr1, streamsMock1, stateMock1);
 	}
 	
 	@Test
 	public void testGetters() {
+		assertEquals(hostInfo1, service.getHostInfo());
 		assertEquals(descr1, service.getDescriptor());
 		assertEquals(streamsMock1, service.getStreams());
 		assertEquals(stateMock1, service.getState());
@@ -52,10 +64,11 @@ public class KafkaAggregatorEntryTest {
 	@Test
 	public void testToString() {
 		String expected = new StringBuilder()
-				.append("KafkaAggregatorEntry[descr=KafkaAggregatorDescr[type=ITEM,period=M5")
-				.append(",source=items1,target=tuples1,storeName=store1]")
-				.append(",streams=").append(streamsMock1)
-				.append(",state=").append(stateMock1)
+				.append("KafkaAggregatorEntry[")
+				.append("hostInfo=").append(hostInfo1).append(",")
+				.append("descr=").append(descr1).append(",")
+				.append("streams=").append(streamsMock1).append(",")
+				.append("state=").append(stateMock1)
 				.append("]")
 				.toString();
 		
@@ -65,6 +78,7 @@ public class KafkaAggregatorEntryTest {
 	@Test
 	public void testHashCode() {
 		int expected = new HashCodeBuilder(1917, 11)
+				.append(hostInfo1)
 				.append(descr1)
 				.append(streamsMock1)
 				.append(stateMock1)
@@ -72,21 +86,20 @@ public class KafkaAggregatorEntryTest {
 		
 		assertEquals(expected, service.hashCode());
 	}
-
-	@SuppressWarnings("unlikely-arg-type")
+	
 	@Test
 	public void testEquals() {
 		assertTrue(service.equals(service));
-		assertTrue(service.equals(new KafkaAggregatorEntry(descr1, streamsMock1, stateMock1)));
+		assertTrue(service.equals(new KafkaAggregatorEntry(hostInfo1, descr1, streamsMock1, stateMock1)));
 		assertFalse(service.equals(null));
 		assertFalse(service.equals(this));
-		assertFalse(service.equals(new KafkaAggregatorEntry(descr2, streamsMock1, stateMock1)));
-		assertFalse(service.equals(new KafkaAggregatorEntry(descr1, streamsMock2, stateMock1)));
-		assertFalse(service.equals(new KafkaAggregatorEntry(descr1, streamsMock1, stateMock2)));
-		assertFalse(service.equals(new KafkaAggregatorEntry(descr2, streamsMock2, stateMock2)));
+		assertFalse(service.equals(new KafkaAggregatorEntry(hostInfo2, descr1, streamsMock1, stateMock1)));
+		assertFalse(service.equals(new KafkaAggregatorEntry(hostInfo1, descr2, streamsMock1, stateMock1)));
+		assertFalse(service.equals(new KafkaAggregatorEntry(hostInfo1, descr1, streamsMock2, stateMock1)));
+		assertFalse(service.equals(new KafkaAggregatorEntry(hostInfo1, descr1, streamsMock1, stateMock2)));
+		assertFalse(service.equals(new KafkaAggregatorEntry(hostInfo2, descr2, streamsMock2, stateMock2)));
 	}
 	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testGetStore() {
 		Capture<StoreQueryParameters> cap = newCapture();
@@ -110,7 +123,6 @@ public class KafkaAggregatorEntryTest {
 		assertEquals("Store not available: store1", e.getMessage());
 	}
 	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testGetStore1_ShouldReturnStateStore() {
 		Capture<StoreQueryParameters> cap = newCapture();
@@ -147,6 +159,113 @@ public class KafkaAggregatorEntryTest {
 		
 		control.verify();
 		assertEquals("Timeout while awaiting store availability: store1", e.getMessage());
+	}
+	
+	@Test
+	public void testGetStoreInfo2_ShouldReturnStoreIfThisHostIsActive() {
+		Capture<Serializer<String>> capSER = newCapture();
+		expect(streamsMock1.queryMetadataForKey(eq("store1"), eq("foo"), capture(capSER)))
+			.andReturn(new KeyQueryMetadata(new HostInfo("foobar", 10023),
+				new HashSet<>(Arrays.asList(new HostInfo("host1", 9001), new HostInfo("host2", 9002))), 5));
+		expect(stateMock1.waitForChange(true, 1500L)).andReturn(true);
+		Capture<StoreQueryParameters> capSQP = newCapture();
+		expect(streamsMock1.store(capture(capSQP))).andReturn(storeMock);
+		control.replay();
+		
+		KafkaAggregatorStoreInfo actual = service.getStoreInfo("foo", 1500L);
+		
+		control.verify();
+		assertEquals(new KafkaAggregatorStoreInfo(hostInfo1, storeMock), actual);
+		assertThat(capSER.getValue(), is(instanceOf(StringSerializer.class)));
+		StoreQueryParameters p = capSQP.getValue();
+		assertEquals("store1", p.storeName());
+		assertThat(p.queryableStoreType(), is(instanceOf(QueryableStoreTypes.WindowStoreType.class)));
+	}
+	
+	@Test
+	public void testGetStoreInfo2_ShouldThrowsIfThisHostIsActiveButStoreNotExists() {
+		expect(streamsMock1.queryMetadataForKey(eq("store1"), eq("bar"), anyObject(Serializer.class)))
+			.andReturn(new KeyQueryMetadata(new HostInfo("foobar", 10023), new HashSet<>(), 5));
+		expect(stateMock1.waitForChange(true, 2750L)).andReturn(true);
+		expect(streamsMock1.store(anyObject())).andReturn(null);
+		control.replay();
+		
+		assertThrows(IllegalStateException.class, () -> service.getStoreInfo("bar", 2750L));
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testGetStoreInfo2_ShouldThrowsIfThisHostIsActiveButTimeoutWaitingForStoreAvailable() {
+		expect(streamsMock1.queryMetadataForKey(eq("store1"), eq("bar"), anyObject(Serializer.class)))
+			.andReturn(new KeyQueryMetadata(new HostInfo("foobar", 10023), new HashSet<>(), 5));
+		expect(stateMock1.waitForChange(true, 2750L)).andReturn(false);
+		control.replay();
+		
+		assertThrows(IllegalStateException.class, () -> service.getStoreInfo("bar", 2750L));
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testGetStoreInfo2_ShouldReturnStoreIfThisHostIsStandby() {
+		Capture<Serializer<String>> capSER = newCapture();
+		expect(streamsMock1.queryMetadataForKey(eq("store1"), eq("buzz"), capture(capSER)))
+			.andReturn(new KeyQueryMetadata(new HostInfo("host1", 9001),
+				new HashSet<>(Arrays.asList(new HostInfo("foobar", 10023), new HostInfo("host2", 9002))), 1));
+		expect(stateMock1.waitForChange(true, 7500L)).andReturn(true);
+		Capture<StoreQueryParameters> capSQP = newCapture();
+		expect(streamsMock1.store(capture(capSQP))).andReturn(storeMock);
+		control.replay();
+		
+		KafkaAggregatorStoreInfo actual = service.getStoreInfo("buzz", 7500L);
+		
+		control.verify();
+		assertEquals(new KafkaAggregatorStoreInfo(hostInfo1, storeMock), actual);
+		assertThat(capSER.getValue(), is(instanceOf(StringSerializer.class)));
+		StoreQueryParameters p = capSQP.getValue();
+		assertEquals("store1", p.storeName());
+		assertThat(p.queryableStoreType(), is(instanceOf(QueryableStoreTypes.WindowStoreType.class)));
+	}
+	
+	@Test
+	public void testGetStoreInfo2_ShouldThrowsIfThisHostIsStandbyButStoreNotExists() {
+		expect(streamsMock1.queryMetadataForKey(eq("store1"), eq("buzz"), anyObject(Serializer.class)))
+			.andReturn(new KeyQueryMetadata(new HostInfo("host1", 9001),
+				new HashSet<>(Arrays.asList(new HostInfo("foobar", 10023))), 1));
+		expect(stateMock1.waitForChange(true, 7500L)).andReturn(true);
+		expect(streamsMock1.store(anyObject())).andReturn(null);
+		control.replay();
+		
+		assertThrows(IllegalStateException.class, () -> service.getStoreInfo("buzz", 7500L));
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testGetStoreInfo2_ShouldThrowsIfThisHostIsStandbyButTimeoutWaitingForStoreAvailable() {
+		expect(streamsMock1.queryMetadataForKey(eq("store1"), eq("buzz"), anyObject(Serializer.class)))
+			.andReturn(new KeyQueryMetadata(new HostInfo("host1", 9001),
+				new HashSet<>(Arrays.asList(new HostInfo("foobar", 10023))), 1));
+		expect(stateMock1.waitForChange(true, 7500L)).andReturn(false);
+		control.replay();
+		
+		assertThrows(IllegalStateException.class, () -> service.getStoreInfo("buzz", 7500L));
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testGetStoreInfo2_ShouldReturnAnotherHostIfThisHostIsNotActiveAndNotStandby() {
+		expect(streamsMock1.queryMetadataForKey(eq("store1"), eq("umbar"), anyObject(Serializer.class)))
+			.andReturn(new KeyQueryMetadata(new HostInfo("lowpan", 44321),
+				new HashSet<>(Arrays.asList(new HostInfo("host2", 9002))), 8));
+		control.replay();
+		
+		KafkaAggregatorStoreInfo actual = service.getStoreInfo("umbar", 12345L);
+		
+		control.verify();
+		assertEquals(new KafkaAggregatorStoreInfo(hostInfo2), actual);
 	}
 	
 	@Test
