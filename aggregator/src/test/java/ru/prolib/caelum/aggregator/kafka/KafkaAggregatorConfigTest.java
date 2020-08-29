@@ -13,7 +13,7 @@ import org.junit.Test;
 import ru.prolib.caelum.core.HostInfo;
 import ru.prolib.caelum.core.Period;
 import ru.prolib.caelum.core.Periods;
-import ru.prolib.caelum.itemdb.kafka.KafkaItemSerdes;
+import ru.prolib.caelum.feeder.ak.KafkaItemSerdes;
 
 public class KafkaAggregatorConfigTest {
 	Periods periods;

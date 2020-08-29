@@ -6,6 +6,7 @@ import java.time.Clock;
 import org.apache.kafka.clients.producer.KafkaProducer;
 
 import ru.prolib.caelum.core.CompositeService;
+import ru.prolib.caelum.feeder.ak.KafkaItem;
 import ru.prolib.caelum.itemdb.IItemDatabaseService;
 import ru.prolib.caelum.itemdb.IItemDatabaseServiceBuilder;
 import ru.prolib.caelum.itemdb.kafka.utils.KafkaProducerService;

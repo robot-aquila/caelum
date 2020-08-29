@@ -30,11 +30,11 @@ import org.slf4j.LoggerFactory;
 import ru.prolib.caelum.core.AbstractConfig;
 import ru.prolib.caelum.core.IService;
 import ru.prolib.caelum.core.IteratorStub;
+import ru.prolib.caelum.feeder.ak.KafkaItem;
+import ru.prolib.caelum.feeder.ak.KafkaItemSerdes;
 import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.itemdb.kafka.ItemIterator;
-import ru.prolib.caelum.itemdb.kafka.KafkaItem;
 import ru.prolib.caelum.itemdb.kafka.KafkaItemInfo;
-import ru.prolib.caelum.itemdb.kafka.KafkaItemSerdes;
 import ru.prolib.caelum.itemdb.kafka.SeamlessConsumerRecordIterator;
 
 public class KafkaUtils {
@@ -101,7 +101,7 @@ public class KafkaUtils {
 		return new KafkaConsumer<>(props, KafkaItemSerdes.keySerde().deserializer(),
 				KafkaItemSerdes.itemSerde().deserializer());
 	}
-
+	
 	public KafkaProducer<String, KafkaItem> createProducer(Properties props) {
 		return new KafkaProducer<>(props, KafkaItemSerdes.keySerde().serializer(),
 				KafkaItemSerdes.itemSerde().serializer());

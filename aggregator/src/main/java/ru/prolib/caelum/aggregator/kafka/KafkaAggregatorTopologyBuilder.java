@@ -16,7 +16,7 @@ import org.apache.kafka.streams.state.WindowStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ru.prolib.caelum.itemdb.kafka.KafkaItem;
+import ru.prolib.caelum.feeder.ak.KafkaItem;
 
 public class KafkaAggregatorTopologyBuilder {
 	private static final Logger logger = LoggerFactory.getLogger(KafkaAggregatorTopologyBuilder.class);

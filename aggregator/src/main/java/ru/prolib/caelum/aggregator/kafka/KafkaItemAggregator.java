@@ -6,7 +6,7 @@ import java.math.BigInteger;
 
 import org.apache.kafka.streams.kstream.Aggregator;
 
-import ru.prolib.caelum.itemdb.kafka.KafkaItem;
+import ru.prolib.caelum.feeder.ak.KafkaItem;
 
 public class KafkaItemAggregator implements Aggregator<String, KafkaItem, KafkaTuple> {
 

@@ -57,11 +57,11 @@ import org.junit.Test;
 import ru.prolib.caelum.core.AbstractConfig;
 import ru.prolib.caelum.core.IService;
 import ru.prolib.caelum.core.IteratorStub;
+import ru.prolib.caelum.feeder.ak.KafkaItem;
+import ru.prolib.caelum.feeder.ak.KafkaItemSerdes;
 import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.itemdb.kafka.ItemIterator;
-import ru.prolib.caelum.itemdb.kafka.KafkaItem;
 import ru.prolib.caelum.itemdb.kafka.KafkaItemInfo;
-import ru.prolib.caelum.itemdb.kafka.KafkaItemSerdes;
 import ru.prolib.caelum.itemdb.kafka.SeamlessConsumerRecordIterator;
 
 @SuppressWarnings("unchecked")

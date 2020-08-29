@@ -13,7 +13,7 @@ import ru.prolib.caelum.aggregator.AggregatorConfig;
 import ru.prolib.caelum.core.HostInfo;
 import ru.prolib.caelum.core.Period;
 import ru.prolib.caelum.core.Periods;
-import ru.prolib.caelum.itemdb.kafka.KafkaItemSerdes;
+import ru.prolib.caelum.feeder.ak.KafkaItemSerdes;
 
 public class KafkaAggregatorConfig extends AggregatorConfig {
 	public static final String APPLICATION_ID_PREFIX	= "caelum.aggregator.kafka.pfx.application.id";

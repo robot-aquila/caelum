@@ -1,4 +1,4 @@
-package ru.prolib.caelum.itemdb.kafka;
+package ru.prolib.caelum.feeder.ak;
 
 import org.apache.kafka.common.serialization.Serializer;
 

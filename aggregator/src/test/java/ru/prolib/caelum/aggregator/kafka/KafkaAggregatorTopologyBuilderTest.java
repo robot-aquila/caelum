@@ -22,8 +22,8 @@ import org.junit.Test;
 import ru.prolib.caelum.core.ItemType;
 import ru.prolib.caelum.core.Periods;
 import ru.prolib.caelum.core.TupleType;
-import ru.prolib.caelum.itemdb.kafka.KafkaItem;
-import ru.prolib.caelum.itemdb.kafka.KafkaItemSerdes;
+import ru.prolib.caelum.feeder.ak.KafkaItem;
+import ru.prolib.caelum.feeder.ak.KafkaItemSerdes;
 
 public class KafkaAggregatorTopologyBuilderTest {
 	private static final byte DEFAULT_DECIMALS = 2;

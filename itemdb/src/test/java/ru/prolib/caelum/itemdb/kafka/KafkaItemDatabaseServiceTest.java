@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import ru.prolib.caelum.core.ItemType;
+import ru.prolib.caelum.feeder.ak.KafkaItem;
 import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.itemdb.ItemDataRequest;
 import ru.prolib.caelum.itemdb.ItemDataRequestContinue;

@@ -13,6 +13,7 @@
 
 	<modules>
 		<module>core</module>
+		<module>feeder-ak</module>
 		<module>aggregator</module>
 		<module>itemdb</module>
 		<module>symboldb</module>

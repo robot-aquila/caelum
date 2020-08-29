@@ -9,7 +9,7 @@ import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 
-import ru.prolib.caelum.itemdb.kafka.KafkaItem;
+import ru.prolib.caelum.feeder.ak.KafkaItem;
 
 @SuppressWarnings("unchecked")
 public class KafkaProducerServiceTest {

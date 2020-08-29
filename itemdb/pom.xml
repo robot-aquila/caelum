@@ -13,7 +13,7 @@
     <dependencies>
         <dependency>
             <groupId>ru.prolib.caelum</groupId>
-            <artifactId>caelum-core</artifactId>
+            <artifactId>caelum-feeder-ak</artifactId>
             <version>0.1.0</version>
         </dependency>
         <dependency>

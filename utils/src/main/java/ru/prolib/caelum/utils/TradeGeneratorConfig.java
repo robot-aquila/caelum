@@ -5,7 +5,7 @@ import java.util.Properties;
 import org.apache.kafka.clients.producer.ProducerConfig;
 
 import ru.prolib.caelum.core.AbstractConfig;
-import ru.prolib.caelum.itemdb.kafka.KafkaItemSerdes;
+import ru.prolib.caelum.feeder.ak.KafkaItemSerdes;
 
 public class TradeGeneratorConfig extends AbstractConfig {
 	public static final String DEFAULT_CONFIG_FILE	= "app.tradegenerator.properties";

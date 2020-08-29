@@ -1,10 +1,11 @@
-package ru.prolib.caelum.itemdb.kafka;
+package ru.prolib.caelum.feeder.ak;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import ru.prolib.caelum.core.IItem;
 import ru.prolib.caelum.core.ItemType;
 
 public class KafkaItem {
@@ -40,7 +41,11 @@ public class KafkaItem {
 	public KafkaItem(long value, int decimals, long volume, int vol_decimals) {
 		this(value, (byte)decimals, volume, (byte)vol_decimals, ItemType.LONG_UNKNOWN);
 	}
-
+	
+	public KafkaItem(IItem item) {
+		this(item.getValue(), item.getDecimals(), item.getVolume(), item.getVolumeDecimals(), item.getType());
+	}
+	
 	public ItemType getType() {
 		return type;
 	}

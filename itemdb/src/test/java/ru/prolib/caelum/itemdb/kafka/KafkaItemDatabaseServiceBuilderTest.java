@@ -15,6 +15,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import ru.prolib.caelum.core.CompositeService;
+import ru.prolib.caelum.feeder.ak.KafkaItem;
 import ru.prolib.caelum.itemdb.IItemDatabaseService;
 import ru.prolib.caelum.itemdb.kafka.utils.KafkaProducerService;
 import ru.prolib.caelum.itemdb.kafka.utils.KafkaUtils;

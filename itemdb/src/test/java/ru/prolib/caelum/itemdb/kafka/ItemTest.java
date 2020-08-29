@@ -12,6 +12,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import ru.prolib.caelum.core.ItemType;
+import ru.prolib.caelum.feeder.ak.KafkaItem;
 
 public class ItemTest {
 	static KafkaItem item1, item2;

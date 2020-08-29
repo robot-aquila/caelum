@@ -1,30 +1,57 @@
 .. _index:
 
-Caelum Overview
-===============
+Обзор Caelum
+============
 
-**Caelum** is a fault-tolerant, low-latency, high-throughput, scalable data aggregator that intended to collect,
-process and store huge amount of events like stock-exchange market data, monitoring data, sensors data or telemetry
-to track state changes with time and aggregate data for further analysis. **Caelum** provides an access to set of time
-series like source data, aggregated `OHLCV-tuples <https://en.wikipedia.org/wiki/Open-high-low-close_chart>`__ and
-state change log  via fast and flexible APIs. Built on top of `Apache Kafka <https://kafka.apache.org/>`__ and
-`Apple FoundationDB <https://www.foundationdb.org/>`__ it is flexible, durable and reliable.
-**Caelum** has `microservice architecture <https://en.wikipedia.org/wiki/Microservices>`__ to make integration with
-other software fast and easy. It can work on single host as well as in cluster depends on your needs and resource
-availability.
+.. figure:: _static/chart_sm236x200.png
+    :align: right
+    :figwidth: 236px
 
-**Caelum** designed as solution in case of:
+**Caelum** это отказоустойчивый, высокопропускной и масштабируемый агрегатор данных, предназначенный для сбора,
+обработки и хранения больших объемов различных статистических данных таких, как результаты биржевых торгов и аукционов,
+статистика продаж, данные мониторинга программных комплексов, данные сенсоров, телеметрия и т.п. **Caelum** обрабатывает
+и сохраняет данные в виде разнотипных временных рядов (тики,
+`OHLC <https://en.wikipedia.org/wiki/Open-high-low-close_chart>`__ агрегаты, связанные события), что позволяет покрывать
+обширный диапазон вариантов использования: хранения, обработки, отрисовки графиков, анализа и прогнозирования.
 
-- Thousands of data sources and consumers
-- Dozens of thousands of event types
-- Billions incoming events per day
-- Time-critical data processing with millisecond precision
-- Processing of critical data without any losses
-- Terabytes of data that should be stored for years
+**Caelum** не является приложением для конечных пользователей. Это промежуточное программное обеспечение
+(middleware), имеющее архитектуру микросервиса и предназначенное для интеграции с другими программно-аппаратными
+комплексами посредством API. Построенный на основе `Apache Kafka <https://kafka.apache.org/>`__ и
+`Apple FoundationDB <https://www.foundationdb.org/>`__ **Caelum** обеспечивает быструю обработку и высокую
+надежность хранения данных. Он ориентирован на работу с критически-важными данными, потеря которых может привести
+к серьезным последствиям.
 
-**Caelum** can be used in trading software, stock-exchange and cryptocurrency exchanges, IoT software development,
-DevOps, charting software and so on. 
+.. note::
+    Не следует использовать **Caelum** в системах, работа которых может повлиять на жизнь и здоровье людей.
+    Мы прилагаем все усилия, что бы обеспечить максимальную надежность, но совокупная сложность системы и возможность
+    гибкой настройки не позволяет давать каких-либо гарантий. 
 
-Start from :ref:`Basic concepts <basics>` if you want to get deeper into the idea.
-To get information about installation and configuration read the :ref:`Getting started <getstart>` page.
-Complete overview of the documentation is :ref:`here <contents>`.
+**Caelum** не требует множества серверов для запуска и работы: он может быть запущен как на
+пользовательском компьютере, так и в составе большого кластера. Однако, следует понимать, что высокую надежность системы
+можно получить только при определенной конфигурации инфраструктуры. Прежде чем начать использование **Caelum** для
+работы с критическими данными следует изучить архитектуру и принципы работы **Caelum**, а также убедиться в наличии
+достаточного количества ресурсов для обеспечения требуемой надежности. **Caelum** гибко настраивается как под нужды,
+так и под возможности, продиктованные наличием ресурсов.
+
+Что бы понять какие цели были поставлены при разработке **Caelum**, следует рассмотреть первоначальный кейс.
+В основе решения **Caelum** лежит задача работы с рыночными данными, такими как списки биржевых инструментов,
+характеристики торгов в определенный момент времени, события, способные повлиять на динамику котировок, информация о
+совершенных сделках, анализ динамики цены и объемов торгов и т.д. В общем, **Caelum** разработан в качестве решения в
+случаях если есть:
+
+- Тысячи источников данных и потребителей
+- Десятки тысяч типов событий
+- Миллиарды входящих событий в сутки
+- Данные, время обработки которых критично в пределах миллисекунд
+- Данные, потеря которых критична и наверняка приведет к принятию ошибочных решений
+- Терабайты данных, которые необходимо хранить на протяжение многих лет
+
+Несмотря на то, что основной вариант использования это работа с биржевыми данными, в **Caelum** нет привязки к
+какой-либо узко-специализированной предметной области. **Caelum** оперирует достаточно абстрактными общими понятиями,
+что позволяет избегать путаницы при использовании решения в рамках любых бизнес-задач, для которых требуется быстрая
+и надежная обработка данных. **Caelum** может быть использован для целей обработки сенсоров роботизированной фабрики,
+журналов DevOps или обслуживания IoT девайсов с таким же успехом, как в обработке потоков финансовой информации.
+
+В разделе :ref:`Базовая концепция <basics>` рассматривается предметная область и архитектура решения.
+Информации об установке и настройке находится в разделе :ref:`Начало работы <getstart>`.
+Полный обзор документации можно найти в разделе :ref:`Содержание <contents>`.

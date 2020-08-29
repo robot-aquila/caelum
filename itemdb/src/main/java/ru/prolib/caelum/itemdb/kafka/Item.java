@@ -10,6 +10,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 import ru.prolib.caelum.core.IItem;
 import ru.prolib.caelum.core.ItemType;
+import ru.prolib.caelum.feeder.ak.KafkaItem;
 
 public class Item implements IItem {
 	private final String symbol;

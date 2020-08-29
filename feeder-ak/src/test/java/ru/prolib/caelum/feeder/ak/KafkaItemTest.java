@@ -1,4 +1,4 @@
-package ru.prolib.caelum.itemdb.kafka;
+package ru.prolib.caelum.feeder.ak;
 
 import static org.junit.Assert.*;
 
@@ -6,6 +6,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.junit.Before;
 import org.junit.Test;
 
+import ru.prolib.caelum.core.Item;
 import ru.prolib.caelum.core.ItemType;
 
 public class KafkaItemTest {
@@ -90,6 +91,19 @@ public class KafkaItemTest {
 		IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
 				() -> new KafkaItem(7326279L, (byte)7, 8866712L, (byte)26, ItemType.LONG_UNKNOWN));
 		assertEquals("Volume decimals expected to be in range 0-15 but: 26", e.getMessage());
+	}
+	
+	@Test
+	public void testCtor1() {
+		Item item = Item.ofDecimax15("foo@bar", 123456789L, 250L, 2, 1000L, 3);
+		
+		service = new KafkaItem(item);
+		
+		assertEquals(250L, service.getValue());
+		assertEquals(2, service.getDecimals());
+		assertEquals(1000L, service.getVolume());
+		assertEquals(3, service.getVolumeDecimals());
+		assertEquals(ItemType.LONG_REGULAR, service.getType());
 	}
 	
 	@Test

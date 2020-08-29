@@ -23,6 +23,7 @@ import org.junit.Test;
 import ru.prolib.caelum.core.IItem;
 import ru.prolib.caelum.core.ItemType;
 import ru.prolib.caelum.core.IteratorStub;
+import ru.prolib.caelum.feeder.ak.KafkaItem;
 import ru.prolib.caelum.itemdb.ItemDataResponse;
 
 @SuppressWarnings("unchecked")

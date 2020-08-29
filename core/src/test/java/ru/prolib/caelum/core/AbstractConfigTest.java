@@ -4,7 +4,9 @@ import static org.junit.Assert.*;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 public class AbstractConfigTest {
 	
@@ -27,6 +29,8 @@ public class AbstractConfigTest {
 		
 	}
 
+	@Rule
+	public final EnvironmentVariables env = new EnvironmentVariables();
 	TestConfig service;
 	
 	@Before
@@ -79,7 +83,7 @@ public class AbstractConfigTest {
 	public void testLoad2_OverrideBySystemProperties() throws Exception {
 		System.setProperty(TestConfig.PROPERTY2, "146");
 		System.setProperty(TestConfig.PROPERTY3, "unknown");
-
+		
 		service.load("testconfig2.properties", "testconfig2-overriden.properties");
 		
 		assertEquals("kobresia", service.getString(TestConfig.PROPERTY1));
@@ -92,6 +96,20 @@ public class AbstractConfigTest {
 		service.load("testconfig2.properties", "testconfig3.properties");
 		
 		assertEquals("", service.getString(TestConfig.PROPERTY1));
+	}
+	
+	@Test
+	public void testLoad2_OverrideByEnvironmentVariable() throws Exception {
+		System.setProperty(TestConfig.PROPERTY2, "146");
+		System.setProperty(TestConfig.PROPERTY3, "unknown");
+		env.set(TestConfig.PROPERTY2, "88827");
+		env.set(TestConfig.PROPERTY3, "karamba");
+		
+		service.load("testconfig2.properties", "testconfig2-overriden.properties");
+		
+		assertEquals("kobresia", service.getString(TestConfig.PROPERTY1));
+		assertEquals(88827, service.getInt(TestConfig.PROPERTY2));
+		assertEquals("karamba", service.getString(TestConfig.PROPERTY3));
 	}
 	
 	@Test

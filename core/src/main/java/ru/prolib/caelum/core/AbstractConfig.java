@@ -8,6 +8,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -62,6 +63,15 @@ public abstract class AbstractConfig {
 		}
 	}
 	
+	private void loadFromEnvironmentVariables() {
+		Map<String, String> env_props = System.getenv();
+		for ( String key : props.stringPropertyNames() ) {
+			if ( env_props.containsKey(key) ) {
+				props.put(key,  env_props.get(key));
+			}
+		}
+	}
+	
 	/**
 	 * Load configuration from all available sources.
 	 * <p>
@@ -73,6 +83,7 @@ public abstract class AbstractConfig {
 	 * <li>From properties file {@code config_file}. If file is not exist the exception will be thrown</li>
 	 * <li>From system properties. That allows to override property using -Dproperty.name command line
 	 * option while running java</li>
+	 * <li>From environment variables</li>
 	 * <p>
 	 * @param default_config_file - default configuration file.
 	 * @param config_file - specific configuration properties file to load from (i.g. obtained from args).
@@ -89,6 +100,7 @@ public abstract class AbstractConfig {
 			loadFromFile(default_config_file);
 		}
 		loadFromSystemProperties();
+		loadFromEnvironmentVariables();
 	}
 	
 	public void load(String config_file) throws IOException {
