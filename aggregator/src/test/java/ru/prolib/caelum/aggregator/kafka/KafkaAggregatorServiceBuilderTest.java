@@ -2,6 +2,7 @@ package ru.prolib.caelum.aggregator.kafka;
 
 import static org.junit.Assert.*;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static ru.prolib.caelum.aggregator.kafka.KafkaAggregatorServiceBuilder.*;
 
 import java.util.Arrays;
 import java.util.Properties;
@@ -12,8 +13,11 @@ import static org.easymock.EasyMock.*;
 import static org.hamcrest.Matchers.*;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.log4j.BasicConfigurator;
 import org.easymock.IMocksControl;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import ru.prolib.caelum.aggregator.IAggregator;
@@ -21,9 +25,17 @@ import ru.prolib.caelum.aggregator.IAggregatorService;
 import ru.prolib.caelum.core.CompositeService;
 import ru.prolib.caelum.core.HostInfo;
 import ru.prolib.caelum.core.Periods;
+import ru.prolib.caelum.itemdb.kafka.utils.KafkaCreateTopicService;
 import ru.prolib.caelum.itemdb.kafka.utils.KafkaUtils;
 
 public class KafkaAggregatorServiceBuilderTest {
+	
+	@BeforeClass
+	public static void setUpBeforeClass() {
+		BasicConfigurator.resetConfiguration();
+		BasicConfigurator.configure();
+	}
+	
 	IMocksControl control;
 	HostInfo hostInfo;
 	Periods periods;
@@ -122,17 +134,26 @@ public class KafkaAggregatorServiceBuilderTest {
 	public void testBuild() throws Exception {
 		mockedConfig.load("kappa.props", "beta.props");
 		// duplicates should be ignored
-		mockedConfig.getProperties().put("caelum.aggregator.aggregation.period", " M1, M5, H1, M1, H1, M5, M5");
-		mockedConfig.getProperties().put("caelum.aggregator.list.tuples.limit", "400");
-		mockedConfig.getProperties().put("caelum.aggregator.kafka.force.parallel.clear", "1");
-		mockedConfig.getProperties().put("caelum.aggregator.kafka.default.timeout", "2345");
-		mockedConfig.getProperties().put("caelum.aggregator.kafka.application.server", "gap:1345");
+		Properties props = mockedConfig.getProperties();
+		props.put("caelum.aggregator.aggregation.period", " M1, M5, H1, M1, H1, M5, M5");
+		props.put("caelum.aggregator.list.tuples.limit", "400");
+		props.put("caelum.aggregator.kafka.force.parallel.clear", "1");
+		props.put("caelum.aggregator.kafka.default.timeout", "2345");
+		props.put("caelum.aggregator.kafka.application.server", "gap:1345");
+		props.put("caelum.aggregator.kafka.source.topic", "tora-tora");
+		props.put("caelum.aggregator.kafka.source.topic.num.partitions", "24");
+		props.put("caelum.aggregator.kafka.source.topic.replication.factor", "2");
+		props.put("caelum.aggregator.kafka.source.topic.retention.time", "2226781");
 		expect(mockedService.createPeriods()).andReturn(periods);
 		expect(mockedService.createConfig(periods)).andReturn(mockedConfig);
 		expect(mockedService.createStreamsRegistry(new HostInfo("gap", 1345), periods)).andReturn(streamsRegistryMock);
 		expect(mockedService.createTopologyBuilder()).andReturn(topologyBuilderMock);
 		expect(mockedService.createLock()).andReturn(mutexMock);
 		expect(mockedService.createUtils()).andReturn(utilsMock);
+		expect(servicesMock.register(new KafkaCreateTopicService(utilsMock,
+				mockedConfig.getAdminClientProperties(),
+				new NewTopic("tora-tora", 24, (short)2).configs(toMap("retention.ms", "2226781")),
+				2345L))).andReturn(servicesMock);
 		expect(builderMock.withServices(servicesMock)).andReturn(builderMock);
 		expect(builderMock.withStreamsRegistry(streamsRegistryMock)).andReturn(builderMock);
 		expect(builderMock.withTopologyBuilder(topologyBuilderMock)).andReturn(builderMock);
@@ -183,6 +204,7 @@ public class KafkaAggregatorServiceBuilderTest {
 				.withArgs(new KafkaAggregatorBuilder())
 				.createMock();
 		expect(mockedService.createConfig(anyObject())).andReturn(mockedConfig);
+		expect(servicesMock.register(anyObject())).andReturn(servicesMock);
 		mockedConfig.load("bubba.hut", "jubba.hut");
 		mockedConfig.getProperties().put("caelum.aggregator.aggregation.period", "");
 		mockedConfig.getProperties().put("caelum.aggregator.kafka.force.parallel.clear", "0");

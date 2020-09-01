@@ -3,8 +3,10 @@ package ru.prolib.caelum.aggregator.kafka;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -13,6 +15,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.kafka.clients.admin.NewTopic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,10 +25,22 @@ import ru.prolib.caelum.aggregator.IAggregatorServiceBuilder;
 import ru.prolib.caelum.core.CompositeService;
 import ru.prolib.caelum.core.HostInfo;
 import ru.prolib.caelum.core.Periods;
+import ru.prolib.caelum.itemdb.kafka.utils.KafkaCreateTopicService;
 import ru.prolib.caelum.itemdb.kafka.utils.KafkaUtils;
 
 public class KafkaAggregatorServiceBuilder implements IAggregatorServiceBuilder {
 	private static final Logger logger = LoggerFactory.getLogger(KafkaAggregatorServiceBuilder.class);
+	
+	public static Map<String, String> toMap(String ...args) {
+		Map<String, String> result = new LinkedHashMap<>();
+		int count = args.length / 2;
+		if ( args.length % 2 != 0 ) throw new IllegalArgumentException();
+		for ( int i = 0; i < count; i ++ ) {
+			result.put(args[i * 2], args[i * 2 + 1]);
+		}
+		return result;
+	}
+	
 	private final KafkaAggregatorBuilder builder;
 	
 	public KafkaAggregatorServiceBuilder(KafkaAggregatorBuilder builder) {
@@ -66,7 +81,15 @@ public class KafkaAggregatorServiceBuilder implements IAggregatorServiceBuilder 
 	{
 		final Periods periods = createPeriods();
 		KafkaAggregatorConfig config = createConfig(periods);
+		final KafkaUtils utils = createUtils();
 		config.load(default_config_file, config_file);
+		services.register(new KafkaCreateTopicService(utils,
+				config.getAdminClientProperties(),
+				new NewTopic(config.getSourceTopic(),
+						config.getSourceTopicNumPartitions(),
+						config.getSourceTopicReplicationFactor()
+					).configs(toMap("retention.ms", Long.toString(config.getSourceTopicRetentionTime()))),
+				config.getDefaultTimeout()));
 		boolean is_parallel_clear = config.isParallelClear();
 		logger.debug("isParallelClear: {}", is_parallel_clear);
 		
@@ -80,7 +103,7 @@ public class KafkaAggregatorServiceBuilder implements IAggregatorServiceBuilder 
 			.withStreamsRegistry(streams_registry)
 			.withTopologyBuilder(createTopologyBuilder())
 			.withCleanUpMutex(createLock())
-			.withUtils(createUtils());
+			.withUtils(utils);
 		List<IAggregator> aggregator_list = new ArrayList<>();
 		for ( String aggregation_period : aggregation_period_list ) {
 			KafkaAggregatorConfig aggregator_config = createConfig(periods);

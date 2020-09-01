@@ -36,6 +36,9 @@ public class KafkaAggregatorConfigTest {
 		assertEquals("caelum-tuple-",			props.get("caelum.aggregator.kafka.pfx.target.topic"));
 		assertEquals("localhost:8082",			props.get("caelum.aggregator.kafka.bootstrap.servers"));
 		assertEquals("caelum-item",				props.get("caelum.aggregator.kafka.source.topic"));
+		assertEquals("1",						props.get("caelum.aggregator.kafka.source.topic.replication.factor"));
+		assertEquals("8",						props.get("caelum.aggregator.kafka.source.topic.num.partitions"));
+		assertEquals("31536000000000",			props.get("caelum.aggregator.kafka.source.topic.retention.time"));
 		assertEquals("99",						props.get("caelum.aggregator.kafka.max.errors"));
 		assertEquals("60000",					props.get("caelum.aggregator.kafka.default.timeout"));
 		assertEquals("M1,H1",					props.get("caelum.aggregator.aggregation.period"));
@@ -129,6 +132,29 @@ public class KafkaAggregatorConfigTest {
 		assertEquals("bumbazyaka", service.getSourceTopic());
 	}
 	
+	@Test
+	public void testGetSourceTopicNumPartitions() {
+		service.getProperties().put("caelum.aggregator.kafka.source.topic.num.partitions", "24");
+		
+		assertEquals(24, service.getSourceTopicNumPartitions());
+	}
+	
+	@Test
+	public void testGetSourceTopicReplicationFactor() {
+		service.getProperties().put("caelum.aggregator.kafka.source.topic.replication.factor", "3");
+		
+		short expected = 3;
+		assertEquals(expected, service.getSourceTopicReplicationFactor());
+	}
+	
+	@Test
+	public void testGetSourceTopicRetentionTime() {
+		service.getProperties().put("caelum.aggregator.kafka.source.topic.retention.time", "1234567890");
+		
+		long expected = 1234567890L;
+		assertEquals(expected, service.getSourceTopicRetentionTime());
+	}
+
 	@Test
 	public void testGetKafkaProperties() {
 		service.getProperties().put("caelum.aggregator.kafka.bootstrap.servers", "191.15.34.5:19987");

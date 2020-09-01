@@ -11,5 +11,5 @@ for /f "tokens=1,2 delims==" %%a in (%ENV_FILE%) do (
 	set "%%a=%%b"
 )
 
-docker-compose -f docker-compose-single-dev.yml -p caelum up -d
+docker-compose -f docker-compose-single-bn1.yml -p caelum up -d
 docker exec -t caelum_fdb_1 /usr/bin/fdbcli --exec "configure new single memory"

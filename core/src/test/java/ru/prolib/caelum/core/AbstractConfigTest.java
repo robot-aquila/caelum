@@ -1,6 +1,8 @@
 package ru.prolib.caelum.core;
 
 import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.junit.After;
 import org.junit.Before;
@@ -166,6 +168,21 @@ public class AbstractConfigTest {
 		service.getProperties().put("umbra", "31536000000000");
 		
 		assertEquals(31536000000000L, service.getLong("umbra"));
+	}
+	
+	@Test
+	public void testGetShort1() {
+		service.getProperties().put("karamba", "210");
+		
+		short expected = 210;
+		assertEquals(expected, service.getShort("karamba"));
+	}
+	
+	@Test
+	public void testGetShort_ShouldThrowIfValueTooBig() {
+		service.getProperties().put("karamba", "99999");
+		NumberFormatException e = assertThrows(NumberFormatException.class, () -> service.getShort("karamba"));
+		assertThat(e.getMessage(), is(startsWith("Value out of range")));
 	}
 
 }

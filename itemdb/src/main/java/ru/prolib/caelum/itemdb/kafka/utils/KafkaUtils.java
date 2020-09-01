@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.DescribeTopicsResult;
+import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.clients.admin.RecordsToDelete;
 import org.apache.kafka.clients.admin.TopicDescription;
@@ -119,6 +120,12 @@ public class KafkaUtils {
 		return new KafkaStreamsService(streams, serviceName, config);
 	}
 	
+	private boolean topicExists(AdminClient admin, String topic, long timeout)
+			throws TimeoutException, ExecutionException, InterruptedException
+	{
+		return admin.listTopics().names().get(timeout, TimeUnit.MILLISECONDS).contains(topic);
+	}
+	
 	/**
 	 * Delete all records of kafka topic.
 	 * <p>
@@ -130,7 +137,7 @@ public class KafkaUtils {
 	public void deleteRecords(AdminClient admin, String topic, long timeout) throws IllegalStateException {
 		logger.warn("Clearing topic: {}", topic);
 		try {
-			if ( ! admin.listTopics().names().get(timeout, TimeUnit.MILLISECONDS).contains(topic) ) {
+			if ( ! topicExists(admin, topic, timeout) ) {
 				logger.warn("Skip deleting records. No topic found: {}", topic);
 				return;
 			}
@@ -151,6 +158,14 @@ public class KafkaUtils {
 			}
 		} catch ( TimeoutException|ExecutionException|InterruptedException e ) {
 			throw new IllegalStateException("Error deleting records from topic: " + topic, e);
+		}
+	}
+	
+	public void createTopic(AdminClient admin, NewTopic new_topic, long timeout)
+			throws ExecutionException, TimeoutException, InterruptedException
+	{
+		if ( ! topicExists(admin, new_topic.name(), timeout) ) {
+			admin.createTopics(Arrays.asList(new_topic)).all().get(timeout, TimeUnit.MILLISECONDS);
 		}
 	}
 

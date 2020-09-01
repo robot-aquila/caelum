@@ -16,19 +16,22 @@ import ru.prolib.caelum.core.Periods;
 import ru.prolib.caelum.feeder.ak.KafkaItemSerdes;
 
 public class KafkaAggregatorConfig extends AggregatorConfig {
-	public static final String APPLICATION_ID_PREFIX	= "caelum.aggregator.kafka.pfx.application.id";
-	public static final String AGGREGATION_STORE_PREFIX	= "caelum.aggregator.kafka.pfx.aggregation.store";
-	public static final String TARGET_TOPIC_PREFIX		= "caelum.aggregator.kafka.pfx.target.topic";
-	public static final String BOOTSTRAP_SERVERS		= "caelum.aggregator.kafka.bootstrap.servers";
-	public static final String SOURCE_TOPIC				= "caelum.aggregator.kafka.source.topic";
-	public static final String MAX_ERRORS				= "caelum.aggregator.kafka.max.errors";
-	public static final String DEFAULT_TIMEOUT			= "caelum.aggregator.kafka.default.timeout";
-	public static final String FORCE_PARALLEL_CLEAR		= "caelum.aggregator.kafka.force.parallel.clear";
-	public static final String LINGER_MS				= "caelum.aggregator.kafka.linger.ms";
-	public static final String STATE_DIR				= "caelum.aggregator.kafka.state.dir";
-	public static final String NUM_STREAM_THREADS		= "caelum.aggregator.kafka.num.stream.threads";
-	public static final String STORE_RETENTION_TIME		= "caelum.aggregator.kafka.store.retention.time";
-	public static final String APPLICATION_SERVER		= "caelum.aggregator.kafka.application.server";
+	public static final String APPLICATION_ID_PREFIX		= "caelum.aggregator.kafka.pfx.application.id";
+	public static final String AGGREGATION_STORE_PREFIX		= "caelum.aggregator.kafka.pfx.aggregation.store";
+	public static final String TARGET_TOPIC_PREFIX			= "caelum.aggregator.kafka.pfx.target.topic";
+	public static final String BOOTSTRAP_SERVERS			= "caelum.aggregator.kafka.bootstrap.servers";
+	public static final String SOURCE_TOPIC					= "caelum.aggregator.kafka.source.topic";
+	public static final String SOURCE_TOPIC_RETENTION_TIME	= "caelum.aggregator.kafka.source.topic.retention.time";
+	public static final String SOURCE_TOPIC_NUM_PARTITIONS	= "caelum.aggregator.kafka.source.topic.num.partitions";
+	public static final String SOURCE_TOPIC_REPLIC_FACTOR	= "caelum.aggregator.kafka.source.topic.replication.factor";
+	public static final String MAX_ERRORS					= "caelum.aggregator.kafka.max.errors";
+	public static final String DEFAULT_TIMEOUT				= "caelum.aggregator.kafka.default.timeout";
+	public static final String FORCE_PARALLEL_CLEAR			= "caelum.aggregator.kafka.force.parallel.clear";
+	public static final String LINGER_MS					= "caelum.aggregator.kafka.linger.ms";
+	public static final String STATE_DIR					= "caelum.aggregator.kafka.state.dir";
+	public static final String NUM_STREAM_THREADS			= "caelum.aggregator.kafka.num.stream.threads";
+	public static final String STORE_RETENTION_TIME			= "caelum.aggregator.kafka.store.retention.time";
+	public static final String APPLICATION_SERVER			= "caelum.aggregator.kafka.application.server";
 
 	private final Periods periods;
 	
@@ -49,6 +52,9 @@ public class KafkaAggregatorConfig extends AggregatorConfig {
 		props.put(TARGET_TOPIC_PREFIX, "caelum-tuple-");
 		props.put(BOOTSTRAP_SERVERS, "localhost:8082");
 		props.put(SOURCE_TOPIC, "caelum-item");
+		props.put(SOURCE_TOPIC_REPLIC_FACTOR, "1");
+		props.put(SOURCE_TOPIC_NUM_PARTITIONS, "8");
+		props.put(SOURCE_TOPIC_RETENTION_TIME, "31536000000000");
 		props.put(MAX_ERRORS, "99");
 		props.put(DEFAULT_TIMEOUT, "60000");
 		props.put(FORCE_PARALLEL_CLEAR, "");
@@ -99,6 +105,18 @@ public class KafkaAggregatorConfig extends AggregatorConfig {
 	
 	public String getSourceTopic() {
 		return getString(SOURCE_TOPIC);
+	}
+	
+	public int getSourceTopicNumPartitions() {
+		return getInt(SOURCE_TOPIC_NUM_PARTITIONS);
+	}
+	
+	public short getSourceTopicReplicationFactor() {
+		return getShort(SOURCE_TOPIC_REPLIC_FACTOR);
+	}
+	
+	public long getSourceTopicRetentionTime() {
+		return getLong(SOURCE_TOPIC_RETENTION_TIME);
 	}
 	
 	public int getMaxErrors() {

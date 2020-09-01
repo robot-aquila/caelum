@@ -22,11 +22,13 @@ import static org.easymock.EasyMock.*;
 
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
+import org.apache.kafka.clients.admin.CreateTopicsResult;
 import org.apache.kafka.clients.admin.DeleteRecordsResult;
 import org.apache.kafka.clients.admin.DescribeTopicsResult;
 import org.apache.kafka.clients.admin.KafkaAdminClient;
 import org.apache.kafka.clients.admin.ListOffsetsResult;
 import org.apache.kafka.clients.admin.ListTopicsResult;
+import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.admin.ListOffsetsResult.ListOffsetsResultInfo;
 import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.clients.admin.RecordsToDelete;
@@ -78,6 +80,16 @@ public class KafkaUtilsTest {
 	public static void setUpBeforeClass() {
 		BasicConfigurator.resetConfiguration();
 		BasicConfigurator.configure();
+	}
+	
+	static Map<String, String> toMap(String ...args) {
+		Map<String, String> result = new LinkedHashMap<>();
+		int count = args.length / 2;
+		if ( args.length % 2 != 0 ) throw new IllegalArgumentException();
+		for ( int i = 0; i < count; i ++ ) {
+			result.put(args[i * 2], args[i * 2 + 1]);
+		}
+		return result;
 	}
 	
 	IMocksControl control;
@@ -450,6 +462,41 @@ public class KafkaUtilsTest {
 		control.replay();
 		
 		service.deleteRecords(adminMock, "foobar", 10000L);
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testCreateTopic_ShouldSkipIfTopicExists() throws Exception {
+		ListTopicsResult listTopicsResMock = control.createMock(ListTopicsResult.class);
+		expect(adminMock.listTopics()).andReturn(listTopicsResMock);
+		KafkaFuture<Set<String>> futMock0 = control.createMock(KafkaFuture.class);
+		expect(listTopicsResMock.names()).andReturn(futMock0);
+		expect(futMock0.get(1200L, TimeUnit.MILLISECONDS)).andReturn(new HashSet<>(Arrays.asList("pop", "gap")));
+		control.replay();
+		
+		service.createTopic(adminMock, new NewTopic("gap", 12, (short)1), 1200L);
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testCreateTopic_ShouldCreateIfTopicNotExists() throws Exception {
+		ListTopicsResult listTopicsResMock = control.createMock(ListTopicsResult.class);
+		expect(adminMock.listTopics()).andReturn(listTopicsResMock);
+		KafkaFuture<Set<String>> futMock0 = control.createMock(KafkaFuture.class);
+		expect(listTopicsResMock.names()).andReturn(futMock0);
+		expect(futMock0.get(5200L, TimeUnit.MILLISECONDS)).andReturn(new HashSet<>(Arrays.asList("pop", "gap")));
+		CreateTopicsResult crtTopicsResMock = control.createMock(CreateTopicsResult.class);
+		expect(adminMock.createTopics(Arrays.asList(new NewTopic("boss", 15, (short)2)
+				.configs(toMap("retention.ms", "265")))))
+			.andReturn(crtTopicsResMock);
+		KafkaFuture<Void> futMock1 = control.createMock(KafkaFuture.class);
+		expect(crtTopicsResMock.all()).andReturn(futMock1);
+		expect(futMock1.get(5200, TimeUnit.MILLISECONDS)).andReturn(null);
+		control.replay();
+		
+		service.createTopic(adminMock, new NewTopic("boss", 15, (short)2).configs(toMap("retention.ms", "265")), 5200L);
 		
 		control.verify();
 	}

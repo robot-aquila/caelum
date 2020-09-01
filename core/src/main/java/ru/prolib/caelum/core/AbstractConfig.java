@@ -151,6 +151,10 @@ public abstract class AbstractConfig {
 		return Long.valueOf(getString(key));
 	}
 	
+	public short getShort(String key) {
+		return Short.valueOf(getString(key));
+	}
+	
 	public String getOneOfList(String key, List<String> list) {
 		String val = getString(key);
 		if ( ! list.contains(val) ) {
