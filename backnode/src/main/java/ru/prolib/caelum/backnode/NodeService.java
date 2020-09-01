@@ -255,17 +255,21 @@ public class NodeService {
 		AggregatedDataRequest request = toAggrDataRequest(symbol, period, from, to, limit);
 		AggregatedDataResponse response = caelum.fetch(request);
 		if ( response.askAnotherHost() ) {
-			URL url = replaceHostAndPort(uriInfo, response.getHostInfo());
-			final HttpURLConnection con = (HttpURLConnection) url.openConnection();
-			con.setConnectTimeout(10000);
-			con.setReadTimeout(10000);
-			con.connect();
-			final InputStream input = con.getInputStream();
-			return Response.status(con.getResponseCode())
-				.entity((StreamingOutput)(output) -> {
-					IOUtils.copy(input, output);
-					input.close();
-				}).build();
+			try {
+				URL url = replaceHostAndPort(uriInfo, response.getHostInfo());
+				final HttpURLConnection con = (HttpURLConnection) url.openConnection();
+				con.setConnectTimeout(10000);
+				con.setReadTimeout(10000);
+				con.connect();
+				final InputStream input = con.getInputStream();
+				return Response.status(con.getResponseCode())
+					.entity((StreamingOutput)(output) -> {
+						IOUtils.copy(input, output);
+						input.close();
+					}).build();
+			} catch ( Exception e ) {
+				throw new IllegalStateException("Error querying another node: " + response.getHostInfo(), e);
+			}
 		}
 		return Response.status(200)
 			.entity(streamFactory.tuplesToJson(response.getResult(), request))
