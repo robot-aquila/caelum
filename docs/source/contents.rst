@@ -14,6 +14,7 @@ Documentation Table of Contents
    Getting started <getstart>
    Binary formats <binary_formats>
    Known limitations <limitations>
+   Tips and tricks <tips_and_tricks>
    TODO <todo>
 
 
