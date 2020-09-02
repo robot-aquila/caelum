@@ -7,12 +7,16 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.StoreQueryParameters;
+import org.apache.kafka.streams.state.QueryableStoreType;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyWindowStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ru.prolib.caelum.core.HostInfo;
 
 class KafkaAggregatorEntry {
+	static final Logger logger = LoggerFactory.getLogger(KafkaAggregatorEntry.class);
 	
 	static org.apache.kafka.streams.state.HostInfo convert(HostInfo hostInfo) {
 		return new org.apache.kafka.streams.state.HostInfo(hostInfo.getHost(), hostInfo.getPort());
@@ -21,7 +25,6 @@ class KafkaAggregatorEntry {
 	static HostInfo convert(org.apache.kafka.streams.state.HostInfo hostInfo) {
 		return new HostInfo(hostInfo.host(), hostInfo.port());
 	}
-
 	
 	private final HostInfo hostInfo;
 	private final org.apache.kafka.streams.state.HostInfo akHostInfo;
@@ -99,12 +102,15 @@ class KafkaAggregatorEntry {
 				.build();
 	}
 	
+	private ReadOnlyWindowStore<String, KafkaTuple> getStoreOrNull() {
+		QueryableStoreType<ReadOnlyWindowStore<String, KafkaTuple>> type = QueryableStoreTypes.windowStore();
+		return streams.store(StoreQueryParameters.fromNameAndType(descr.getStoreName(), type).enableStaleStores());
+	}
+	
 	public ReadOnlyWindowStore<String, KafkaTuple> getStore() {
-		final String storeName = descr.getStoreName();
-		ReadOnlyWindowStore<String, KafkaTuple> store = null;
-		store = streams.store(StoreQueryParameters.fromNameAndType(storeName, QueryableStoreTypes.windowStore()));
+		ReadOnlyWindowStore<String, KafkaTuple> store = getStoreOrNull();
 		if ( store == null ) {
-			throw new IllegalStateException("Store not available: " + storeName);
+			throw new IllegalStateException("Store not available: " + descr.getStoreName());
 		}
 		return store;
 	}
@@ -118,10 +124,16 @@ class KafkaAggregatorEntry {
 	}
 	
 	public KafkaAggregatorStoreInfo getStoreInfo(String key, long timeout) {
-		final KeyQueryMetadata md =
-			streams.queryMetadataForKey(descr.getStoreName(), key, KafkaTupleSerdes.keySerde().serializer());
+		if ( ! state.waitForChange(true, timeout) ) {
+			throw new IllegalStateException("Timeout while awaiting store availability: " + descr.getStoreName());
+		}
+		KeyQueryMetadata md =
+				streams.queryMetadataForKey(descr.getStoreName(), key, KafkaTupleSerdes.keySerde().serializer());
+		if ( md.getActiveHost().equals(KeyQueryMetadata.NOT_AVAILABLE.getActiveHost()) == true ) {
+			throw new IllegalStateException("Metadata not available: store=" + descr.getStoreName() + " key=" + key);
+		}
 		return akHostInfo.equals(md.getActiveHost()) || md.getStandbyHosts().contains(akHostInfo) ?
-			new KafkaAggregatorStoreInfo(hostInfo, getStore(timeout)) :
+			new KafkaAggregatorStoreInfo(hostInfo, getStore()) :
 			new KafkaAggregatorStoreInfo(convert(md.getActiveHost()));
 	}
 	

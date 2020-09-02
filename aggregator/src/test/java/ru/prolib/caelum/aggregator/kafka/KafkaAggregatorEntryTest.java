@@ -1,9 +1,11 @@
 package ru.prolib.caelum.aggregator.kafka;
 
 import static org.junit.Assert.*;
+import static org.easymock.EasyMock.*;
 import static org.hamcrest.Matchers.*;
 import static ru.prolib.caelum.aggregator.AggregatorType.*;
 import static ru.prolib.caelum.core.Period.*;
+import static org.easymock.EasyMock.isA;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -22,8 +24,6 @@ import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyWindowStore;
 import org.easymock.Capture;
 import org.easymock.IMocksControl;
-
-import static org.easymock.EasyMock.*;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -136,6 +136,7 @@ public class KafkaAggregatorEntryTest {
 		StoreQueryParameters p = cap.getValue();
 		assertEquals("store1", p.storeName());
 		assertThat(p.queryableStoreType(), is(instanceOf(QueryableStoreTypes.WindowStoreType.class)));
+		assertTrue(p.staleStoresEnabled());
 	}
 	
 	@Test
@@ -162,12 +163,35 @@ public class KafkaAggregatorEntryTest {
 	}
 	
 	@Test
-	public void testGetStoreInfo2_ShouldReturnStoreIfThisHostIsActive() {
-		Capture<Serializer<String>> capSER = newCapture();
-		expect(streamsMock1.queryMetadataForKey(eq("store1"), eq("foo"), capture(capSER)))
+	public void testGetStoreInfo2_ShouldThrowTimeoutExceptionIfStateNotAvailable() {
+		expect(stateMock1.waitForChange(true, 9500L)).andReturn(false);
+		control.replay();
+		
+		IllegalStateException e = assertThrows(IllegalStateException.class, () -> service.getStoreInfo("foo", 9500L));
+		
+		control.verify();
+		assertThat(e.getMessage(), is(equalTo("Timeout while awaiting store availability: store1")));
+	}
+	
+	@Test
+	public void testGetStoreInfo2_ShouldThrowsIllegalStateIfMetadataNotAvailable() {
+		expect(stateMock1.waitForChange(true, 1200L)).andReturn(true);
+		expect(streamsMock1.queryMetadataForKey(eq("store1"), eq("bar"), isA(StringSerializer.class)))
+			.andReturn(KeyQueryMetadata.NOT_AVAILABLE);
+		control.replay();
+		
+		IllegalStateException e = assertThrows(IllegalStateException.class, () -> service.getStoreInfo("bar", 1200L));
+		
+		control.verify();
+		assertThat(e.getMessage(), is(equalTo("Metadata not available: store=store1 key=bar")));
+	}
+	
+	@Test
+	public void testGetStoreInfo2_ShouldReturnStoreIfThisHostIsActive() throws Exception {
+		expect(stateMock1.waitForChange(true, 1500L)).andReturn(true);
+		expect(streamsMock1.queryMetadataForKey(eq("store1"), eq("foo"), isA(StringSerializer.class)))
 			.andReturn(new KeyQueryMetadata(new HostInfo("foobar", 10023),
 				new HashSet<>(Arrays.asList(new HostInfo("host1", 9001), new HostInfo("host2", 9002))), 5));
-		expect(stateMock1.waitForChange(true, 1500L)).andReturn(true);
 		Capture<StoreQueryParameters> capSQP = newCapture();
 		expect(streamsMock1.store(capture(capSQP))).andReturn(storeMock);
 		control.replay();
@@ -176,44 +200,32 @@ public class KafkaAggregatorEntryTest {
 		
 		control.verify();
 		assertEquals(new KafkaAggregatorStoreInfo(hostInfo1, storeMock), actual);
-		assertThat(capSER.getValue(), is(instanceOf(StringSerializer.class)));
 		StoreQueryParameters p = capSQP.getValue();
 		assertEquals("store1", p.storeName());
 		assertThat(p.queryableStoreType(), is(instanceOf(QueryableStoreTypes.WindowStoreType.class)));
+		assertTrue(p.staleStoresEnabled());
 	}
 	
 	@Test
 	public void testGetStoreInfo2_ShouldThrowsIfThisHostIsActiveButStoreNotExists() {
-		expect(streamsMock1.queryMetadataForKey(eq("store1"), eq("bar"), anyObject(Serializer.class)))
-			.andReturn(new KeyQueryMetadata(new HostInfo("foobar", 10023), new HashSet<>(), 5));
 		expect(stateMock1.waitForChange(true, 2750L)).andReturn(true);
+		expect(streamsMock1.queryMetadataForKey(eq("store1"), eq("bar"), isA(StringSerializer.class)))
+			.andReturn(new KeyQueryMetadata(new HostInfo("foobar", 10023), new HashSet<>(), 5));
 		expect(streamsMock1.store(anyObject())).andReturn(null);
 		control.replay();
 		
-		assertThrows(IllegalStateException.class, () -> service.getStoreInfo("bar", 2750L));
+		IllegalStateException e = assertThrows(IllegalStateException.class, () -> service.getStoreInfo("bar", 2750L));
 		
 		control.verify();
+		assertThat(e.getMessage(), is(equalTo("Store not available: store1")));
 	}
 	
 	@Test
-	public void testGetStoreInfo2_ShouldThrowsIfThisHostIsActiveButTimeoutWaitingForStoreAvailable() {
-		expect(streamsMock1.queryMetadataForKey(eq("store1"), eq("bar"), anyObject(Serializer.class)))
-			.andReturn(new KeyQueryMetadata(new HostInfo("foobar", 10023), new HashSet<>(), 5));
-		expect(stateMock1.waitForChange(true, 2750L)).andReturn(false);
-		control.replay();
-		
-		assertThrows(IllegalStateException.class, () -> service.getStoreInfo("bar", 2750L));
-		
-		control.verify();
-	}
-	
-	@Test
-	public void testGetStoreInfo2_ShouldReturnStoreIfThisHostIsStandby() {
-		Capture<Serializer<String>> capSER = newCapture();
-		expect(streamsMock1.queryMetadataForKey(eq("store1"), eq("buzz"), capture(capSER)))
+	public void testGetStoreInfo2_ShouldReturnStoreIfThisHostIsStandby() throws Exception {
+		expect(stateMock1.waitForChange(true, 7500L)).andReturn(true);
+		expect(streamsMock1.queryMetadataForKey(eq("store1"), eq("buzz"), isA(StringSerializer.class)))
 			.andReturn(new KeyQueryMetadata(new HostInfo("host1", 9001),
 				new HashSet<>(Arrays.asList(new HostInfo("foobar", 10023), new HostInfo("host2", 9002))), 1));
-		expect(stateMock1.waitForChange(true, 7500L)).andReturn(true);
 		Capture<StoreQueryParameters> capSQP = newCapture();
 		expect(streamsMock1.store(capture(capSQP))).andReturn(storeMock);
 		control.replay();
@@ -222,41 +234,31 @@ public class KafkaAggregatorEntryTest {
 		
 		control.verify();
 		assertEquals(new KafkaAggregatorStoreInfo(hostInfo1, storeMock), actual);
-		assertThat(capSER.getValue(), is(instanceOf(StringSerializer.class)));
 		StoreQueryParameters p = capSQP.getValue();
 		assertEquals("store1", p.storeName());
 		assertThat(p.queryableStoreType(), is(instanceOf(QueryableStoreTypes.WindowStoreType.class)));
+		assertTrue(p.staleStoresEnabled());
 	}
 	
 	@Test
 	public void testGetStoreInfo2_ShouldThrowsIfThisHostIsStandbyButStoreNotExists() {
-		expect(streamsMock1.queryMetadataForKey(eq("store1"), eq("buzz"), anyObject(Serializer.class)))
+		expect(stateMock1.waitForChange(true, 7500L)).andReturn(true);
+		expect(streamsMock1.queryMetadataForKey(eq("store1"), eq("buzz"), isA(StringSerializer.class)))
 			.andReturn(new KeyQueryMetadata(new HostInfo("host1", 9001),
 				new HashSet<>(Arrays.asList(new HostInfo("foobar", 10023))), 1));
-		expect(stateMock1.waitForChange(true, 7500L)).andReturn(true);
+		
 		expect(streamsMock1.store(anyObject())).andReturn(null);
 		control.replay();
 		
-		assertThrows(IllegalStateException.class, () -> service.getStoreInfo("buzz", 7500L));
+		IllegalStateException e = assertThrows(IllegalStateException.class, () -> service.getStoreInfo("buzz", 7500L));
 		
 		control.verify();
+		assertThat(e.getMessage(), is(equalTo("Store not available: store1")));
 	}
 	
 	@Test
-	public void testGetStoreInfo2_ShouldThrowsIfThisHostIsStandbyButTimeoutWaitingForStoreAvailable() {
-		expect(streamsMock1.queryMetadataForKey(eq("store1"), eq("buzz"), anyObject(Serializer.class)))
-			.andReturn(new KeyQueryMetadata(new HostInfo("host1", 9001),
-				new HashSet<>(Arrays.asList(new HostInfo("foobar", 10023))), 1));
-		expect(stateMock1.waitForChange(true, 7500L)).andReturn(false);
-		control.replay();
-		
-		assertThrows(IllegalStateException.class, () -> service.getStoreInfo("buzz", 7500L));
-		
-		control.verify();
-	}
-	
-	@Test
-	public void testGetStoreInfo2_ShouldReturnAnotherHostIfThisHostIsNotActiveAndNotStandby() {
+	public void testGetStoreInfo2_ShouldReturnAnotherHostIfThisHostIsNotActiveAndNotStandby() throws Exception {
+		expect(stateMock1.waitForChange(true, 12345L)).andReturn(true);
 		expect(streamsMock1.queryMetadataForKey(eq("store1"), eq("umbar"), anyObject(Serializer.class)))
 			.andReturn(new KeyQueryMetadata(new HostInfo("lowpan", 44321),
 				new HashSet<>(Arrays.asList(new HostInfo("host2", 9002))), 8));

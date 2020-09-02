@@ -46,7 +46,7 @@ if [ -z "${APP_ADVERTISED_HTTP_PORT}" ]; then
 		APP_ADVERTISED_HTTP_PORT="9698"
 	fi
 fi
-echo "caelum.kafka.application.server=${APP_ADVERTISED_HTTP_HOST}:${APP_ADVERTISED_HTTP_PORT}" >> "${APP_CONF}"
+echo "caelum.aggregator.kafka.application.server=${APP_ADVERTISED_HTTP_HOST}:${APP_ADVERTISED_HTTP_PORT}" >> "${APP_CONF}"
 echo "Generated configuration properties:"
 echo "-----------------------------------"
 cat "${APP_CONF}"
