@@ -11,13 +11,13 @@ jQuery(function($) {
         $('#errorMsg').text(what_failed_msg + ' query failed: [' + response.code + '] ' + response.message)
     }
     
-    const refreshPeriods = function() {
-        $.getJSON('/api/v1/periods', function(response) {
+    const refreshIntervals = function() {
+        $.getJSON('/api/v1/intervals', function(response) {
             if ( response.error == true ) {
-                setErrorMsg('Periods', response)
+                setErrorMsg('Intervals', response)
                 return
             }
-            const targetBody = $('#targetBodyPeriods')
+            const targetBody = $('#targetBodyIntervals')
             targetBody.empty()
             const data_rows = response.data.rows
             let result = ''
@@ -42,7 +42,7 @@ jQuery(function($) {
             	let tr = $('<tr>')
                 let data_row = data_rows[row]
                 $('<td valign="top">' + data_row.implCode + '</td>').appendTo(tr)
-                $('<td valign="top">' + data_row.period + '</td>').appendTo(tr)
+                $('<td valign="top">' + data_row.interval + '</td>').appendTo(tr)
                 $('<td valign="top">' + data_row.type + '</td>').appendTo(tr)
                 $('<td valign="top">' + data_row.state + '</td>').appendTo(tr)
                 if ( data_row.implCode == 'AK' ) {
@@ -80,9 +80,9 @@ jQuery(function($) {
     }
     $('#refreshAggregatorStatusAuto').change(refreshAggregatorStatusAuto)
     
-    refreshPeriods()
+    refreshIntervals()
     refreshAggregatorStatus()
-    $('#refreshPeriods').click(refreshPeriods)
+    $('#refreshIntervals').click(refreshIntervals)
     $('#refreshAggregatorStatus').click(refreshAggregatorStatus)
     
     $('#refreshAggregatorStatusForm').validate({
@@ -113,8 +113,8 @@ jQuery(function($) {
 
 <div class="error" id="errorMsg"></div>
 
-<h3>Supported periods <button id="refreshPeriods">Refresh</button></h3>
-<div id="targetBodyPeriods"></div>
+<h3>Supported intervals <button id="refreshIntervals">Refresh</button></h3>
+<div id="targetBodyIntervals"></div>
 
 <p>
 <h3>Aggregator status</h3>
@@ -132,7 +132,7 @@ jQuery(function($) {
     <thead id="targetHeadAggregatorStatus">
         <tr>
             <td>Impl</td>
-            <td>Period</td>
+            <td>Interval</td>
             <td>Type</td>
             <td>State</td>
             <td colspan="2">Status Info</td>

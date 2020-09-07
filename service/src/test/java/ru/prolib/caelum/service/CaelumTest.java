@@ -2,7 +2,7 @@ package ru.prolib.caelum.service;
 
 import static org.junit.Assert.*;
 import static org.easymock.EasyMock.*;
-import static ru.prolib.caelum.core.Period.*;
+import static ru.prolib.caelum.core.Interval.*;
 import static ru.prolib.caelum.aggregator.AggregatorState.*;
 import static ru.prolib.caelum.aggregator.AggregatorType.*;
 
@@ -21,7 +21,7 @@ import ru.prolib.caelum.aggregator.kafka.KafkaAggregatorService;
 import ru.prolib.caelum.core.ICloseableIterator;
 import ru.prolib.caelum.core.IItem;
 import ru.prolib.caelum.core.Item;
-import ru.prolib.caelum.core.Period;
+import ru.prolib.caelum.core.Interval;
 import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.itemdb.IItemDatabaseService;
 import ru.prolib.caelum.itemdb.ItemDataRequest;
@@ -201,11 +201,11 @@ public class CaelumTest {
 	}
 	
 	@Test
-	public void testGetAggregationPeriods() {
-		expect(aggrSvcMock.getAggregationPeriods()).andReturn(Arrays.asList(M1, M2, M5));
+	public void testGetAggregationIntervals() {
+		expect(aggrSvcMock.getAggregationIntervals()).andReturn(Arrays.asList(M1, M2, M5));
 		control.replay();
 		
-		List<Period> actual = service.getAggregationPeriods();
+		List<Interval> actual = service.getAggregationIntervals();
 		
 		control.verify();
 		assertEquals(Arrays.asList(M1, M2, M5), actual);

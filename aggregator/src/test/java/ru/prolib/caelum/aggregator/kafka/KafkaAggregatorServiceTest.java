@@ -1,7 +1,7 @@
 package ru.prolib.caelum.aggregator.kafka;
 
 import static org.junit.Assert.*;
-import static ru.prolib.caelum.core.Period.*;
+import static ru.prolib.caelum.core.Interval.*;
 import static ru.prolib.caelum.aggregator.AggregatorType.*;
 import static ru.prolib.caelum.aggregator.AggregatorState.*;
 
@@ -28,7 +28,7 @@ import ru.prolib.caelum.aggregator.IAggregator;
 import ru.prolib.caelum.aggregator.kafka.utils.WindowStoreIteratorLimited;
 import ru.prolib.caelum.aggregator.kafka.utils.WindowStoreIteratorStub;
 import ru.prolib.caelum.core.HostInfo;
-import ru.prolib.caelum.core.Periods;
+import ru.prolib.caelum.core.Intervals;
 
 @SuppressWarnings("unchecked")
 public class KafkaAggregatorServiceTest {
@@ -47,7 +47,7 @@ public class KafkaAggregatorServiceTest {
 	
 	IMocksControl control;
 	HostInfo hostInfo;
-	Periods periods;
+	Intervals intervals;
 	KafkaStreamsRegistry registryMock;
 	ReadOnlyWindowStore<String, KafkaTuple> storeMock;
 	WindowStoreIterator<KafkaTuple> itMock, itStub;
@@ -62,7 +62,7 @@ public class KafkaAggregatorServiceTest {
 		request = null;
 		control = createStrictControl();
 		hostInfo = new HostInfo("192.168.99.100", 17520);
-		periods = new Periods();
+		intervals = new Intervals();
 		registryMock = control.createMock(KafkaStreamsRegistry.class);
 		storeMock = control.createMock(ReadOnlyWindowStore.class);
 		itMock = control.createMock(WindowStoreIterator.class);
@@ -71,17 +71,17 @@ public class KafkaAggregatorServiceTest {
 		aggrMock1 = control.createMock(IAggregator.class);
 		aggrMock2 = control.createMock(IAggregator.class);
 		aggregators = Arrays.asList(aggrMock1, aggrMock2);
-		service = new KafkaAggregatorService(periods, registryMock, aggregators, 5000, false, 1700L);
+		service = new KafkaAggregatorService(intervals, registryMock, aggregators, 5000, false, 1700L);
 		mockedService = partialMockBuilder(KafkaAggregatorService.class)
-				.withConstructor(Periods.class,KafkaStreamsRegistry.class,List.class,int.class,boolean.class,long.class)
-				.withArgs(periods, registryMock, aggregators, 500, true, 1700L)
+				.withConstructor(Intervals.class,KafkaStreamsRegistry.class,List.class,int.class,boolean.class,long.class)
+				.withArgs(intervals, registryMock, aggregators, 500, true, 1700L)
 				.addMockedMethod("createClear", IAggregator.class, boolean.class)
 				.createMock();
 	}
 	
 	@Test
 	public void testGetters() {
-		assertSame(periods, service.getPeriods());
+		assertSame(intervals, service.getIntervals());
 		assertSame(registryMock, service.getRegistry());
 		assertEquals(Arrays.asList(aggrMock1, aggrMock2), service.getAggregatorList());
 		assertEquals(5000, service.getMaxLimit());
@@ -90,7 +90,7 @@ public class KafkaAggregatorServiceTest {
 	
 	@Test
 	public void testFetch_ExistingAggregator() {
-		expect(registryMock.getByPeriod(M5)).andReturn(entryMock);
+		expect(registryMock.getByInterval(M5)).andReturn(entryMock);
 		expect(entryMock.getStoreInfo("foo@bar", 1700L)).andReturn(new KafkaAggregatorStoreInfo(hostInfo, storeMock));
 		expect(storeMock.fetch("foo@bar", T("2020-07-03T00:15:00Z"), T("2020-07-03T11:59:59.999Z"))).andReturn(itMock);
 		control.replay();
@@ -108,7 +108,7 @@ public class KafkaAggregatorServiceTest {
 	
 	@Test
 	public void testFetch_ExistingAggregator_MaxLimitReached() {
-		expect(registryMock.getByPeriod(M5)).andReturn(entryMock);
+		expect(registryMock.getByInterval(M5)).andReturn(entryMock);
 		expect(entryMock.getStoreInfo("foo@bar", 1700L)).andReturn(new KafkaAggregatorStoreInfo(hostInfo, storeMock));
 		expect(storeMock.fetch("foo@bar", T("2020-07-03T00:15:00Z"), T("2020-07-03T11:59:59.999Z"))).andReturn(itMock);
 		control.replay();
@@ -126,7 +126,7 @@ public class KafkaAggregatorServiceTest {
 	
 	@Test
 	public void testFetch_ExistingAggregator_TimeAlignment() {
-		expect(registryMock.getByPeriod(M5)).andReturn(entryMock);
+		expect(registryMock.getByInterval(M5)).andReturn(entryMock);
 		expect(entryMock.getStoreInfo("foo@bar", 1700L)).andReturn(new KafkaAggregatorStoreInfo(hostInfo, storeMock));
 		expect(storeMock.fetch("foo@bar", T("2020-07-03T00:15:00Z"), T("2020-07-03T11:59:59.999Z")))
 			.andReturn(itMock);
@@ -145,7 +145,7 @@ public class KafkaAggregatorServiceTest {
 	
 	@Test
 	public void testFetch_ExistingAggregator_ShouldUseZeroTimeIfTimeFromWasNotSpecified() {
-		expect(registryMock.getByPeriod(M5)).andReturn(entryMock);
+		expect(registryMock.getByInterval(M5)).andReturn(entryMock);
 		expect(entryMock.getStoreInfo("foo@bar", 1700L)).andReturn(new KafkaAggregatorStoreInfo(hostInfo, storeMock));
 		expect(storeMock.fetch("foo@bar", Instant.EPOCH, T(899999L))).andReturn(itMock);
 		control.replay();
@@ -162,7 +162,7 @@ public class KafkaAggregatorServiceTest {
 	
 	@Test
 	public void testFetch_ExistingAggregator_ShouldUseLongMaxIfTimeToWasNotSpecified() {
-		expect(registryMock.getByPeriod(M1)).andReturn(entryMock);
+		expect(registryMock.getByInterval(M1)).andReturn(entryMock);
 		expect(entryMock.getStoreInfo("car@man", 1700L)).andReturn(new KafkaAggregatorStoreInfo(hostInfo, storeMock));
 		expect(storeMock.fetch("car@man", T(60000L), T(Long.MAX_VALUE))).andReturn(itMock);
 		control.replay();
@@ -179,7 +179,7 @@ public class KafkaAggregatorServiceTest {
 	
 	@Test
 	public void testFetch_ExistingAggregator_ShouldUseDefaultLimitIfLimitWasNotSpecified() {
-		expect(registryMock.getByPeriod(M1)).andReturn(entryMock);
+		expect(registryMock.getByInterval(M1)).andReturn(entryMock);
 		expect(entryMock.getStoreInfo("gap@map", 1700L)).andReturn(new KafkaAggregatorStoreInfo(hostInfo, storeMock));
 		expect(storeMock.fetch("gap@map", T(60000L), T(959999L))).andReturn(itMock);
 		control.replay();
@@ -196,7 +196,7 @@ public class KafkaAggregatorServiceTest {
 	
 	@Test
 	public void testFetch_ExistingAggregator_ShouldReturnHostInfoIfDataOnAnotherHost() {
-		expect(registryMock.getByPeriod(M1)).andReturn(entryMock);
+		expect(registryMock.getByInterval(M1)).andReturn(entryMock);
 		expect(entryMock.getStoreInfo("gap@map", 1700L)).andReturn(new KafkaAggregatorStoreInfo(hostInfo));
 		control.replay();
 		AggregatedDataResponse actual, expected;
@@ -210,7 +210,7 @@ public class KafkaAggregatorServiceTest {
 	
 	@Test
 	public void testFetch_AggregateOnFly() {
-		expect(registryMock.getByPeriod(H1)).andReturn(null);
+		expect(registryMock.getByInterval(H1)).andReturn(null);
 		expect(registryMock.findSuitableAggregatorToRebuildOnFly(H1)).andReturn(entryMock);
 		expect(entryMock.getStoreInfo("foo@bar", 1700L)).andReturn(new KafkaAggregatorStoreInfo(hostInfo, storeMock));
 		expect(storeMock.fetch("foo@bar", T("2020-07-03T12:00:00Z"), T("2020-07-03T23:59:59.999Z"))).andReturn(itStub);
@@ -230,7 +230,7 @@ public class KafkaAggregatorServiceTest {
 	
 	@Test
 	public void testFetch_AggregateOnFly_MaxLimitReached() {
-		expect(registryMock.getByPeriod(H1)).andReturn(null);
+		expect(registryMock.getByInterval(H1)).andReturn(null);
 		expect(registryMock.findSuitableAggregatorToRebuildOnFly(H1)).andReturn(entryMock);
 		expect(entryMock.getStoreInfo("foo@bar", 1700L)).andReturn(new KafkaAggregatorStoreInfo(hostInfo, storeMock));
 		expect(storeMock.fetch("foo@bar", T("2020-07-03T12:00:00Z"), T("2020-07-03T23:59:59.999Z"))).andReturn(itStub);
@@ -250,7 +250,7 @@ public class KafkaAggregatorServiceTest {
 
 	@Test
 	public void testFetch_AggregateOnFly_TimeAlignment() {
-		expect(registryMock.getByPeriod(H1)).andReturn(null);
+		expect(registryMock.getByInterval(H1)).andReturn(null);
 		expect(registryMock.findSuitableAggregatorToRebuildOnFly(H1)).andReturn(entryMock);
 		expect(entryMock.getStoreInfo("foo@bar", 1700L)).andReturn(new KafkaAggregatorStoreInfo(hostInfo, storeMock));
 		expect(storeMock.fetch("foo@bar", T("2020-07-03T08:00:00Z"), T("2020-07-03T12:59:59.999Z"))).andReturn(itStub);
@@ -270,7 +270,7 @@ public class KafkaAggregatorServiceTest {
 	
 	@Test
 	public void testFetch_AggregateOnFly_ShouldUseZeroTimeIfTimeFromWasNotSpecified() {
-		expect(registryMock.getByPeriod(H1)).andReturn(null);
+		expect(registryMock.getByInterval(H1)).andReturn(null);
 		expect(registryMock.findSuitableAggregatorToRebuildOnFly(H1)).andReturn(entryMock);
 		expect(entryMock.getStoreInfo("foo@bar", 1700L)).andReturn(new KafkaAggregatorStoreInfo(hostInfo, storeMock));
 		expect(storeMock.fetch("foo@bar", Instant.EPOCH, T("2020-07-03T12:59:59.999Z"))).andReturn(itStub);
@@ -289,7 +289,7 @@ public class KafkaAggregatorServiceTest {
 	
 	@Test
 	public void testFetch_AggregateOnFly_ShouldUseLongMaxIfTimeToWasNotSpecified() {
-		expect(registryMock.getByPeriod(H1)).andReturn(null);
+		expect(registryMock.getByInterval(H1)).andReturn(null);
 		expect(registryMock.findSuitableAggregatorToRebuildOnFly(H1)).andReturn(entryMock);
 		expect(entryMock.getStoreInfo("foo@bar", 1700L)).andReturn(new KafkaAggregatorStoreInfo(hostInfo, storeMock));
 		expect(storeMock.fetch("foo@bar", T("2020-07-03T08:00:00Z"), T(Long.MAX_VALUE))).andReturn(itStub);
@@ -308,7 +308,7 @@ public class KafkaAggregatorServiceTest {
 	
 	@Test
 	public void testFetch_AggregateOnFly_ShouldUseDefaultLimitIfLimitWasNotSpecified() {
-		expect(registryMock.getByPeriod(H1)).andReturn(null);
+		expect(registryMock.getByInterval(H1)).andReturn(null);
 		expect(registryMock.findSuitableAggregatorToRebuildOnFly(H1)).andReturn(entryMock);
 		expect(entryMock.getStoreInfo("foo@bar", 1700L)).andReturn(new KafkaAggregatorStoreInfo(hostInfo, storeMock));
 		expect(storeMock.fetch("foo@bar", Instant.EPOCH, T("2020-07-03T12:59:59.999Z"))).andReturn(itStub);
@@ -328,7 +328,7 @@ public class KafkaAggregatorServiceTest {
 	
 	@Test
 	public void testFetch_AggregateOnFly_ShouldReturnHostInfoIfDataOnAnotherHost() {
-		expect(registryMock.getByPeriod(H1)).andReturn(null);
+		expect(registryMock.getByInterval(H1)).andReturn(null);
 		expect(registryMock.findSuitableAggregatorToRebuildOnFly(H1)).andReturn(entryMock);
 		expect(entryMock.getStoreInfo("foo@bar", 1700L)).andReturn(new KafkaAggregatorStoreInfo(hostInfo));
 		control.replay();
@@ -383,8 +383,8 @@ public class KafkaAggregatorServiceTest {
 	}
 	
 	@Test
-	public void testGetAggregationPeriods() {
-		assertEquals(periods.getIntradayPeriods(), service.getAggregationPeriods());
+	public void testGetAggregationIntervals() {
+		assertEquals(intervals.getIntervals(), service.getAggregationIntervals());
 	}
 	
 	@Test

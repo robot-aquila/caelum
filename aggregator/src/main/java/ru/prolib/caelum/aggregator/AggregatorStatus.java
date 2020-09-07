@@ -5,23 +5,23 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import ru.prolib.caelum.core.Period;
+import ru.prolib.caelum.core.Interval;
 
 public class AggregatorStatus {
 	private final String implCode;
-	private final Period period;
+	private final Interval interval;
 	private final AggregatorType type;
 	private final AggregatorState state;
 	private final Object statusInfo;
 	
 	public AggregatorStatus(String implCode,
-			Period period,
+			Interval interval,
 			AggregatorType type,
 			AggregatorState state,
 			Object statusInfo)
 	{
 		this.implCode = implCode;
-		this.period = period;
+		this.interval = interval;
 		this.type = type;
 		this.state = state;
 		this.statusInfo = statusInfo;
@@ -31,8 +31,8 @@ public class AggregatorStatus {
 		return implCode;
 	}
 	
-	public Period getPeriod() {
-		return period;
+	public Interval getInterval() {
+		return interval;
 	}
 	
 	public AggregatorType getType() {
@@ -51,7 +51,7 @@ public class AggregatorStatus {
 	public String toString() {
 		return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
 				.append("implCode", implCode)
-				.append("period", period)
+				.append("interval", interval)
 				.append("type", type)
 				.append("state", state)
 				.append("statusInfo", statusInfo)
@@ -62,7 +62,7 @@ public class AggregatorStatus {
 	public int hashCode() {
 		return new HashCodeBuilder(815347, 117)
 				.append(implCode)
-				.append(period)
+				.append(interval)
 				.append(type)
 				.append(state)
 				.append(statusInfo)
@@ -80,7 +80,7 @@ public class AggregatorStatus {
 		AggregatorStatus o = (AggregatorStatus) other;
 		return new EqualsBuilder()
 				.append(o.implCode, implCode)
-				.append(o.period, period)
+				.append(o.interval, interval)
 				.append(o.type, type)
 				.append(o.state, state)
 				.append(o.statusInfo, statusInfo)

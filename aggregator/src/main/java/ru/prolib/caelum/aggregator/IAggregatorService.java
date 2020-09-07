@@ -2,7 +2,7 @@ package ru.prolib.caelum.aggregator;
 
 import java.util.List;
 
-import ru.prolib.caelum.core.Period;
+import ru.prolib.caelum.core.Interval;
 
 public interface IAggregatorService {
     
@@ -11,11 +11,11 @@ public interface IAggregatorService {
     void clear(boolean global);
     
     /**
-     * Get aggregation periods what are provided by this service.
+     * Get aggregation intervals what are provided by this service.
      * <p>
-     * @return list of aggregation periods
+     * @return list of aggregation intervals
      */
-    List<Period> getAggregationPeriods();
+    List<Interval> getAggregationIntervals();
     
     List<AggregatorStatus> getAggregatorStatus();
 

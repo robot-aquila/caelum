@@ -23,8 +23,8 @@ import ru.prolib.caelum.aggregator.kafka.utils.RecoverableStreamsService;
 import ru.prolib.caelum.aggregator.kafka.utils.RecoverableStreamsServiceStarter;
 import ru.prolib.caelum.core.CompositeService;
 import ru.prolib.caelum.core.IService;
-import ru.prolib.caelum.core.Period;
-import ru.prolib.caelum.core.Periods;
+import ru.prolib.caelum.core.Interval;
+import ru.prolib.caelum.core.Intervals;
 import ru.prolib.caelum.itemdb.kafka.utils.KafkaUtils;
 
 public class KafkaAggregatorBuilderTest {
@@ -47,7 +47,7 @@ public class KafkaAggregatorBuilderTest {
 		control = createStrictControl();
 		utils = new KafkaUtils();
 		topologyBuilderMock = control.createMock(KafkaAggregatorTopologyBuilder.class);
-		config = new KafkaAggregatorConfig(new Periods());
+		config = new KafkaAggregatorConfig(new Intervals());
 		registryMock = control.createMock(KafkaStreamsRegistry.class);
 		servicesMock = control.createMock(CompositeService.class);
 		streamsServiceMock = control.createMock(RecoverableStreamsService.class);
@@ -55,7 +55,7 @@ public class KafkaAggregatorBuilderTest {
 		mutexMock = control.createMock(Lock.class);
 		objects = new Objects();
 		service = new KafkaAggregatorBuilder(objects);
-		descr = new KafkaAggregatorDescr(AggregatorType.ITEM, Period.M6, "source", "taerget", "store");
+		descr = new KafkaAggregatorDescr(AggregatorType.ITEM, Interval.M6, "source", "taerget", "store");
 		mockedService = partialMockBuilder(KafkaAggregatorBuilder.class)
 				.withConstructor(Objects.class)
 				.withArgs(objects)
@@ -243,7 +243,7 @@ public class KafkaAggregatorBuilderTest {
 
 	@Test
 	public void testBuild() {
-		config.getProperties().put("caelum.aggregator.aggregation.period", "M5");
+		config.getProperties().put("caelum.aggregator.interval", "M5");
 		config.getProperties().put("caelum.aggregator.kafka.source.topic", "source-data");
 		config.getProperties().put("caelum.aggregator.kafka.pfx.application.id", "MyApp-");
 		config.getProperties().put("caelum.aggregator.kafka.pfx.target.topic", "target-");
@@ -251,7 +251,7 @@ public class KafkaAggregatorBuilderTest {
 		config.getProperties().put("caelum.aggregator.kafka.default.timeout", "25000");
 		objects.setConfig(config).setServices(servicesMock);
 		KafkaAggregatorDescr expected_descr =
-				new KafkaAggregatorDescr(AggregatorType.ITEM, Period.M5, "source-data", "target-m5", "store-m5");
+				new KafkaAggregatorDescr(AggregatorType.ITEM, Interval.M5, "source-data", "target-m5", "store-m5");
 		Capture<IService> cap = newCapture();
 		expect(mockedService.createStreamsService(expected_descr)).andReturn(streamsServiceMock);
 		expect(mockedService.createThread("MyApp-m5-thread", streamsServiceMock)).andReturn(threadMock);

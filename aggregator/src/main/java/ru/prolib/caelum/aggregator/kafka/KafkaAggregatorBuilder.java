@@ -157,7 +157,7 @@ public class KafkaAggregatorBuilder {
 	public IAggregator build() {
 		KafkaAggregatorConfig config = objects.getConfig();
 		KafkaAggregatorDescr descr = new KafkaAggregatorDescr(AggregatorType.ITEM,
-				config.getAggregationPeriod(),
+				config.getAggregationInterval(),
 				config.getSourceTopic(),
 				config.getTargetTopic(),
 				config.getStoreName());

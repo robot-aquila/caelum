@@ -68,7 +68,7 @@ public class StreamTuplesToJson implements StreamingOutput {
 			gen.writeFieldName("data");
 			gen.writeStartObject();
 			gen.writeFieldName("symbol");	gen.writeString(request.getSymbol());
-			gen.writeFieldName("period");	gen.writeString(request.getPeriod().toString());
+			gen.writeFieldName("interval");	gen.writeString(request.getInterval().getCode());
 			gen.writeFieldName("format");	gen.writeString("std");
 			gen.writeFieldName("rows");
 			gen.writeStartArray();

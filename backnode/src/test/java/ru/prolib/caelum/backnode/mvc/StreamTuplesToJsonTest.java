@@ -18,7 +18,7 @@ import ru.prolib.caelum.aggregator.AggregatedDataRequest;
 import ru.prolib.caelum.backnode.ValueFormatter;
 import ru.prolib.caelum.core.ITuple;
 import ru.prolib.caelum.core.IteratorStub;
-import ru.prolib.caelum.core.Period;
+import ru.prolib.caelum.core.Interval;
 import ru.prolib.caelum.core.Tuple;
 
 public class StreamTuplesToJsonTest {
@@ -42,7 +42,7 @@ public class StreamTuplesToJsonTest {
 				Tuple.ofDecimax15("bar", 1573950L, 125, 130, 120, 121, 2, 112, 0)
 				), true);
 		formatter = ValueFormatter.getInstance();
-		request = new AggregatedDataRequest("bar", Period.H1, 1550000L, 1600000L, 30);
+		request = new AggregatedDataRequest("bar", Interval.H1, 1550000L, 1600000L, 30);
 		service = new StreamTuplesToJson(jsonFactory, iterator, request, formatter, clockMock);
 	}
 	
@@ -73,7 +73,7 @@ public class StreamTuplesToJsonTest {
 				.append("   \"message\": null,")
 				.append("   \"data\": {")
 				.append("      \"symbol\": \"bar\",")
-				.append("      \"period\": \"H1\",")
+				.append("      \"interval\": \"H1\",")
 				.append("      \"format\": \"std\",")
 				.append("      \"rows\": [")
 				.append("         [ 1573939, \"1.20\", \"1.30\", \"1.10\", \"1.15\", \"800\" ],")

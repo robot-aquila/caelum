@@ -11,26 +11,28 @@ import org.junit.Before;
 import org.junit.Test;
 
 import ru.prolib.caelum.core.HostInfo;
-import ru.prolib.caelum.core.Period;
-import ru.prolib.caelum.core.Periods;
+import ru.prolib.caelum.core.Interval;
+import ru.prolib.caelum.core.Intervals;
 import ru.prolib.caelum.feeder.ak.KafkaItemSerdes;
 
 public class KafkaAggregatorConfigTest {
-	Periods periods;
+	Intervals intervals;
 	KafkaAggregatorConfig service, mockedService;
 	
 	@Before
 	public void setUp() throws Exception {
-		periods = new Periods();
-		service = new KafkaAggregatorConfig(periods);
+		intervals = new Intervals();
+		service = new KafkaAggregatorConfig(intervals);
 		mockedService = partialMockBuilder(KafkaAggregatorConfig.class)
-				.withConstructor(Periods.class)
-				.withArgs(periods)
+				.withConstructor(Intervals.class)
+				.withArgs(intervals)
 				.addMockedMethod("isOsUnix")
 				.createMock();
 	}
 	
 	void verifyDefaultProperties(Properties props) {
+		assertEquals("M1,H1",					props.get("caelum.aggregator.interval"));
+		assertEquals("5000",					props.get("caelum.aggregator.list.tuples.limit"));
 		assertEquals("caelum-item-aggregator-",	props.get("caelum.aggregator.kafka.pfx.application.id"));
 		assertEquals("caelum-tuple-store-",		props.get("caelum.aggregator.kafka.pfx.aggregation.store"));
 		assertEquals("caelum-tuple-",			props.get("caelum.aggregator.kafka.pfx.target.topic"));
@@ -41,8 +43,6 @@ public class KafkaAggregatorConfigTest {
 		assertEquals("31536000000000",			props.get("caelum.aggregator.kafka.source.topic.retention.time"));
 		assertEquals("99",						props.get("caelum.aggregator.kafka.max.errors"));
 		assertEquals("60000",					props.get("caelum.aggregator.kafka.default.timeout"));
-		assertEquals("M1,H1",					props.get("caelum.aggregator.aggregation.period"));
-		assertEquals("5000",					props.get("caelum.aggregator.list.tuples.limit"));
 		assertEquals("",						props.get("caelum.aggregator.kafka.force.parallel.clear"));
 		assertEquals("5",						props.get("caelum.aggregator.kafka.linger.ms"));
 		assertEquals("/tmp/kafka-streams",		props.get("caelum.aggregator.kafka.state.dir"));
@@ -53,7 +53,7 @@ public class KafkaAggregatorConfigTest {
 	
 	@Test
 	public void testGetters() {
-		assertSame(periods, service.getPeriods());
+		assertSame(intervals, service.getIntervals());
 	}
 	
 	@Test
@@ -71,7 +71,7 @@ public class KafkaAggregatorConfigTest {
 	@Test
 	public void testGetApplicationId() {
 		service.getProperties().put("caelum.aggregator.kafka.pfx.application.id", "zulu24-");
-		service.getProperties().put("caelum.aggregator.aggregation.period", "M15");
+		service.getProperties().put("caelum.aggregator.interval", "M15");
 		
 		assertEquals("zulu24-m15", service.getApplicationId());
 	}
@@ -79,7 +79,7 @@ public class KafkaAggregatorConfigTest {
 	@Test
 	public void testGetStoreName() {
 		service.getProperties().put("caelum.aggregator.kafka.pfx.aggregation.store", "kappa-store-");
-		service.getProperties().put("caelum.aggregator.aggregation.period", "H4");
+		service.getProperties().put("caelum.aggregator.interval", "H4");
 		
 		assertEquals("kappa-store-h4", service.getStoreName());
 	}
@@ -92,35 +92,35 @@ public class KafkaAggregatorConfigTest {
 	}
 	
 	@Test
-	public void testGetAggregationPeriodCode() {
-		service.getProperties().put("caelum.aggregator.aggregation.period", "H12");
+	public void testGetAggregationIntervalCode() {
+		service.getProperties().put("caelum.aggregator.interval", "H12");
 		
-		assertEquals("H12", service.getAggregationPeriodCode());
+		assertEquals("H12", service.getAggregationIntervalCode());
 	}
 	
 	@Test
-	public void testGetAggregationPeriod() {
-		service.getProperties().put("caelum.aggregator.aggregation.period", "M30");
+	public void testGetAggregationInterval() {
+		service.getProperties().put("caelum.aggregator.interval", "M30");
 		
-		assertEquals(Period.M30, service.getAggregationPeriod());
+		assertEquals(Interval.M30, service.getAggregationInterval());
 	}
 	
 	@Test
-	public void testGetAggregationPeriodDuration() {
-		service.getProperties().put("caelum.aggregator.aggregation.period", "M15");
+	public void testGetAggregationIntervalDuration() {
+		service.getProperties().put("caelum.aggregator.interval", "M15");
 		
-		assertEquals(Duration.ofMinutes(15), service.getAggregationPeriodDuration());
+		assertEquals(Duration.ofMinutes(15), service.getAggregationIntervalDuration());
 	}
 	
 	@Test
 	public void testGetTargetTopic() {
 		service.getProperties().put("caelum.aggregator.kafka.pfx.target.topic", "");
-		service.getProperties().put("caelum.aggregator.aggregation.period", "M5");
+		service.getProperties().put("caelum.aggregator.interval", "M5");
 		
 		assertNull(service.getTargetTopic());
 		
 		service.getProperties().put("caelum.aggregator.kafka.pfx.target.topic", "gadboa-");
-		service.getProperties().put("caelum.aggregator.aggregation.period", "M5");
+		service.getProperties().put("caelum.aggregator.interval", "M5");
 		
 		assertEquals("gadboa-m5", service.getTargetTopic());
 	}
@@ -159,7 +159,7 @@ public class KafkaAggregatorConfigTest {
 	public void testGetKafkaProperties() {
 		service.getProperties().put("caelum.aggregator.kafka.bootstrap.servers", "191.15.34.5:19987");
 		service.getProperties().put("caelum.aggregator.kafka.pfx.application.id", "omega-");
-		service.getProperties().put("caelum.aggregator.aggregation.period", "M5");
+		service.getProperties().put("caelum.aggregator.interval", "M5");
 		service.getProperties().put("caelum.aggregator.kafka.application.server", "172.15.26.19:5002");
 		
 		

@@ -20,7 +20,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import ru.prolib.caelum.core.ItemType;
-import ru.prolib.caelum.core.Periods;
+import ru.prolib.caelum.core.Intervals;
 import ru.prolib.caelum.core.TupleType;
 import ru.prolib.caelum.feeder.ak.KafkaItem;
 import ru.prolib.caelum.feeder.ak.KafkaItemSerdes;
@@ -60,7 +60,7 @@ public class KafkaAggregatorTopologyBuilderTest {
 		BasicConfigurator.configure();
 	}
 	
-	Periods periods;
+	Intervals intervals;
 	KafkaAggregatorConfig config;
 	KafkaAggregatorTopologyBuilder service;
 	TopologyTestDriver testDriver;
@@ -86,14 +86,14 @@ public class KafkaAggregatorTopologyBuilderTest {
 
 	@Test
 	public void testBuildTopology_TopologyShouldBeOk() {
-		config = new KafkaAggregatorConfig(periods = new Periods());
+		config = new KafkaAggregatorConfig(intervals = new Intervals());
 		Properties props = config.getProperties();
 		props.put(KafkaAggregatorConfig.APPLICATION_ID_PREFIX, "test-app-");
 		props.put(KafkaAggregatorConfig.BOOTSTRAP_SERVERS, "dummy:123");
 		props.put(KafkaAggregatorConfig.AGGREGATION_STORE_PREFIX, "test-store-");
 		props.put(KafkaAggregatorConfig.SOURCE_TOPIC, "test-items");
 		props.put(KafkaAggregatorConfig.TARGET_TOPIC_PREFIX, "test-tuples-");
-		props.put(KafkaAggregatorConfig.AGGREGATION_PERIOD, "M5");
+		props.put(KafkaAggregatorConfig.INTERVAL, "M5");
 		testDriver = new TopologyTestDriver(service.buildTopology(config), config.getKafkaProperties());
 		items = testDriver.createInputTopic("test-items",
 				KafkaItemSerdes.keySerde().serializer(),

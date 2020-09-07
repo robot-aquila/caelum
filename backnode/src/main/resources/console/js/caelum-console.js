@@ -66,19 +66,19 @@ function updateSymbols($, symbol_select, error_container, category_select, callb
     return false
 }
 
-// Update periods.
+// Update intervals.
 // Params:
 //               $ - jQuery instance.
-//  period_select  - Element of type <SELECT> that is target for periods.
+// interval_select - Element of type <SELECT> that is target for intervals.
 // error_container - Element to store error text in case of failures.
 // Return: false
-function updatePeriods($, period_select, error_container) {
-    $.getJSON('/api/v1/periods', function(response) {
+function updateIntervals($, interval_select, error_container) {
+    $.getJSON('/api/v1/intervals', function(response) {
         if ( response.error == true ) {
-            error_container.text('Periods query failed: [' + response.code + '] ' + response.message)
+            error_container.text('Intervals query failed: [' + response.code + '] ' + response.message)
         } else {
-            period_select.empty()
-            fillOptions(period_select, response.data.rows)
+            interval_select.empty()
+            fillOptions(interval_select, response.data.rows)
         }
     });
     return false;
@@ -112,14 +112,14 @@ function createCategoryDropdown($, category_select_id, error_container_id, callb
     return function() { return updateCategories($, category_select, error_container, callback) }
 }
 
-// Create handler of period dropdown.
+// Create handler of interval dropdown.
 // Params:
 //                  $ - jQuery instance.
-//   period_select_id - ID of an element of type <SELECT> that is a target to fill with periods.
+// interval_select_id - ID of an element of type <SELECT> that is a target to fill with intervals.
 // error_container_id - ID of an element used to put an error message in case of failures.
-// Return: Function that updates periods when called. That function always return false.
-function createPeriodDropdown($, period_select_id, error_container_id) {
-    const period_select = checkTagNameIs($(period_select_id), 'SELECT')
+// Return: Function that updates intervals when called. That function always return false.
+function createIntervalDropdown($, interval_select_id, error_container_id) {
+    const interval_select = checkTagNameIs($(interval_select_id), 'SELECT')
     const error_container = $(error_container_id)
-    return function() { return updatePeriods($, period_select, error_container) }
+    return function() { return updateIntervals($, interval_select, error_container) }
 }

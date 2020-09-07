@@ -11,23 +11,23 @@ import org.apache.kafka.streams.state.WindowStoreIterator;
 
 public class KafkaTupleAggregateIterator implements WindowStoreIterator<KafkaTuple> {
 	private final WindowStoreIterator<KafkaTuple> source;
-	private final Duration period;
+	private final Duration intervalDuration;
 	private final Aggregator<String, KafkaTuple, KafkaTuple> aggregator;
 	private KeyValue<Long, KafkaTuple> next, last;
 	private boolean hasItemUnderCursor = false, closed = false;
 	
 	public KafkaTupleAggregateIterator(WindowStoreIterator<KafkaTuple> source,
-			Duration new_period,
+			Duration newIntervalDuration,
 			Aggregator<String, KafkaTuple, KafkaTuple> aggregator)
 	{
 		this.source = source;
-		this.period = new_period;
+		this.intervalDuration = newIntervalDuration;
 		this.aggregator = aggregator;
 		advance();
 	}
 	
-	public KafkaTupleAggregateIterator(WindowStoreIterator<KafkaTuple> source, Duration new_period) {
-		this(source, new_period, new KafkaTupleAggregator());
+	public KafkaTupleAggregateIterator(WindowStoreIterator<KafkaTuple> source, Duration newIntervalDuration) {
+		this(source, newIntervalDuration, new KafkaTupleAggregator());
 	}
 	
 	private void advance() {
@@ -39,17 +39,17 @@ public class KafkaTupleAggregateIterator implements WindowStoreIterator<KafkaTup
 			last = source.next();
 		}
 
-		long period_millis = period.toMillis();
-		long time_round = last.key / period_millis;
+		long interval_millis = intervalDuration.toMillis();
+		long time_round = last.key / interval_millis;
 		KafkaTuple aggregate = aggregator.apply(null, last.value, new KafkaTuple());
 		while ( (hasItemUnderCursor = source.hasNext()) == true ) {
 			last = source.next();
-			if ( last.key / period_millis != time_round ) {
+			if ( last.key / interval_millis != time_round ) {
 				break;
 			}
 			aggregate = aggregator.apply(null, last.value, aggregate);
 		}
-		next = new KeyValue<>(time_round * period_millis, aggregate);
+		next = new KeyValue<>(time_round * interval_millis, aggregate);
 	}
 	
 	@Override
@@ -93,7 +93,7 @@ public class KafkaTupleAggregateIterator implements WindowStoreIterator<KafkaTup
 	public int hashCode() {
 		return new HashCodeBuilder(502227, 703)
 				.append(source)
-				.append(period)
+				.append(intervalDuration)
 				.append(aggregator)
 				.append(closed)
 				.build();
@@ -110,7 +110,7 @@ public class KafkaTupleAggregateIterator implements WindowStoreIterator<KafkaTup
 		KafkaTupleAggregateIterator o = (KafkaTupleAggregateIterator) other;
 		return new EqualsBuilder()
 				.append(o.source, source)
-				.append(o.period, period)
+				.append(o.intervalDuration, intervalDuration)
 				.append(o.aggregator, aggregator)
 				.append(o.closed, closed)
 				.append(o.next, next)

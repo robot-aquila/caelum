@@ -60,7 +60,7 @@ public class KafkaStreamsController implements IRecoverableStreamsController {
 		return new RecoverableStreamsHandler(
 				utils.createStreams(builder.buildTopology(config), config.getKafkaProperties()),
 				listener,
-				"aggregator-" + config.getAggregationPeriodCode().toLowerCase(),
+				"aggregator-" + config.getAggregationIntervalCode().toLowerCase(),
 				config.getDefaultTimeout(),
 				cleanUpMutex);
 	}

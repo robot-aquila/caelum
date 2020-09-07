@@ -51,7 +51,7 @@ import ru.prolib.caelum.test.dto.ItemsResponseDTO;
 import ru.prolib.caelum.test.dto.KafkaAggregatorStatusDTO;
 import ru.prolib.caelum.test.dto.KafkaAggregatorStatusResponseDTO;
 import ru.prolib.caelum.test.dto.LogMarkerResponseDTO;
-import ru.prolib.caelum.test.dto.PeriodsResponseDTO;
+import ru.prolib.caelum.test.dto.IntervalsResponseDTO;
 import ru.prolib.caelum.test.dto.PingResponseDTO;
 import ru.prolib.caelum.test.dto.ResponseDTO;
 import ru.prolib.caelum.test.dto.SymbolResponseDTO;
@@ -370,7 +370,7 @@ public class ApiTestHelper {
 		assertNotNull(response.data);
 	}
 	
-	public static void assertNotError(PeriodsResponseDTO response) {
+	public static void assertNotError(IntervalsResponseDTO response) {
 		assertNotError((ResponseDTO) response);
 		assertNotNull(response.data);
 	}
@@ -630,10 +630,10 @@ public class ApiTestHelper {
 		return registeredItems(cs.category, cs.symbol);
 	}
 	
-	public List<Tuple> registeredItemsToTuples(CatSym cs, long period_millis) {
+	public List<Tuple> registeredItemsToTuples(CatSym cs, long interval_millis) {
 		Map<Long, Tuple> tuple_map = new HashMap<>();
 		for ( Item item : registeredItems(cs) ) {
-			long tuple_time = item.time / period_millis * period_millis;
+			long tuple_time = item.time / interval_millis * interval_millis;
 			Tuple tuple = tuple_map.get(tuple_time);
 			if ( tuple == null ) {
 				tuple = new Tuple(tuple_time,
@@ -746,15 +746,15 @@ public class ApiTestHelper {
 				.as(KafkaAggregatorStatusResponseDTO.class);
 	}
 	
-	public PeriodsResponseDTO apiGetPeriods(RequestSpecification spec) {
+	public IntervalsResponseDTO apiGetIntervals(RequestSpecification spec) {
 		return given()
 				.spec(spec)
 			.when()
-				.get("periods")
+				.get("intervals")
 			.then()
 				.statusCode(200)
 				.extract()
-				.as(PeriodsResponseDTO.class);
+				.as(IntervalsResponseDTO.class);
 	}
 	
 	public ClearResponseDTO apiClear(RequestSpecification spec, boolean global) {
@@ -903,26 +903,26 @@ public class ApiTestHelper {
 	}
 	
 	
-	public TuplesResponseDTO apiGetTuples(RequestSpecification spec, String period, String symbol,
+	public TuplesResponseDTO apiGetTuples(RequestSpecification spec, String interval, String symbol,
 			Integer limit, Long from, Long to)
 	{
 		spec = given()
 				.spec(spec)
-				.pathParam("period", period)
+				.pathParam("interval", interval)
 				.param("symbol", symbol);
 		if ( limit != null ) spec = spec.param("limit", limit);
 		if ( from != null ) spec = spec.param("from", from);
 		if ( to != null ) spec = spec.param("to", to);
 		return spec.when()
-				.get("tuples/{period}")
+				.get("tuples/{interval}")
 			.then()
 				.statusCode(200)
 				.extract()
 				.as(TuplesResponseDTO.class);
 	}
 	
-	public TuplesResponseDTO apiGetTuples(RequestSpecification spec, String period, String symbol) {
-		return apiGetTuples(spec, period, symbol, null, null, null);
+	public TuplesResponseDTO apiGetTuples(RequestSpecification spec, String interval, String symbol) {
+		return apiGetTuples(spec, interval, symbol, null, null, null);
 	}
 	
 	public CategoriesResponseDTO apiGetCategories(RequestSpecification spec) {

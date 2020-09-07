@@ -14,7 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import ru.prolib.caelum.core.CompositeService;
-import ru.prolib.caelum.core.Period;
+import ru.prolib.caelum.core.Interval;
 
 public class AggregatorServiceBuilderTest {
 	
@@ -39,7 +39,7 @@ public class AggregatorServiceBuilderTest {
 		}
 
 		@Override
-		public List<Period> getAggregationPeriods() {
+		public List<Interval> getAggregationIntervals() {
 			throw new UnsupportedOperationException();
 		}
 		

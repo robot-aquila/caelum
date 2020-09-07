@@ -50,10 +50,10 @@ public class KafkaAggregator implements IAggregator {
 	
 	@Override
 	public AggregatorStatus getStatus() {
-		KafkaAggregatorEntry entry = registry.getByPeriod(descr.getPeriod());
+		KafkaAggregatorEntry entry = registry.getByInterval(descr.getInterval());
 		return new AggregatorStatus(
 				"AK",
-				descr.getPeriod(),
+				descr.getInterval(),
 				descr.getType(),
 				streamsService.getState(),
 				new KafkaAggregatorStatusInfo(descr.getSource(),
@@ -73,7 +73,7 @@ public class KafkaAggregator implements IAggregator {
 	public void clear(boolean global) {
 		final long timeout = config.getDefaultTimeout();
 		if ( ! streamsService.stopAndWaitConfirm(timeout) ) {
-			throw new IllegalStateException("Failed to stop streams service: " + descr.getPeriod());
+			throw new IllegalStateException("Failed to stop streams service: " + descr.getInterval());
 		}
 		if ( global ) {
 			try ( AdminClient admin = utils.createAdmin(config.getAdminClientProperties()) ) {

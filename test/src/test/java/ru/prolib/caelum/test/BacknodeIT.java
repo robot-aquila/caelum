@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 import io.restassured.specification.RequestSpecification;
 import ru.prolib.caelum.test.dto.CategoriesResponseDTO;
 import ru.prolib.caelum.test.dto.ItemsResponseDTO;
-import ru.prolib.caelum.test.dto.PeriodsResponseDTO;
+import ru.prolib.caelum.test.dto.IntervalsResponseDTO;
 import ru.prolib.caelum.test.dto.PingResponseDTO;
 import ru.prolib.caelum.test.dto.SymbolResponseDTO;
 import ru.prolib.caelum.test.dto.SymbolUpdateDTO;
@@ -116,7 +116,7 @@ public class BacknodeIT {
 	}
 	
 	@Test
-	public void C0001_Periods() throws Exception {
+	public void C0001_Intervals() throws Exception {
 		List<String> expected = Arrays.asList(
 				"M1",
 				"M2",
@@ -139,7 +139,7 @@ public class BacknodeIT {
 			);
 		
 		for ( RequestSpecification spec : ath.getSpecAll() ) {
-			PeriodsResponseDTO response = ath.apiGetPeriods(spec);
+			IntervalsResponseDTO response = ath.apiGetIntervals(spec);
 			
 			assertNotError(response);
 			assertEquals(expected, response.data.rows);
@@ -1095,7 +1095,7 @@ public class BacknodeIT {
 			}, Duration.ofSeconds(1L), Duration.ofSeconds(30L));
 		TuplesResponseDTO response = r.get(1, TimeUnit.SECONDS);
 		assertEquals(cs.symbol, response.data.symbol);
-		assertEquals("M1", response.data.period);
+		assertEquals("M1", response.data.interval);
 		assertEquals("std", response.data.format);
 		List<Tuple> actual_rows = toTuples(response.data.rows);
 		assertEquals(100, actual_rows.size());
@@ -1137,7 +1137,7 @@ public class BacknodeIT {
 			}, Duration.ofSeconds(1L), Duration.ofSeconds(30L));
 		TuplesResponseDTO response = r.get(1, TimeUnit.SECONDS);
 		assertEquals(cs.symbol, response.data.symbol);
-		assertEquals("M1", response.data.period);
+		assertEquals("M1", response.data.interval);
 		assertEquals("std", response.data.format);
 		List<Tuple> actual_rows = toTuples(response.data.rows);
 		assertEquals(60, actual_rows.size());
@@ -1181,7 +1181,7 @@ public class BacknodeIT {
 			}, Duration.ofSeconds(1L), Duration.ofSeconds(30L));
 		TuplesResponseDTO response = r.get(1, TimeUnit.SECONDS);
 		assertEquals(cs.symbol, response.data.symbol);
-		assertEquals("M1", response.data.period);
+		assertEquals("M1", response.data.interval);
 		assertEquals("std", response.data.format);
 		List<Tuple> actual_rows = toTuples(response.data.rows);
 		assertEquals(20, actual_rows.size());
@@ -1224,7 +1224,7 @@ public class BacknodeIT {
 			}, Duration.ofSeconds(1L), Duration.ofSeconds(30L));
 		TuplesResponseDTO response = r.get(1, TimeUnit.SECONDS);
 		assertEquals(cs.symbol, response.data.symbol);
-		assertEquals("M1", response.data.period);
+		assertEquals("M1", response.data.interval);
 		assertEquals("std", response.data.format);
 		List<Tuple> actual_rows = toTuples(response.data.rows);
 		assertEquals(5000, actual_rows.size());
@@ -1286,7 +1286,7 @@ public class BacknodeIT {
 					}, Duration.ofSeconds(1L), Duration.ofSeconds(30L));
 				TuplesResponseDTO response = r.get(1, TimeUnit.SECONDS);
 				assertEquals(cs.symbol, response.data.symbol);
-				assertEquals("M1", response.data.period);
+				assertEquals("M1", response.data.interval);
 				assertEquals("std", response.data.format);
 				List<Tuple> actual_rows = toTuples(response.data.rows);
 				assertEqualsTupleByTuple(cs.toString(), expected_rows, actual_rows);
@@ -1295,7 +1295,7 @@ public class BacknodeIT {
 	}
 	
 	@Test
-	public void C9006_Tuples_AnyBacknodeShouldProvideDataOfAllPeriods() throws Exception {
+	public void C9006_Tuples_AnyBacknodeShouldProvideDataOfAllIntervals() throws Exception {
 		Map<String, Duration> map = new LinkedHashMap<>();
 		map.put("M1", Duration.ofMinutes(1));
 		map.put("M2", Duration.ofMinutes(2));
@@ -1321,8 +1321,8 @@ public class BacknodeIT {
 		int total_items = 5 * 24 * 60 * 60000 / (int)time_delta;
 		ath.generateItems(cs, total_items, start_time, time_delta, "0.01", "0.01", "1", "1");
 
-		for ( String period : map.keySet() ) {
-			List<Tuple> expected_rows = ath.registeredItemsToTuples(cs, map.get(period).toMillis());
+		for ( String interval : map.keySet() ) {
+			List<Tuple> expected_rows = ath.registeredItemsToTuples(cs, map.get(interval).toMillis());
 			if ( expected_rows.size() > 5000 ) { 
 				expected_rows = expected_rows.subList(0, 5000);
 			}
@@ -1331,10 +1331,10 @@ public class BacknodeIT {
 				int expected_count = expected_rows.size();
 				CompletableFuture<TuplesResponseDTO> r = new CompletableFuture<>();
 				waitUntil(() -> {
-						TuplesResponseDTO response = ath.apiGetTuples(spec, period, cs.symbol);
+						TuplesResponseDTO response = ath.apiGetTuples(spec, interval, cs.symbol);
 						assertNotError(response);
 						System.out.println(Instant.now());
-						System.out.println("Period=" + period + " symbol=" + cs.symbol);
+						System.out.println("Interval=" + interval + " symbol=" + cs.symbol);
 						System.out.println("Response rows count: " + response.data.rows.size()
 							+ " expected=" + expected_count );
 						int count = response.data.rows.size();
@@ -1346,10 +1346,10 @@ public class BacknodeIT {
 					}, Duration.ofSeconds(1L), Duration.ofSeconds(30L));
 				TuplesResponseDTO response = r.get(1, TimeUnit.SECONDS);
 				assertEquals(cs.symbol, response.data.symbol);
-				assertEquals(period, response.data.period);
+				assertEquals(interval, response.data.interval);
 				assertEquals("std", response.data.format);
 				List<Tuple> actual_rows = toTuples(response.data.rows);
-				assertEqualsTupleByTuple(period, expected_rows, actual_rows);
+				assertEqualsTupleByTuple(interval, expected_rows, actual_rows);
 			}
 		}
 	}

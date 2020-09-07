@@ -8,36 +8,36 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ru.prolib.caelum.core.HostInfo;
-import ru.prolib.caelum.core.Period;
-import ru.prolib.caelum.core.Periods;
+import ru.prolib.caelum.core.Interval;
+import ru.prolib.caelum.core.Intervals;
 
 public class KafkaStreamsRegistry {
 	private static final Logger logger = LoggerFactory.getLogger(KafkaStreamsRegistry.class);
 	
 	private final HostInfo hostInfo;
-	private final Periods periods;
-	private final Map<Period, KafkaAggregatorEntry> entryByPeriod;
+	private final Intervals intervals;
+	private final Map<Interval, KafkaAggregatorEntry> entryByInterval;
 
-	KafkaStreamsRegistry(HostInfo hostInfo, Periods periods, Map<Period, KafkaAggregatorEntry> entry_by_period) {
+	KafkaStreamsRegistry(HostInfo hostInfo, Intervals intervals, Map<Interval, KafkaAggregatorEntry> entry_by_interval) {
 		this.hostInfo = hostInfo;
-		this.periods = periods;
-		this.entryByPeriod = entry_by_period;
+		this.intervals = intervals;
+		this.entryByInterval = entry_by_interval;
 	}
 	
-	public KafkaStreamsRegistry(HostInfo hostInfo, Periods periods) {
-		this(hostInfo, periods, new ConcurrentHashMap<>());
+	public KafkaStreamsRegistry(HostInfo hostInfo, Intervals intervals) {
+		this(hostInfo, intervals, new ConcurrentHashMap<>());
 	}
 	
 	public HostInfo getHostInfo() {
 		return hostInfo;
 	}
 	
-	public Periods getPeriods() {
-		return periods;
+	public Intervals getIntervals() {
+		return intervals;
 	}
 	
-	public Map<Period, KafkaAggregatorEntry> getEntryByPeriodMap() {
-		return entryByPeriod;
+	public Map<Interval, KafkaAggregatorEntry> getEntryByIntervalMap() {
+		return entryByInterval;
 	}
 	
 	protected KafkaAggregatorEntry createEntry(KafkaAggregatorDescr descr, KafkaStreams streams) {
@@ -55,7 +55,7 @@ public class KafkaStreamsRegistry {
 		case ITEM:
 		case TUPLE:
 			// That actually doesn't matter who's exactly will provide the data
-			entryByPeriod.put(descr.getPeriod(), createEntry(descr, streams));
+			entryByInterval.put(descr.getInterval(), createEntry(descr, streams));
 			break;
 		default:
 			throw new IllegalArgumentException("Aggregator of type is not allowed to register: " + descr.getType());
@@ -68,36 +68,36 @@ public class KafkaStreamsRegistry {
 	 * @param descr - streams descriptor
 	 */
 	public void deregister(KafkaAggregatorDescr descr) {
-		entryByPeriod.remove(descr.getPeriod());
+		entryByInterval.remove(descr.getInterval());
 	}
 	
-	public KafkaAggregatorEntry getByPeriod(Period period) {
-		return entryByPeriod.get(period);
+	public KafkaAggregatorEntry getByInterval(Interval interval) {
+		return entryByInterval.get(interval);
 	}
 
 	/**
-	 * Find aggregator of smaller period to rebuild data of bigger period.
+	 * Find aggregator of smaller interval to rebuild data of bigger interval.
 	 * <p>
 	 * If store not found and direct operation is not possible then find
-	 * suitable store for smaller period to make aggregation on-fly.
+	 * suitable store for smaller interval to make aggregation on-fly.
 	 * <p>
-	 * @param period - period that have to rebuilt
-	 * @return an entry represented aggregator suitable to rebuild tuples of required period
+	 * @param interval - interval that have to rebuilt
+	 * @return an entry represented aggregator suitable to rebuild tuples of required interval
 	 * @throws IllegalStateException - if suitable aggregator was not found
 	 */
-	public KafkaAggregatorEntry findSuitableAggregatorToRebuildOnFly(Period period) {
-		for ( Period sm_period : periods.getSmallerPeriodsThatCanFill(period) ) {
-			KafkaAggregatorEntry entry = entryByPeriod.get(sm_period);
+	public KafkaAggregatorEntry findSuitableAggregatorToRebuildOnFly(Interval interval) {
+		for ( Interval sm_interval : intervals.getSmallerIntervalsThatCanFill(interval) ) {
+			KafkaAggregatorEntry entry = entryByInterval.get(sm_interval);
 			if ( entry != null ) {
 				return entry;
 			}
 		}
-		throw new IllegalStateException("No suitable aggregator was found to rebuild: " + period);
+		throw new IllegalStateException("No suitable aggregator was found to rebuild: " + interval);
 	}
 	
 	public void setAvailability(KafkaAggregatorDescr descr, boolean is_available) {
-		logger.debug("Streams availability change: {} -> {}", descr.period, is_available);
-		entryByPeriod.get(descr.period).setAvailable(is_available);
+		logger.debug("Streams availability change: {} -> {}", descr.interval, is_available);
+		entryByInterval.get(descr.interval).setAvailable(is_available);
 	}
 	
 }

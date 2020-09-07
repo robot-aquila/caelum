@@ -11,8 +11,8 @@ import org.apache.kafka.streams.StreamsConfig;
 
 import ru.prolib.caelum.aggregator.AggregatorConfig;
 import ru.prolib.caelum.core.HostInfo;
-import ru.prolib.caelum.core.Period;
-import ru.prolib.caelum.core.Periods;
+import ru.prolib.caelum.core.Interval;
+import ru.prolib.caelum.core.Intervals;
 import ru.prolib.caelum.feeder.ak.KafkaItemSerdes;
 
 public class KafkaAggregatorConfig extends AggregatorConfig {
@@ -33,15 +33,15 @@ public class KafkaAggregatorConfig extends AggregatorConfig {
 	public static final String STORE_RETENTION_TIME			= "caelum.aggregator.kafka.store.retention.time";
 	public static final String APPLICATION_SERVER			= "caelum.aggregator.kafka.application.server";
 
-	private final Periods periods;
+	private final Intervals intervals;
 	
-	public KafkaAggregatorConfig(Periods periods) {
+	public KafkaAggregatorConfig(Intervals interval) {
 		super();
-		this.periods = periods;
+		this.intervals = interval;
 	}
 	
-	public Periods getPeriods() {
-		return periods;
+	public Intervals getIntervals() {
+		return intervals;
 	}
 	
 	@Override
@@ -66,7 +66,7 @@ public class KafkaAggregatorConfig extends AggregatorConfig {
 	}
 	
 	private String getSuffix() {
-		return getString(AGGREGATION_PERIOD).toLowerCase();
+		return getString(INTERVAL).toLowerCase();
 	}
 
 	public String getApplicationId() {
@@ -81,16 +81,16 @@ public class KafkaAggregatorConfig extends AggregatorConfig {
 		return getLong(STORE_RETENTION_TIME);
 	}
 	
-	public String getAggregationPeriodCode() {
-		return getOneOfList(KafkaAggregatorConfig.AGGREGATION_PERIOD, periods.getIntradayPeriodCodes());
+	public String getAggregationIntervalCode() {
+		return getOneOfList(KafkaAggregatorConfig.INTERVAL, intervals.getIntervalCodes());
 	}
 	
-	public Period getAggregationPeriod() {
-		return Period.valueOf(getAggregationPeriodCode());
+	public Interval getAggregationInterval() {
+		return intervals.getIntervalByCode(getAggregationIntervalCode());
 	}
 	
-	public Duration getAggregationPeriodDuration() {
-		return periods.getIntradayDurationByCode(getAggregationPeriodCode());
+	public Duration getAggregationIntervalDuration() {
+		return intervals.getIntervalDurationByCode(getAggregationIntervalCode());
 	}
 	
 	/**

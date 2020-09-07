@@ -8,20 +8,20 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.junit.Before;
 import org.junit.Test;
 
-import ru.prolib.caelum.core.Period;
+import ru.prolib.caelum.core.Interval;
 
 public class AggregatedDataRequestTest {
 	AggregatedDataRequest service;
 
 	@Before
 	public void setUp() throws Exception {
-		service = new AggregatedDataRequest("foobar", Period.H1, 2000L, 5000L, 500);
+		service = new AggregatedDataRequest("foobar", Interval.H1, 2000L, 5000L, 500);
 	}
 	
 	@Test
 	public void testGetters() {
 		assertEquals("foobar", service.getSymbol());
-		assertEquals(Period.H1, service.getPeriod());
+		assertEquals(Interval.H1, service.getInterval());
 		assertEquals(Long.valueOf(2000L), service.getFrom());
 		assertEquals(Long.valueOf(5000L), service.getTo());
 		assertEquals(Integer.valueOf(500), service.getLimit());
@@ -31,9 +31,9 @@ public class AggregatedDataRequestTest {
 	
 	@Test
 	public void testCtor_NullParamsAllowed() {
-		service = new AggregatedDataRequest("barbar", Period.M15, null, null, null);
+		service = new AggregatedDataRequest("barbar", Interval.M15, null, null, null);
 		assertEquals("barbar", service.getSymbol());
-		assertEquals(Period.M15, service.getPeriod());
+		assertEquals(Interval.M15, service.getInterval());
 		assertNull(service.getFrom());
 		assertNull(service.getTimeFrom());
 		assertNull(service.getTimeTo());
@@ -42,7 +42,7 @@ public class AggregatedDataRequestTest {
 	
 	@Test
 	public void testToString() {
-		String expected = "AggregatedDataRequest[symbol=foobar,period=H1,from=2000,to=5000,limit=500]";
+		String expected = "AggregatedDataRequest[symbol=foobar,interval=H1,from=2000,to=5000,limit=500]";
 		
 		assertEquals(expected, service.toString());
 	}
@@ -51,7 +51,7 @@ public class AggregatedDataRequestTest {
 	public void testHashCode() {
 		int expected = new HashCodeBuilder(780011759, 75)
 				.append("foobar")
-				.append(Period.H1)
+				.append(Interval.H1)
 				.append(2000L)
 				.append(5000L)
 				.append(500)
@@ -70,13 +70,13 @@ public class AggregatedDataRequestTest {
 
 	@Test
 	public void testEquals() {
-		assertTrue(service.equals(new AggregatedDataRequest("foobar", Period.H1, 2000L, 5000L, 500)));
-		assertFalse(service.equals(new AggregatedDataRequest("gammar", Period.H1, 2000L, 5000L, 500)));
-		assertFalse(service.equals(new AggregatedDataRequest("foobar", Period.H2, 2000L, 5000L, 500)));
-		assertFalse(service.equals(new AggregatedDataRequest("foobar", Period.H1, 1000L, 5000L, 500)));
-		assertFalse(service.equals(new AggregatedDataRequest("foobar", Period.H1, 2000L, 7000L, 500)));
-		assertFalse(service.equals(new AggregatedDataRequest("foobar", Period.H1, 2000L, 5000L, 800)));
-		assertFalse(service.equals(new AggregatedDataRequest("gammar", Period.H2, 1000L, 7000L, 800)));
+		assertTrue(service.equals(new AggregatedDataRequest("foobar", Interval.H1, 2000L, 5000L, 500)));
+		assertFalse(service.equals(new AggregatedDataRequest("gammar", Interval.H1, 2000L, 5000L, 500)));
+		assertFalse(service.equals(new AggregatedDataRequest("foobar", Interval.H2, 2000L, 5000L, 500)));
+		assertFalse(service.equals(new AggregatedDataRequest("foobar", Interval.H1, 1000L, 5000L, 500)));
+		assertFalse(service.equals(new AggregatedDataRequest("foobar", Interval.H1, 2000L, 7000L, 500)));
+		assertFalse(service.equals(new AggregatedDataRequest("foobar", Interval.H1, 2000L, 5000L, 800)));
+		assertFalse(service.equals(new AggregatedDataRequest("gammar", Interval.H2, 1000L, 7000L, 800)));
 	}
 
 }

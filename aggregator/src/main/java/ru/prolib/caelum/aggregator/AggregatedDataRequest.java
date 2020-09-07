@@ -7,17 +7,17 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import ru.prolib.caelum.core.Period;
+import ru.prolib.caelum.core.Interval;
 
 public class AggregatedDataRequest {
 	private final String symbol;
-	private final Period period;
+	private final Interval interval;
 	private final Long from, to;
 	private final Integer limit;
 	
-	public AggregatedDataRequest(String symbol, Period period, Long from, Long to, Integer limit) {
+	public AggregatedDataRequest(String symbol, Interval interval, Long from, Long to, Integer limit) {
 		this.symbol = symbol;
-		this.period = period;
+		this.interval = interval;
 		this.from = from;
 		this.to = to;
 		this.limit = limit;
@@ -31,8 +31,8 @@ public class AggregatedDataRequest {
 		return symbol;
 	}
 	
-	public Period getPeriod() {
-		return period;
+	public Interval getInterval() {
+		return interval;
 	}
 	
 	public Long getFrom() {
@@ -59,7 +59,7 @@ public class AggregatedDataRequest {
 	public String toString() {
 		return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
 				.append("symbol", symbol)
-				.append("period", period)
+				.append("interval", interval)
 				.append("from", from)
 				.append("to", to)
 				.append("limit", limit)
@@ -70,7 +70,7 @@ public class AggregatedDataRequest {
 	public int hashCode() {
 		return new HashCodeBuilder(780011759, 75)
 				.append(symbol)
-				.append(period)
+				.append(interval)
 				.append(from)
 				.append(to)
 				.append(limit)
@@ -88,7 +88,7 @@ public class AggregatedDataRequest {
 		AggregatedDataRequest o = (AggregatedDataRequest) other;
 		return new EqualsBuilder()
 				.append(o.symbol, symbol)
-				.append(o.period, period)
+				.append(o.interval, interval)
 				.append(o.from, from)
 				.append(o.to, to)
 				.append(o.limit, limit)

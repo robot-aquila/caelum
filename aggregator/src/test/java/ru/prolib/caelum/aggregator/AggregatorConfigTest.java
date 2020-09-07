@@ -19,7 +19,7 @@ public class AggregatorConfigTest {
 	
 	void verifyDefaultProperties(Properties props) {
 		assertEquals(KafkaAggregatorServiceBuilder.class.getName(), props.get("caelum.aggregator.builder"));
-		assertEquals("M1,H1", props.get("caelum.aggregator.aggregation.period"));
+		assertEquals("M1,H1", props.get("caelum.aggregator.interval"));
 		assertEquals("5000", props.get("caelum.aggregator.list.tuples.limit"));
 	}
 

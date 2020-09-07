@@ -29,8 +29,8 @@ if [ -n "${APP_FDB_SERVERS}" ]; then
 fi
 
 echo "caelum.aggregator.kafka.state.dir=/tmp/kafka-streams" >> "${APP_CONF}"
-if [ -n "${APP_AGGR_PERIOD}" ]; then
-	echo "caelum.aggregator.aggregation.period=${APP_AGGR_PERIOD}" >> "${APP_CONF}"
+if [ -n "${APP_AGGR_INTERVAL}" ]; then
+	echo "caelum.aggregator.interval=${APP_AGGR_INTERVAL}" >> "${APP_CONF}"
 fi
 if [ -z "${APP_ADVERTISED_HTTP_HOST}" ]; then
 	APP_ADVERTISED_HTTP_HOST="$(hostname -i)"

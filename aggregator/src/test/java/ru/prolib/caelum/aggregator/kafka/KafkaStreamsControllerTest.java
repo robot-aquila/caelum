@@ -20,8 +20,8 @@ import ru.prolib.caelum.aggregator.AggregatorType;
 import ru.prolib.caelum.aggregator.kafka.utils.IRecoverableStreamsHandler;
 import ru.prolib.caelum.aggregator.kafka.utils.IRecoverableStreamsHandlerListener;
 import ru.prolib.caelum.aggregator.kafka.utils.RecoverableStreamsHandler;
-import ru.prolib.caelum.core.Period;
-import ru.prolib.caelum.core.Periods;
+import ru.prolib.caelum.core.Interval;
+import ru.prolib.caelum.core.Intervals;
 import ru.prolib.caelum.itemdb.kafka.utils.KafkaUtils;
 
 public class KafkaStreamsControllerTest {
@@ -36,7 +36,7 @@ public class KafkaStreamsControllerTest {
 	Lock mutexMock;
 	KafkaAggregatorConfig config;
 	KafkaAggregatorDescr descr;
-	Periods periods;
+	Intervals intervals;
 	KafkaStreamsController service;
 
 	@Before
@@ -50,10 +50,10 @@ public class KafkaStreamsControllerTest {
 		handlerMock = control.createMock(RecoverableStreamsHandler.class);
 		streamsMock = control.createMock(KafkaStreams.class);
 		mutexMock = control.createMock(Lock.class);
-		config = new KafkaAggregatorConfig(periods = new Periods());
-		config.getProperties().put("caelum.aggregator.aggregation.period", "M15");
+		config = new KafkaAggregatorConfig(intervals = new Intervals());
+		config.getProperties().put("caelum.aggregator.interval", "M15");
 		config.getProperties().put("caelum.aggregator.kafka.default.timeout", "30000");
-		descr = new KafkaAggregatorDescr(AggregatorType.ITEM, Period.M15, "foo", "bar", "foo-store");
+		descr = new KafkaAggregatorDescr(AggregatorType.ITEM, Interval.M15, "foo", "bar", "foo-store");
 		service = new KafkaStreamsController(descr, builderMock, config, registryMock, mutexMock, utilsMock);
 	}
 	

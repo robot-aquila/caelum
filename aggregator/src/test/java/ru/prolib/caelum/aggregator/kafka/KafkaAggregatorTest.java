@@ -17,8 +17,8 @@ import org.junit.Test;
 
 import ru.prolib.caelum.aggregator.AggregatorStatus;
 import ru.prolib.caelum.aggregator.kafka.utils.IRecoverableStreamsService;
-import ru.prolib.caelum.core.Period;
-import ru.prolib.caelum.core.Periods;
+import ru.prolib.caelum.core.Interval;
+import ru.prolib.caelum.core.Intervals;
 import ru.prolib.caelum.itemdb.kafka.utils.KafkaUtils;
 
 public class KafkaAggregatorTest {
@@ -36,7 +36,7 @@ public class KafkaAggregatorTest {
 	AdminClient adminMock;
 	KafkaStreamsRegistry registryMock;
 	KafkaAggregatorEntry entryMock;
-	Periods periods;
+	Intervals intervals;
 	KafkaAggregator service;
 
 	@Before
@@ -47,9 +47,9 @@ public class KafkaAggregatorTest {
 		adminMock = control.createMock(AdminClient.class);
 		registryMock = control.createMock(KafkaStreamsRegistry.class);
 		entryMock = control.createMock(KafkaAggregatorEntry.class);
-		descr = new KafkaAggregatorDescr(ITEM, Period.M1, "d-source", "d-target", "d-store");
-		config = new KafkaAggregatorConfig(periods = new Periods());
-		config.getProperties().put(KafkaAggregatorConfig.AGGREGATION_PERIOD, "M1");
+		descr = new KafkaAggregatorDescr(ITEM, Interval.M1, "d-source", "d-target", "d-store");
+		config = new KafkaAggregatorConfig(intervals = new Intervals());
+		config.getProperties().put(KafkaAggregatorConfig.INTERVAL, "M1");
 		config.getProperties().put(KafkaAggregatorConfig.APPLICATION_ID_PREFIX, "myApp-");
 		config.getProperties().put(KafkaAggregatorConfig.AGGREGATION_STORE_PREFIX, "myStore-");
 		config.getProperties().put(KafkaAggregatorConfig.TARGET_TOPIC_PREFIX, "myTarget-");
@@ -68,7 +68,7 @@ public class KafkaAggregatorTest {
 	
 	@Test
 	public void testGetStatus() {
-		expect(registryMock.getByPeriod(Period.M1)).andReturn(entryMock);
+		expect(registryMock.getByInterval(Interval.M1)).andReturn(entryMock);
 		expect(streamsServiceMock.getState()).andReturn(STARTING);
 		expect(entryMock.isAvailable()).andReturn(false);
 		expect(entryMock.getStreamsState()).andReturn(KafkaStreams.State.ERROR);
@@ -77,7 +77,7 @@ public class KafkaAggregatorTest {
 		AggregatorStatus actual = service.getStatus();
 		
 		control.verify();
-		AggregatorStatus expected = new AggregatorStatus("AK", Period.M1, ITEM, STARTING,
+		AggregatorStatus expected = new AggregatorStatus("AK", Interval.M1, ITEM, STARTING,
 				new KafkaAggregatorStatusInfo("d-source", "d-target", "d-store", false, State.ERROR));
 		assertEquals(expected, actual);
 	}

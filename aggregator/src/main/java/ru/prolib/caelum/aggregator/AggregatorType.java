@@ -6,11 +6,11 @@ public enum AggregatorType {
 	 */
 	ITEM,
 	/**
-	 * Aggregation from tuples of smaller period to tuple of bigger with persistent data storage.
+	 * Aggregation from tuples of lesser interval to tuple of bigger with persistent data storage.
 	 */
 	TUPLE,
 	/**
-	 * Aggregation from tuple of smaller period to tuple of bigger without storing the data.
+	 * Aggregation from tuple of lesser interval to tuple of bigger without storing the data.
 	 */
 	TUPLE_ONFLY
 }

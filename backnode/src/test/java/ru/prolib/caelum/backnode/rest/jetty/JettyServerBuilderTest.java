@@ -52,7 +52,7 @@ public class JettyServerBuilderTest {
 		NodeService x = (NodeService) actual;
 		assertSame(caelumMock, x.getCaelum());
 		assertNotNull(x.getStreamFactory());
-		assertNotNull(x.getPeriods());
+		assertNotNull(x.getIntervals());
 		assertNotNull(x.getByteUtils());
 		assertTrue(x.isTestMode());
 		

@@ -37,15 +37,15 @@ import org.slf4j.LoggerFactory;
 
 import ru.prolib.caelum.aggregator.AggregatedDataRequest;
 import ru.prolib.caelum.aggregator.AggregatedDataResponse;
-import ru.prolib.caelum.aggregator.AggregatorStatus;
+import ru.prolib.caelum.backnode.mvc.AggregatorStatusMvcAdapter;
 import ru.prolib.caelum.backnode.mvc.StreamFactory;
 import ru.prolib.caelum.core.ByteUtils;
 import ru.prolib.caelum.core.HostInfo;
 import ru.prolib.caelum.core.IItem;
 import ru.prolib.caelum.core.Item;
 import ru.prolib.caelum.core.IteratorStub;
-import ru.prolib.caelum.core.Period;
-import ru.prolib.caelum.core.Periods;
+import ru.prolib.caelum.core.Interval;
+import ru.prolib.caelum.core.Intervals;
 import ru.prolib.caelum.itemdb.ItemDataRequest;
 import ru.prolib.caelum.itemdb.ItemDataRequestContinue;
 import ru.prolib.caelum.service.ICaelum;
@@ -56,7 +56,7 @@ import ru.prolib.caelum.symboldb.SymbolUpdate;
 @Produces(MediaType.APPLICATION_JSON)
 public class NodeService {
 	static final Logger logger = LoggerFactory.getLogger(NodeService.class);
-	public static final Period DEFAULT_PERIOD = Period.M5;
+	public static final Interval DEFAULT_INTERVAL = Interval.M5;
 	
 	static class RowsWrapper<T> {
 		public final List<T> rows;
@@ -68,19 +68,19 @@ public class NodeService {
 	
 	private final ICaelum caelum;
 	private final StreamFactory streamFactory;
-	private final Periods periods;
+	private final Intervals intervals;
 	private final ByteUtils byteUtils;
 	private final boolean testMode;
 	
 	public NodeService(ICaelum caelum,
 			StreamFactory streamFactory,
-			Periods periods,
+			Intervals intervals,
 			ByteUtils byteUtils,
 			boolean testMode)
 	{
 		this.caelum = caelum;
 		this.streamFactory = streamFactory;
-		this.periods = periods;
+		this.intervals = intervals;
 		this.byteUtils = byteUtils;
 		this.testMode = testMode;
 	}
@@ -93,8 +93,8 @@ public class NodeService {
 		return streamFactory;
 	}
 	
-	public Periods getPeriods() {
-		return periods;
+	public Intervals getIntervals() {
+		return intervals;
 	}
 	
 	public ByteUtils getByteUtils() {
@@ -119,11 +119,11 @@ public class NodeService {
 		return category;
 	}
 	
-	private Period validatePeriod(Period period) {
-		if ( period == null ) {
-			period = DEFAULT_PERIOD;
+	private Interval validateInterval(Interval interval) {
+		if ( interval == null ) {
+			interval = DEFAULT_INTERVAL;
 		}
-		return period;
+		return interval;
 	}
 	
 	private Long validateTime(Long time) {
@@ -157,19 +157,19 @@ public class NodeService {
 	 * Validate data and build request or throw an exception in case of error.
 	 * <p>
 	 * @param symbol - symbol
-	 * @param period - period
+	 * @param interval - interval
 	 * @param from - from
 	 * @param to - to
 	 * @param limit - limit
 	 * @return request
 	 * @throws BadRequestException - invalid data
 	 */
-	private AggregatedDataRequest toAggrDataRequest(String symbol, Period period, Long from, Long to, Integer limit) {
-		period = validatePeriod(period);
+	private AggregatedDataRequest toAggrDataRequest(String symbol, Interval interval, Long from, Long to, Integer limit) {
+		interval = validateInterval(interval);
 		from = validateFrom(from);
 		to = validateTo(to);
 		validateFromAndTo(from, to);
-		return new AggregatedDataRequest(symbol, period, from, to, limit);
+		return new AggregatedDataRequest(symbol, interval, from, to, limit);
 	}
 	
 	private ItemDataRequest toItemDataRequest(String symbol, Long from, Long to, Integer limit) {
@@ -243,16 +243,16 @@ public class NodeService {
 	}
 	
 	@GET
-	@Path("/tuples/{period}")
+	@Path("/tuples/{interval}")
 	public Response tuples(
 			@Context UriInfo uriInfo,
-			@PathParam("period") @NotNull final Period period,
+			@PathParam("interval") @NotNull final String interval,
 			@QueryParam("symbol") @NotNull final String symbol,
 			@QueryParam("from") final Long from,
 			@QueryParam("to") final Long to,
 			@QueryParam("limit") final Integer limit) throws IOException
 	{
-		AggregatedDataRequest request = toAggrDataRequest(symbol, period, from, to, limit);
+		AggregatedDataRequest request = toAggrDataRequest(symbol, intervals.getIntervalByCode(interval), from, to, limit);
 		AggregatedDataResponse response = caelum.fetch(request);
 		if ( response.askAnotherHost() ) {
 			try {
@@ -277,9 +277,9 @@ public class NodeService {
 	}
 	
 	@GET
-	@Path("/periods")
-	public Response periods() {
-		List<String> rows = caelum.getAggregationPeriods()
+	@Path("/intervals")
+	public Response intervals() {
+		List<String> rows = caelum.getAggregationIntervals()
 				.stream()
 				.map(x -> x.toString())
 				.collect(Collectors.toList());
@@ -290,8 +290,11 @@ public class NodeService {
 	
 	@GET
 	@Path("/aggregator/status")
-	public Result<RowsWrapper<AggregatorStatus>> aggregatorStatus() {
-		return success(new RowsWrapper<>(caelum.getAggregatorStatus()));
+	public Result<RowsWrapper<AggregatorStatusMvcAdapter>> aggregatorStatus() {
+		return success(new RowsWrapper<>(caelum.getAggregatorStatus()
+				.stream()
+				.map(x -> new AggregatorStatusMvcAdapter(x))
+				.collect(Collectors.toList())));
 	}
 	
 	@GET
@@ -426,22 +429,5 @@ public class NodeService {
 		return success();
 	}
 	
-//	@GET
-//	@Path("/tuples/processors/{period}")
-//	public List<ProcessorMetadata> processors(@PathParam("period") final String period) {
-//		StoreDesc desc = periodToStoreDesc.get(period);
-//		if ( desc == null ) {
-//			throw new NotFoundException();
-//		}
-//		for ( StreamsMetadata md : desc.streams.allMetadataForStore(desc.storeName) ) {
-//			logger.info("Metadata: host={} port={}", md.host(), md.port());
-//		}
-//		return desc.streams.allMetadataForStore(desc.storeName).stream()
-//			.map(md -> new ProcessorMetadata(md.host(), md.port(), md.topicPartitions().stream()
-//					.map(TopicPartition::partition)
-//					.collect(Collectors.toList()))
-//			)
-//			.collect(Collectors.toList());
-//	}
 
 }

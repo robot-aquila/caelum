@@ -5,7 +5,7 @@ import ru.prolib.caelum.core.AbstractConfig;
 public class AggregatorConfig extends AbstractConfig {
 	public static final String DEFAULT_CONFIG_FILE		= "app.aggregator.properties";
 	public static final String BUILDER					= "caelum.aggregator.builder";
-	public static final String AGGREGATION_PERIOD		= "caelum.aggregator.aggregation.period";
+	public static final String INTERVAL					= "caelum.aggregator.interval";
 	public static final String LIST_TUPLES_LIMIT		= "caelum.aggregator.list.tuples.limit";
 	
 	@Override
@@ -16,7 +16,7 @@ public class AggregatorConfig extends AbstractConfig {
 	@Override
 	protected void setDefaults() {
 		props.put(BUILDER, "ru.prolib.caelum.aggregator.kafka.KafkaAggregatorServiceBuilder");
-		props.put(AGGREGATION_PERIOD, "M1,H1");
+		props.put(INTERVAL, "M1,H1");
 		props.put(LIST_TUPLES_LIMIT, "5000");
 	}
 	

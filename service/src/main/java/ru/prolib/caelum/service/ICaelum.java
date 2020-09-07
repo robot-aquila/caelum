@@ -8,7 +8,7 @@ import ru.prolib.caelum.aggregator.AggregatedDataResponse;
 import ru.prolib.caelum.aggregator.AggregatorStatus;
 import ru.prolib.caelum.core.ICloseableIterator;
 import ru.prolib.caelum.core.IItem;
-import ru.prolib.caelum.core.Period;
+import ru.prolib.caelum.core.Interval;
 import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.itemdb.ItemDataRequest;
 import ru.prolib.caelum.itemdb.ItemDataRequestContinue;
@@ -31,6 +31,6 @@ public interface ICaelum {
 	ICloseableIterator<String> fetchSymbols(SymbolListRequest request);
 	ICloseableIterator<SymbolUpdate> fetchSymbolUpdates(String symbol);
 	void clear(boolean global);
-	List<Period> getAggregationPeriods();
+	List<Interval> getAggregationIntervals();
 	List<AggregatorStatus> getAggregatorStatus();
 }

@@ -9,7 +9,7 @@ import ru.prolib.caelum.aggregator.AggregatorStatus;
 import ru.prolib.caelum.aggregator.IAggregatorService;
 import ru.prolib.caelum.core.ICloseableIterator;
 import ru.prolib.caelum.core.IItem;
-import ru.prolib.caelum.core.Period;
+import ru.prolib.caelum.core.Interval;
 import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.itemdb.IItemDatabaseService;
 import ru.prolib.caelum.itemdb.ItemDataRequest;
@@ -117,8 +117,8 @@ public class Caelum implements ICaelum {
 	}
 
 	@Override
-	public List<Period> getAggregationPeriods() {
-		return aggrService.getAggregationPeriods();
+	public List<Interval> getAggregationIntervals() {
+		return aggrService.getAggregationIntervals();
 	}
 
 	@Override

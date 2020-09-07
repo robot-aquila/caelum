@@ -21,14 +21,14 @@ jQuery(function($) {
     
     const refreshSymbols = createSymbolDropdown($, '#symbol', '#errorMsg', '#category')
     const refreshCategories = createCategoryDropdown($, '#category', '#errorMsg', refreshSymbols)
-    const refreshPeriods = createPeriodDropdown($, '#period', '#errorMsg')
+    const refreshIntervals = createIntervalDropdown($, '#interval', '#errorMsg')
     $('#category').change(refreshSymbols)
     refreshCategories()
-    refreshPeriods()
+    refreshIntervals()
     
     $('#refreshCategories').click(refreshCategories)
     $('#refreshSymbols').click(refreshSymbols)
-    $('#refreshPeriods').click(refreshPeriods)
+    $('#refreshIntervals').click(refreshIntervals)
     
     $('#clearLimit').click(createClear($('#limit')))
     $('#clearFromTime').click(createClear($('#fromTime')))
@@ -50,14 +50,14 @@ jQuery(function($) {
     })
     
     const formHandler = function(form) {
-        const period = $('#period').val();
+        const interval = $('#interval').val();
         const params = {
             symbol: $('#symbol').val(),
             from: fromTime.val() ? Date.parse(fromTime.val() + ':00.000Z') : null,
             to: toTime.val() ? Date.parse(toTime.val() + ':00.000Z') : null,
             limit: $('#limit').val() || null
         }
-        $.getJSON('/api/v1/tuples/' + period, params, function(response) {
+        $.getJSON('/api/v1/tuples/' + interval, params, function(response) {
             const targetBody = $('#targetBody'); targetBody.empty()
             const targetHead = $('#targetHead'); targetHead.empty()
             if ( response.error == true ) {
@@ -145,8 +145,8 @@ symbol <select name="symbol" id="symbol"></select>
     </tr>
     <tr>
         <td nowrap>
-Aggregation period <select name="period" id="period"></select>
-<button id="refreshPeriods" title="Refresh aggregation periods">O</button>
+Aggregation interval <select name="interval" id="interval"></select>
+<button id="refreshIntervals" title="Refresh aggregation intervals">O</button>
         </td>
     </tr>
     <tr>

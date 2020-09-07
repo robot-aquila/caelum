@@ -6,25 +6,25 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import ru.prolib.caelum.aggregator.AggregatorType;
-import ru.prolib.caelum.core.Period;
+import ru.prolib.caelum.core.Interval;
 
 public class KafkaAggregatorDescr {
 	protected final AggregatorType type;
-	protected final Period period;
+	protected final Interval interval;
 	protected final String source, target, storeName;
 	
 	/**
 	 * Constructor.
 	 * <p>
 	 * @param type - type of aggregation
-	 * @param period - period of aggregation
+	 * @param interval - interval of aggregation
 	 * @param source - source topic. May be null in case of no source topic used.
 	 * @param target - target topic. May be null in case if aggregated data do not stream to topic.
 	 * @param store_name - store name to use for accessing data. 
 	 */
-	public KafkaAggregatorDescr(AggregatorType type, Period period, String source, String target, String store_name) {
+	public KafkaAggregatorDescr(AggregatorType type, Interval interval, String source, String target, String store_name) {
 		this.type = type;
-		this.period = period;
+		this.interval = interval;
 		this.source = source;
 		this.target = target;
 		this.storeName = store_name;
@@ -34,8 +34,8 @@ public class KafkaAggregatorDescr {
 		return type;
 	}
 	
-	public Period getPeriod() {
-		return period;
+	public Interval getInterval() {
+		return interval;
 	}
 	
 	public String getSource() {
@@ -54,7 +54,7 @@ public class KafkaAggregatorDescr {
 	public String toString() {
 		return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
 				.append("type", type)
-				.append("period", period)
+				.append("interval", interval)
 				.append("source", source)
 				.append("target", target)
 				.append("storeName", storeName)
@@ -65,7 +65,7 @@ public class KafkaAggregatorDescr {
 	public int hashCode() {
 		return new HashCodeBuilder(540441, 709)
 				.append(type)
-				.append(period)
+				.append(interval)
 				.append(source)
 				.append(target)
 				.append(storeName)
@@ -83,7 +83,7 @@ public class KafkaAggregatorDescr {
 		KafkaAggregatorDescr o = (KafkaAggregatorDescr) other;
 		return new EqualsBuilder()
 				.append(o.type, type)
-				.append(o.period, period)
+				.append(o.interval, interval)
 				.append(o.source, source)
 				.append(o.target, target)
 				.append(o.storeName, storeName)

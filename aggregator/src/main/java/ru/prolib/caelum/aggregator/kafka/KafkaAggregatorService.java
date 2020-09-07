@@ -15,8 +15,8 @@ import ru.prolib.caelum.aggregator.AggregatorStatus;
 import ru.prolib.caelum.aggregator.IAggregator;
 import ru.prolib.caelum.aggregator.IAggregatorService;
 import ru.prolib.caelum.aggregator.kafka.utils.WindowStoreIteratorLimited;
-import ru.prolib.caelum.core.Period;
-import ru.prolib.caelum.core.Periods;
+import ru.prolib.caelum.core.Interval;
+import ru.prolib.caelum.core.Intervals;
 
 public class KafkaAggregatorService implements IAggregatorService {
 	public static final long MAX_TIME = Long.MAX_VALUE;
@@ -25,21 +25,21 @@ public class KafkaAggregatorService implements IAggregatorService {
 		return Instant.ofEpochMilli(time);
 	}
 	
-	private final Periods periods;
+	private final Intervals intervals;
 	private final KafkaStreamsRegistry registry;
 	private final List<IAggregator> aggregatorList;
 	private final int maxLimit;
 	private final boolean clearAggregatorsInParallel;
 	private final long timeout;
 	
-	KafkaAggregatorService(Periods periods,
+	KafkaAggregatorService(Intervals intervals,
 			KafkaStreamsRegistry registry,
 			List<IAggregator> aggregatorList,
 			int maxLimit,
 			boolean clearAggregatorsInParallel,
 			long timeout)
 	{
-		this.periods = periods;
+		this.intervals = intervals;
 		this.registry = registry;
 		this.aggregatorList = aggregatorList;
 		this.maxLimit = maxLimit;
@@ -47,8 +47,8 @@ public class KafkaAggregatorService implements IAggregatorService {
 		this.timeout = timeout;
 	}
 	
-	public Periods getPeriods() {
-		return periods;
+	public Intervals getIntervals() {
+		return intervals;
 	}
 	
 	public KafkaStreamsRegistry getRegistry() {
@@ -84,23 +84,23 @@ public class KafkaAggregatorService implements IAggregatorService {
 		return requested_time == null ? default_time : requested_time;
 	}
 	
-	private Duration getDuration(Period period) {
-		return periods.getIntradayDuration(period);
+	private Duration getDuration(Interval interval) {
+		return intervals.getIntervalDuration(interval);
 	}
 	
 	@Override
 	public AggregatedDataResponse fetch(AggregatedDataRequest request) {
 		final String symbol = request.getSymbol();
-		final Period period = request.getPeriod();
-		KafkaAggregatorEntry entry = registry.getByPeriod(period);
-		long period_millis = periods.getIntradayDuration(period).toMillis();
+		final Interval interval = request.getInterval();
+		KafkaAggregatorEntry entry = registry.getByInterval(interval);
+		long interval_millis = intervals.getIntervalDuration(interval).toMillis();
 		long req_from = getTime(request.getFrom(), 0), req_to = getTime(request.getTo(), MAX_TIME);
-		long from_align = req_from / period_millis, to_align = req_to / period_millis;
-		if ( req_to % period_millis > 0 ) {
+		long from_align = req_from / interval_millis, to_align = req_to / interval_millis;
+		if ( req_to % interval_millis > 0 ) {
 			to_align ++;
 		}
-		long to_aligned = to_align * period_millis - 1;
-		long from_aligned = from_align * period_millis;
+		long to_aligned = to_align * interval_millis - 1;
+		long from_aligned = from_align * interval_millis;
 		if ( to_aligned < 0 ) {
 			to_aligned = MAX_TIME;
 		}
@@ -108,10 +108,10 @@ public class KafkaAggregatorService implements IAggregatorService {
 		WindowStoreIterator<KafkaTuple> it = null;
 		KafkaAggregatorStoreInfo store_info = null;
 		if ( entry == null ) {
-			entry = registry.findSuitableAggregatorToRebuildOnFly(period);
+			entry = registry.findSuitableAggregatorToRebuildOnFly(interval);
 			store_info = entry.getStoreInfo(symbol, timeout);
 			if ( store_info.askAnotherHost() == false ) {
-				it = new KafkaTupleAggregateIterator(store_info.getStore().fetch(symbol, from, to), getDuration(period));
+				it = new KafkaTupleAggregateIterator(store_info.getStore().fetch(symbol, from, to), getDuration(interval));
 			}
 		} else {
 			store_info = entry.getStoreInfo(symbol, timeout);
@@ -149,16 +149,16 @@ public class KafkaAggregatorService implements IAggregatorService {
 	}
 
 	@Override
-	public List<Period> getAggregationPeriods() {
-		return periods.getIntradayPeriods();
+	public List<Interval> getAggregationIntervals() {
+		return intervals.getIntervals();
 	}
 
 	@Override
 	public List<AggregatorStatus> getAggregatorStatus() {
-		final Map<Period, AggregatorStatus> m = aggregatorList.stream()
+		final Map<Interval, AggregatorStatus> m = aggregatorList.stream()
 			.map(x -> x.getStatus())
-			.collect(Collectors.toMap(x -> x.getPeriod(), x -> x));
-		return periods.getIntradayPeriods().stream()
+			.collect(Collectors.toMap(x -> x.getInterval(), x -> x));
+		return intervals.getIntervals().stream()
 			.filter(p -> m.containsKey(p))
 			.map(p -> m.get(p))
 			.collect(Collectors.toList());
