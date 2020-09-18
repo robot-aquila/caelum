@@ -1,5 +1,5 @@
 package ru.prolib.caelum.test.dto;
 
-public class SymbolUpdateResponseDTO extends ResponseDTO {
+public class PutEventsResponseDTO extends ResponseDTO {
 	public Object data;
 }

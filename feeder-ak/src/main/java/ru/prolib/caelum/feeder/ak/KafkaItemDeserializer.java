@@ -1,8 +1,9 @@
 package ru.prolib.caelum.feeder.ak;
 
 import org.apache.kafka.common.serialization.Deserializer;
-import ru.prolib.caelum.core.ByteUtils;
+
 import ru.prolib.caelum.core.ItemType;
+import ru.prolib.caelum.lib.ByteUtils;
 
 public class KafkaItemDeserializer implements Deserializer<KafkaItem> {
 	private final ByteUtils utils;

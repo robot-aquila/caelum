@@ -2,7 +2,7 @@ package ru.prolib.caelum.test.dto;
 
 import java.util.List;
 
-public class SymbolUpdatesResponseDataDTO {
+public class EventsResponseDataDTO {
 	public String symbol;
-	public List<SymbolUpdateDTO> rows;
+	public List<EventsDTO> rows;
 }

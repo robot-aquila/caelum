@@ -12,6 +12,7 @@
 	</properties>
 
 	<modules>
+        <module>lib</module>
 		<module>core</module>
 		<module>feeder-ak</module>
 		<module>aggregator</module>

@@ -3,8 +3,6 @@ package ru.prolib.caelum.backnode.mvc;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.time.Clock;
-import java.util.Iterator;
-import java.util.Map;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.StreamingOutput;
@@ -13,22 +11,23 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 
 import ru.prolib.caelum.core.ICloseableIterator;
-import ru.prolib.caelum.symboldb.SymbolUpdate;
+import ru.prolib.caelum.lib.Events;
+import ru.prolib.caelum.symboldb.EventListRequest;
 
-public class StreamSymbolUpdatesToJson implements StreamingOutput {
+public class StreamEventsToJson implements StreamingOutput {
 	private final JsonFactory jsonFactory;
-	private final ICloseableIterator<SymbolUpdate> iterator;
-	private final String symbol;
+	private final ICloseableIterator<Events> iterator;
+	private final EventListRequest request;
 	private final Clock clock;
 	
-	public StreamSymbolUpdatesToJson(JsonFactory jsonFactory,
-			ICloseableIterator<SymbolUpdate> iterator,
-			String symbol,
+	public StreamEventsToJson(JsonFactory jsonFactory,
+			ICloseableIterator<Events> iterator,
+			EventListRequest request,
 			Clock clock)
 	{
 		this.jsonFactory = jsonFactory;
 		this.iterator = iterator;
-		this.symbol = symbol;
+		this.request = request;
 		this.clock = clock;
 	}
 	
@@ -36,12 +35,12 @@ public class StreamSymbolUpdatesToJson implements StreamingOutput {
 		return jsonFactory;
 	}
 	
-	public ICloseableIterator<SymbolUpdate> getIterator() {
+	public ICloseableIterator<Events> getIterator() {
 		return iterator;
 	}
 	
-	public String getRequest() {
-		return symbol;
+	public EventListRequest getRequest() {
+		return request;
 	}
 	
 	public Clock getClock() {
@@ -60,21 +59,19 @@ public class StreamSymbolUpdatesToJson implements StreamingOutput {
 			gen.writeFieldName("message");	gen.writeNull();
 			gen.writeFieldName("data");
 			gen.writeStartObject();
-			gen.writeFieldName("symbol");	gen.writeString(symbol);
+			gen.writeFieldName("symbol");	gen.writeString(request.getSymbol());
 			gen.writeFieldName("rows");
 			gen.writeStartArray();
 
 			while ( iterator.hasNext() ) {
-				SymbolUpdate update = iterator.next();
+				Events e = iterator.next();
 				gen.writeStartObject();
-				gen.writeFieldName("time");		gen.writeNumber(update.getTime());
-				gen.writeFieldName("tokens");
+				gen.writeFieldName("time");		gen.writeNumber(e.getTime());
+				gen.writeFieldName("events");
 				gen.writeStartObject();
-				Iterator<Map.Entry<Integer, String>> it = update.getTokens().entrySet().iterator();
-				while ( it.hasNext() ) {
-					Map.Entry<Integer, String> entry = it.next();
-					gen.writeFieldName(Integer.toString(entry.getKey()));
-					gen.writeString(entry.getValue());
+				for ( int event_id : e.getEventIDs() ) {
+					gen.writeFieldName(Integer.toString(event_id));
+					gen.writeString(e.getEvent(event_id));
 				}
 				gen.writeEndObject();
 				gen.writeEndObject();

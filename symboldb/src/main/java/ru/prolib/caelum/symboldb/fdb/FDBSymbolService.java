@@ -6,22 +6,28 @@ import java.util.Collection;
 import com.apple.foundationdb.Database;
 
 import ru.prolib.caelum.core.ICloseableIterator;
+import ru.prolib.caelum.lib.Events;
+import ru.prolib.caelum.symboldb.EventListRequest;
 import ru.prolib.caelum.symboldb.ICategoryExtractor;
 import ru.prolib.caelum.symboldb.SymbolListRequest;
 import ru.prolib.caelum.symboldb.ISymbolService;
-import ru.prolib.caelum.symboldb.SymbolUpdate;
 
 public class FDBSymbolService implements ISymbolService {
 	private volatile Database db;
 	private final ICategoryExtractor catExt;
 	private final FDBSchema schema;
-	private final int listSymbolsMaxLimit;
+	private final int listSymbolsMaxLimit, listEventsMaxLimit;
 	
-	public FDBSymbolService(ICategoryExtractor cat_ext, FDBSchema schema, int list_symbols_max_limit) {
+	public FDBSymbolService(ICategoryExtractor cat_ext,
+			FDBSchema schema,
+			int list_symbols_max_limit,
+			int list_events_max_limit)
+	{
 		this.db = db;
 		this.catExt = cat_ext;
 		this.schema = schema;
 		this.listSymbolsMaxLimit = list_symbols_max_limit;
+		this.listEventsMaxLimit = list_events_max_limit;
 	}
 	
 	public void setDatabase(Database db) {
@@ -44,6 +50,10 @@ public class FDBSymbolService implements ISymbolService {
 		return listSymbolsMaxLimit;
 	}
 	
+	public int getListEventsMaxLimit() {
+		return listEventsMaxLimit;
+	}
+	
 	@Override
 	public void registerSymbol(String symbol) {
 		db.run(new FDBTransactionRegisterSymbol(schema, catExt, Arrays.asList(symbol)));
@@ -55,8 +65,23 @@ public class FDBSymbolService implements ISymbolService {
 	}
 
 	@Override
-	public void registerSymbolUpdate(SymbolUpdate update) {
-		db.run(new FDBTransactionRegisterSymbolUpdate(schema, catExt, update));
+	public void registerEvents(Events events) {
+		db.run(new FDBTransactionRegisterEvents(schema, catExt, Arrays.asList(events)));
+	}
+	
+	@Override
+	public void registerEvents(Collection<Events> events) {
+		db.run(new FDBTransactionRegisterEvents(schema, catExt, events));
+	}
+	
+	@Override
+	public void deleteEvents(Events events) {
+		db.run(new FDBTransactionDeleteEvents(schema, Arrays.asList(events)));
+	}
+	
+	@Override
+	public void deleteEvents(Collection<Events> events) {
+		db.run(new FDBTransactionDeleteEvents(schema, events));
 	}
 
 	@Override
@@ -70,8 +95,8 @@ public class FDBSymbolService implements ISymbolService {
 	}
 	
 	@Override
-	public ICloseableIterator<SymbolUpdate> listSymbolUpdates(String symbol) {
-		return db.run(new FDBTransactionListSymbolUpdates(schema, symbol));
+	public ICloseableIterator<Events> listEvents(EventListRequest request) {
+		return db.run(new FDBTransactionListEvents(schema, request, listEventsMaxLimit));
 	}
 
 	@Override

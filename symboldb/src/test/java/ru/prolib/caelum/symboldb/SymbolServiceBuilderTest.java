@@ -17,6 +17,7 @@ import org.junit.Test;
 
 import ru.prolib.caelum.core.CompositeService;
 import ru.prolib.caelum.core.ICloseableIterator;
+import ru.prolib.caelum.lib.Events;
 
 public class SymbolServiceBuilderTest {
 	
@@ -41,7 +42,22 @@ public class SymbolServiceBuilderTest {
 		}
 
 		@Override
-		public void registerSymbolUpdate(SymbolUpdate update) {
+		public void registerEvents(Events events) {
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void registerEvents(Collection<Events> events) {
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void deleteEvents(Events events) {
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void deleteEvents(Collection<Events> events) {
 			throw new UnsupportedOperationException();
 		}
 
@@ -55,7 +71,7 @@ public class SymbolServiceBuilderTest {
 			throw new UnsupportedOperationException();		}
 
 		@Override
-		public ICloseableIterator<SymbolUpdate> listSymbolUpdates(String symbol) {
+		public ICloseableIterator<Events> listEvents(EventListRequest request) {
 			throw new UnsupportedOperationException();
 		}
 		

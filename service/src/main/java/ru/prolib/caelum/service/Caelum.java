@@ -14,9 +14,10 @@ import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.itemdb.IItemDatabaseService;
 import ru.prolib.caelum.itemdb.ItemDataRequest;
 import ru.prolib.caelum.itemdb.ItemDataRequestContinue;
+import ru.prolib.caelum.lib.Events;
 import ru.prolib.caelum.symboldb.SymbolListRequest;
+import ru.prolib.caelum.symboldb.EventListRequest;
 import ru.prolib.caelum.symboldb.ISymbolService;
-import ru.prolib.caelum.symboldb.SymbolUpdate;
 
 public class Caelum implements ICaelum {
 	private final IAggregatorService aggrService;
@@ -62,8 +63,23 @@ public class Caelum implements ICaelum {
 	}
 
 	@Override
-	public void registerSymbolUpdate(SymbolUpdate update) {
-		symbolService.registerSymbolUpdate(update);
+	public void registerEvents(Events events) {
+		symbolService.registerEvents(events);
+	}
+	
+	@Override
+	public void registerEvents(Collection<Events> events) {
+		symbolService.registerEvents(events);
+	}
+	
+	@Override
+	public void deleteEvents(Events events) {
+		symbolService.deleteEvents(events);
+	}
+	
+	@Override
+	public void deleteEvents(Collection<Events> events) {
+		symbolService.deleteEvents(events);
 	}
 
 	@Override
@@ -102,8 +118,8 @@ public class Caelum implements ICaelum {
 	}
 
 	@Override
-	public ICloseableIterator<SymbolUpdate> fetchSymbolUpdates(String symbol) {
-		return symbolService.listSymbolUpdates(symbol);
+	public ICloseableIterator<Events> fetchEvents(EventListRequest request) {
+		return symbolService.listEvents(request);
 	}
 	
 	@Override

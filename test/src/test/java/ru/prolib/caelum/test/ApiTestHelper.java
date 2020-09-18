@@ -46,6 +46,7 @@ import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import ru.prolib.caelum.test.dto.CategoriesResponseDTO;
 import ru.prolib.caelum.test.dto.ClearResponseDTO;
+import ru.prolib.caelum.test.dto.DelEventsResponseDTO;
 import ru.prolib.caelum.test.dto.ItemResponseDTO;
 import ru.prolib.caelum.test.dto.ItemsResponseDTO;
 import ru.prolib.caelum.test.dto.KafkaAggregatorStatusDTO;
@@ -55,8 +56,8 @@ import ru.prolib.caelum.test.dto.IntervalsResponseDTO;
 import ru.prolib.caelum.test.dto.PingResponseDTO;
 import ru.prolib.caelum.test.dto.ResponseDTO;
 import ru.prolib.caelum.test.dto.SymbolResponseDTO;
-import ru.prolib.caelum.test.dto.SymbolUpdateResponseDTO;
-import ru.prolib.caelum.test.dto.SymbolUpdatesResponseDTO;
+import ru.prolib.caelum.test.dto.PutEventsResponseDTO;
+import ru.prolib.caelum.test.dto.GetEventsResponseDTO;
 import ru.prolib.caelum.test.dto.SymbolsResponseDTO;
 import ru.prolib.caelum.test.dto.TuplesResponseDTO;
 
@@ -355,12 +356,17 @@ public class ApiTestHelper {
 		assertNotNull(response.data);
 	}
 	
-	public static void assertNotError(SymbolUpdateResponseDTO response) {
+	public static void assertNotError(PutEventsResponseDTO response) {
 		assertNotError((ResponseDTO) response);
 		assertNull(response.data);
 	}
 	
-	public static void assertNotError(SymbolUpdatesResponseDTO response) {
+	public static void assertNotError(DelEventsResponseDTO response) {
+		assertNotError((ResponseDTO) response);
+		assertNull(response.data);
+	}
+	
+	public static void assertNotError(GetEventsResponseDTO response) {
 		assertNotError((ResponseDTO) response);
 		assertNotNull(response.data);
 	}
@@ -972,43 +978,69 @@ public class ApiTestHelper {
 		return apiGetSymbols(getSpec(), category);
 	}
 	
-	public SymbolUpdateResponseDTO apiPutSymbolUpdate(RequestSpecification spec,
-			String symbol, long time, Map<Integer, String> tokens)
+	public PutEventsResponseDTO apiPutEvents(RequestSpecification spec,
+			String symbol, long time, Map<Integer, String> events)
 	{
 		spec = given()
 				.spec(spec)
 				.contentType(ContentType.URLENC)
 				.formParam("symbol", symbol)
 				.formParam("time", time);
-		Iterator<Entry<Integer, String>> it = tokens.entrySet().iterator();
+		Iterator<Entry<Integer, String>> it = events.entrySet().iterator();
 		while ( it.hasNext() ) {
 			Entry<Integer, String> entry = it.next();
 			spec.formParam(Integer.toString(entry.getKey()), entry.getValue());
 		}
 		return spec.when()
-				.put("symbol/update")
+				.put("events")
 			.then()
 				.statusCode(200)
 				.extract()
-				.as(SymbolUpdateResponseDTO.class);
+				.as(PutEventsResponseDTO.class);
 	}
 	
-	public SymbolUpdateResponseDTO apiPutSymbolUpdate(RequestSpecification spec,
-			String symbol, long time, Object... tokens)
+	public PutEventsResponseDTO apiPutEvents(RequestSpecification spec,
+			String symbol, long time, Object... events)
 	{
-		return apiPutSymbolUpdate(spec, symbol, time, toMap(tokens));
+		return apiPutEvents(spec, symbol, time, toMap(events));
 	}
 	
-	public SymbolUpdatesResponseDTO apiGetSymbolUpdates(RequestSpecification spec, String symbol) {
-		return given()
+	public DelEventsResponseDTO apiDelEvents(RequestSpecification spec, String symbol, long time, int... events) {
+		spec = given()
 				.spec(spec)
-				.param("symbol", symbol)
-			.when()
-				.get("symbol/updates")
+				.contentType(ContentType.URLENC)
+				.formParam("symbol", symbol)
+				.formParam("time", time);
+		for ( int event_id : events ) {
+			spec.formParam(Integer.toString(event_id), "delete");
+		}
+		return spec.when()
+				.delete("events")
 			.then()
 				.statusCode(200)
 				.extract()
-				.as(SymbolUpdatesResponseDTO.class);		
+				.as(DelEventsResponseDTO.class);
+	}
+	
+	public GetEventsResponseDTO
+		apiGetEvents(RequestSpecification spec, String symbol, Long from, Long to, Integer limit)
+	{
+		spec = given()
+				.spec(spec)
+				.param("symbol", symbol);
+		if ( from != null ) spec = spec.param("from", from);
+		if ( to != null ) spec = spec.param("to", to);
+		if ( limit != null ) spec = spec.param("limit", limit);
+		return spec.when()
+				.get("events")
+			.then()
+				.statusCode(200)
+				.extract()
+				.as(GetEventsResponseDTO.class);		
+	}
+	
+	public GetEventsResponseDTO apiGetEvents(RequestSpecification spec, String symbol) {
+		return apiGetEvents(spec, symbol, null, null, null);
 	}
 	
 	public void generateItems(String category, String symbol, int total_items,

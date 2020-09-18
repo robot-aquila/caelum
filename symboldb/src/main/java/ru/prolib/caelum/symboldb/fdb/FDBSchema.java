@@ -1,19 +1,15 @@
 package ru.prolib.caelum.symboldb.fdb;
 
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.tuple.Pair;
 
 import com.apple.foundationdb.KeyValue;
 import com.apple.foundationdb.subspace.Subspace;
 import com.apple.foundationdb.tuple.Tuple;
 
 import ru.prolib.caelum.symboldb.CategorySymbol;
-import ru.prolib.caelum.symboldb.SymbolTime;
-import ru.prolib.caelum.symboldb.SymbolUpdate;
+import ru.prolib.caelum.symboldb.EventKey;
 
 public class FDBSchema {
 	private static final byte[] trueBytes =  Tuple.from(true).pack();
@@ -22,13 +18,13 @@ public class FDBSchema {
 		spRoot,
 		spCategory,
 		spCategorySymbol,
-		spSymbolUpdate;
+		spEvents;
 	
 	public FDBSchema(Subspace root) {
 		spRoot = root;
 		spCategory = root.get(0x01);
 		spCategorySymbol = root.get(0x02);
-		spSymbolUpdate = root.get(0x03);
+		spEvents = root.get(0x03);
 	}
 	
 	@Override
@@ -58,29 +54,6 @@ public class FDBSchema {
 	
 	public Subspace getSpace() {
 		return spRoot;
-	}
-	
-	public byte[] packTokens(Map<Integer, String> tokens) {
-		Tuple tuple = new Tuple();
-		Iterator<Map.Entry<Integer, String>> it = tokens.entrySet().iterator();
-		while ( it.hasNext() ) {
-			Map.Entry<Integer, String> entry = it.next();
-			tuple = tuple.add(entry.getKey()).add(entry.getValue());
-		}
-		return tuple.pack();
-	}
-	
-	public Map<Integer, String> unpackTokens(byte[] packed) {
-		Tuple tuple = Tuple.fromBytes(packed);
-		int count = tuple.size();
-		if ( count % 2 != 0 ) {
-			throw new IllegalArgumentException("Uneven amount of elements");
-		}
-		Map<Integer, String> result = new LinkedHashMap<>();
-		for ( int i = 0; i < count; i += 2 ) {
-			result.put((int) tuple.getLong(i), tuple.getString(i + 1));
-		}
-		return result;
 	}
 	
 	public Subspace getSpaceCategory() {
@@ -116,30 +89,37 @@ public class FDBSchema {
 		return new CategorySymbol(kt.getString(0), kt.getString(1));
 	}
 	
-	public Subspace getSpaceSymbolUpdate(String symbol) {
-		return spSymbolUpdate.get(symbol);
+	public Subspace getSpaceEvents(String symbol) {
+		return spEvents.get(symbol);
 	}
 	
-	public byte[] getKeySymbolUpdate(String symbol, long time) {
-		return spSymbolUpdate.pack(Tuple.from(symbol, time));
+	public byte[] getKeyEvent(String symbol, long time, int event_id) {
+		return spEvents.pack(Tuple.from(symbol, time, event_id));
 	}
 	
-	public byte[] getKeySymbolUpdate(SymbolTime st) {
-		return getKeySymbolUpdate(st.getSymbol(), st.getTime());
+	public byte[] getKeyEvent(EventKey key) {
+		return getKeyEvent(key.getSymbol(), key.getTime(), key.getEventID());
 	}
 	
-	public SymbolTime parseKeySymbolUpdate(byte[] key) {
-		Tuple kt = spSymbolUpdate.unpack(key);
-		return new SymbolTime(kt.getString(0), kt.getLong(1));
+	public byte[] getKeyEvent(String symbol, long time) {
+		return spEvents.pack(Tuple.from(symbol, time));
 	}
 	
-	public KeyValue packSymbolUpdate(SymbolUpdate update) {
-		return new KeyValue(getKeySymbolUpdate(update.getSymbol(), update.getTime()), packTokens(update.getTokens()));
+	public EventKey parseKeyEvent(byte[] key) {
+		Tuple kt = spEvents.unpack(key);
+		return new EventKey(kt.getString(0), kt.getLong(1), (int) kt.getLong(2));
 	}
 	
-	public SymbolUpdate unpackSymbolUpdate(KeyValue kv) {
-		SymbolTime pk = parseKeySymbolUpdate(kv.getKey());
-		return new SymbolUpdate(pk.getSymbol(), pk.getTime(), unpackTokens(kv.getValue()));
+	public byte[] packEventData(String event_data) {
+		return event_data.getBytes();
+	}
+	
+	public String unpackEventData(byte[] data) {
+		return new String(data);
+	}
+	
+	public Pair<EventKey, String> unpackEvent(KeyValue kv) {
+		return Pair.of(parseKeyEvent(kv.getKey()), unpackEventData(kv.getValue()));
 	}
 	
 }

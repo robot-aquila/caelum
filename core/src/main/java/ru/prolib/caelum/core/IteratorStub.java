@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 public class IteratorStub<T> implements ICloseableIterator<T> {
 	protected final List<T> data;
@@ -62,6 +64,14 @@ public class IteratorStub<T> implements ICloseableIterator<T> {
 		return new EqualsBuilder()
 				.append(o.data, data)
 				.append(o.closed, closed)
+				.build();
+	}
+	
+	@Override
+	public String toString() {
+		return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+				.append("data", data)
+				.append("closed", closed)
 				.build();
 	}
 

@@ -1,26 +1,26 @@
 .. _contents:
 
-Documentation Table of Contents
-===============================
+**********
+Содержание
+**********
 
 .. toctree::
    :includehidden:
    :titlesonly:
    :maxdepth: 5
 
-   Overview <index>
-   Table of contents <self>
-   Basic concepts <basics>
-   Getting started <getstart>
-   REST API v1 <rest_api>
-   Binary formats <binary_formats>
-   Known limitations <limitations>
-   Tips and tricks <tips_and_tricks>
-   TODO <todo>
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`search`
+   Что такое Caelum? <index>
+   Содержание <self>
+   Основные понятия <basics>
+   Архитектура системы <arch>
+   Начало работы <getstart>
+   Конфигурация <config>
+   Разработка фидера <feeders>
+   Интеграция с клиентами <clients>
+   Потоковые приложения <streamproc>
+   Расширения <extensions>
+   REST API <rest_api>
+   Бинарные форматы <binary_formats>
+   Известные проблемы и ограничения <limitations>
+   Советы и рекомендации <tips_and_tricks>
+   Планируемые улучшения <todo>

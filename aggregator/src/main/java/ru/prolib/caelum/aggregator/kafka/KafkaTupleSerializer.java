@@ -4,7 +4,7 @@ import java.math.BigInteger;
 
 import org.apache.kafka.common.serialization.Serializer;
 
-import ru.prolib.caelum.core.ByteUtils;
+import ru.prolib.caelum.lib.ByteUtils;
 
 public class KafkaTupleSerializer implements Serializer<KafkaTuple> {
 	private final ByteUtils utils;

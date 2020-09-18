@@ -19,9 +19,11 @@ public class FDBSymbolServiceConfigTest {
 	}
 	
 	void verifyDefaultProperties(Properties props) {
+		assertEquals(6, props.size());
 		assertEquals("ru.prolib.caelum.symboldb.fdb.FDBSymbolServiceBuilder", props.get("caelum.symboldb.builder"));
 		assertEquals("ru.prolib.caelum.symboldb.CommonCategoryExtractor", props.get("caelum.symboldb.category.extractor"));
 		assertEquals("5000", props.get("caelum.symboldb.list.symbols.limit"));
+		assertEquals("5000", props.get("caelum.symboldb.list.events.limit"));
 		assertEquals("caelum", props.get("caelum.symboldb.fdb.subspace"));
 		assertEquals("", props.get("caelum.symboldb.fdb.cluster"));
 	}

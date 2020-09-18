@@ -12,8 +12,9 @@ import ru.prolib.caelum.core.Interval;
 import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.itemdb.ItemDataRequest;
 import ru.prolib.caelum.itemdb.ItemDataRequestContinue;
+import ru.prolib.caelum.lib.Events;
+import ru.prolib.caelum.symboldb.EventListRequest;
 import ru.prolib.caelum.symboldb.SymbolListRequest;
-import ru.prolib.caelum.symboldb.SymbolUpdate;
 
 /**
  * Caelum facade interface.
@@ -21,15 +22,18 @@ import ru.prolib.caelum.symboldb.SymbolUpdate;
 public interface ICaelum {
 	void registerSymbol(String symbol);
 	void registerSymbol(Collection<String> symbols);
-	void registerSymbolUpdate(SymbolUpdate update);
+	void registerEvents(Events events);
+	void registerEvents(Collection<Events> events);
 	void registerItem(IItem item);
 	void registerItem(Collection<IItem> items);
+	void deleteEvents(Events events);
+	void deleteEvents(Collection<Events> events);
 	AggregatedDataResponse fetch(AggregatedDataRequest request);
 	IItemIterator fetch(ItemDataRequest request);
 	IItemIterator fetch(ItemDataRequestContinue request);
 	ICloseableIterator<String> fetchCategories();
 	ICloseableIterator<String> fetchSymbols(SymbolListRequest request);
-	ICloseableIterator<SymbolUpdate> fetchSymbolUpdates(String symbol);
+	ICloseableIterator<Events> fetchEvents(EventListRequest request);
 	void clear(boolean global);
 	List<Interval> getAggregationIntervals();
 	List<AggregatorStatus> getAggregatorStatus();

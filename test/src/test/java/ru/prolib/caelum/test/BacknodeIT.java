@@ -20,10 +20,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
@@ -45,9 +42,9 @@ import ru.prolib.caelum.test.dto.ItemsResponseDTO;
 import ru.prolib.caelum.test.dto.IntervalsResponseDTO;
 import ru.prolib.caelum.test.dto.PingResponseDTO;
 import ru.prolib.caelum.test.dto.SymbolResponseDTO;
-import ru.prolib.caelum.test.dto.SymbolUpdateDTO;
-import ru.prolib.caelum.test.dto.SymbolUpdateResponseDTO;
-import ru.prolib.caelum.test.dto.SymbolUpdatesResponseDTO;
+import ru.prolib.caelum.test.dto.EventsDTO;
+import ru.prolib.caelum.test.dto.PutEventsResponseDTO;
+import ru.prolib.caelum.test.dto.GetEventsResponseDTO;
 import ru.prolib.caelum.test.dto.SymbolsResponseDTO;
 import ru.prolib.caelum.test.dto.TuplesResponseDTO;
 
@@ -751,7 +748,7 @@ public class BacknodeIT {
 		}
 	}
 	
-	// C2*** - Test Cases of features related to symbol and symbol updates
+	// C2*** - Test Cases of features related to symbol events
 	
 	@Test
 	public void C2010_PutSymbol_PutAndTestResponse() {
@@ -950,36 +947,36 @@ public class BacknodeIT {
 	}
 	
 	@Test
-	public void C2050_PutSymbolUpdate_PutAndTestResponse() {
+	public void C2050_PutEvents_PutAndTestResponse() {
 		CatSym cs = ath.newSymbol();
 		
-		SymbolUpdateResponseDTO response =
-				ath.apiPutSymbolUpdate(ath.getSpecRandom(), cs.symbol, 112456L, 1, "foo", 2, "bar", 5, "buzz");
+		PutEventsResponseDTO response =
+				ath.apiPutEvents(ath.getSpecRandom(), cs.symbol, 112456L, 1, "foo", 2, "bar", 5, "buzz");
 		
 		assertNotError(response);
 	}
 	
 	@Test
-	public void C2051_PutSymbolUpdate_ShouldRegisterUpdate() {
+	public void C2051_PutEvents_ShouldRegisterEvents() {
 		CatSym cs = ath.newSymbol();
 		
-		assertNotError(ath.apiPutSymbolUpdate(ath.getSpecRandom(), cs.symbol, 237991L, 50, "pop", 51, "gap", 52, "die"));
+		assertNotError(ath.apiPutEvents(ath.getSpecRandom(), cs.symbol, 237991L, 50, "pop", 51, "gap", 52, "die"));
 
 		for ( RequestSpecification spec : ath.getSpecAll() ) {
-			SymbolUpdatesResponseDTO response = ath.apiGetSymbolUpdates(spec, cs.symbol);
+			GetEventsResponseDTO response = ath.apiGetEvents(spec, cs.symbol);
 			assertNotError(response);
 			assertEquals(cs.symbol, response.data.symbol);
-			List<SymbolUpdateDTO> expected = Arrays.asList(
-					new SymbolUpdateDTO(237991L, toMap(50, "pop", 51, "gap", 52, "die"))
+			List<EventsDTO> expected = Arrays.asList(
+					new EventsDTO(237991L, toMap(50, "pop", 51, "gap", 52, "die"))
 				);
 			assertEquals(expected, response.data.rows);
 		}
 	}
 	
 	@Test
-	public void C2052_PutSymbolUpdate_ShouldRegisterCategory() {
+	public void C2052_PutEvents_ShouldRegisterCategory() {
 		CatSym cs = ath.newSymbol();
-		assertNotError(ath.apiPutSymbolUpdate(ath.getSpecRandom(), cs.symbol, 279390L, 1, "foo"));
+		assertNotError(ath.apiPutEvents(ath.getSpecRandom(), cs.symbol, 279390L, 1, "foo"));
 		
 		for ( RequestSpecification spec : ath.getSpecAll() ) {
 			CategoriesResponseDTO response = ath.apiGetCategories(spec);
@@ -989,9 +986,9 @@ public class BacknodeIT {
 	}
 	
 	@Test
-	public void C2053_PutSymbolUpdate_ShouldRegisterSymbol() {
+	public void C2053_PutEvents_ShouldRegisterSymbol() {
 		CatSym cs = ath.newSymbol();
-		assertNotError(ath.apiPutSymbolUpdate(ath.getSpecRandom(), cs.symbol, 279390L, 1, "foo"));
+		assertNotError(ath.apiPutEvents(ath.getSpecRandom(), cs.symbol, 279390L, 1, "foo"));
 
 		for ( RequestSpecification spec : ath.getSpecAll() ) {
 			SymbolsResponseDTO response = ath.apiGetSymbols(spec, cs.category);
@@ -1001,39 +998,183 @@ public class BacknodeIT {
 	}
 
 	@Test
-	public void C2054_PutSymbolUpdate_ShouldOverrideExistingUpdate() {
+	public void C2054_PutEvents_ShouldAppendToExistingSlot() {
 		CatSym cs = ath.newSymbol();
-		assertNotError(ath.apiPutSymbolUpdate(ath.getSpecRandom(), cs.symbol, 279390L, 1, "foo"));
+		assertNotError(ath.apiPutEvents(ath.getSpecRandom(), cs.symbol, 279390L, 1, "foo"));
 		
-		assertNotError(ath.apiPutSymbolUpdate(ath.getSpecRandom(), cs.symbol, 279390L, 5, "back", 7, "rogers"));
+		assertNotError(ath.apiPutEvents(ath.getSpecRandom(), cs.symbol, 279390L, 5, "back", 7, "rogers"));
 		
 		for ( RequestSpecification spec : ath.getSpecAll() ) {
-			SymbolUpdatesResponseDTO response = ath.apiGetSymbolUpdates(spec, cs.symbol);
+			GetEventsResponseDTO response = ath.apiGetEvents(spec, cs.symbol);
 			assertNotError(response);
-			List<SymbolUpdateDTO> expected = Arrays.asList(
-					new SymbolUpdateDTO(279390L, toMap(5, "back", 7, "rogers"))
+			List<EventsDTO> expected = Arrays.asList(
+					new EventsDTO(279390L, toMap(1, "foo", 5, "back", 7, "rogers"))
 				);
 			assertEquals(expected, response.data.rows);
 		}
 	}
 	
 	@Test
-	public void C2060_SymbolUpdates() {
+	public void C2055_PutEvents_ShouldOverrideExistingEvents() throws Exception {
+		CatSym cs = ath.newSymbol();
+		assertNotError(ath.apiPutEvents(ath.getSpecRandom(), cs.symbol, 115214L, 1, "foo", 2, "bar", 3, "bur"));
+		
+		assertNotError(ath.apiPutEvents(ath.getSpecRandom(), cs.symbol, 115214L, 1, "pop", 3, "gap"));
+		
+		List<EventsDTO> expected = Arrays.asList(new EventsDTO(115214L, toMap(1, "pop", 2, "bar", 3, "gap")));
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			CompletableFuture<GetEventsResponseDTO> r = new CompletableFuture<>();
+			waitUntil(() -> {
+				GetEventsResponseDTO response = ath.apiGetEvents(spec, cs.symbol);
+				assertNotError(response);
+				return expected.equals(response.data.rows) ? r.complete(response) : false;
+			});
+			r.get(1, TimeUnit.SECONDS);
+		}
+	}
+	
+	@Test
+	public void C2060_GetEvents() {
 		CatSym cs = ath.newSymbol();
 		// the order does not matter
-		assertNotError(ath.apiPutSymbolUpdate(ath.getSpecRandom(), cs.symbol, 279200L, 5, "back", 7, "rogers"));
-		assertNotError(ath.apiPutSymbolUpdate(ath.getSpecRandom(), cs.symbol, 279100L, 1, "foo"));
-		assertNotError(ath.apiPutSymbolUpdate(ath.getSpecRandom(), cs.symbol, 279000L, 3, "mamba", 4, "garpia"));
+		assertNotError(ath.apiPutEvents(ath.getSpecRandom(), cs.symbol, 279200L, 5, "back", 7, "rogers"));
+		assertNotError(ath.apiPutEvents(ath.getSpecRandom(), cs.symbol, 279100L, 1, "foo"));
+		assertNotError(ath.apiPutEvents(ath.getSpecRandom(), cs.symbol, 279000L, 3, "mamba", 4, "garpia"));
 		
 		for ( RequestSpecification spec : ath.getSpecAll() ) {
-			SymbolUpdatesResponseDTO response = ath.apiGetSymbolUpdates(spec, cs.symbol);
+			GetEventsResponseDTO response = ath.apiGetEvents(spec, cs.symbol);
 			assertNotError(response);
-			List<SymbolUpdateDTO> expected = Arrays.asList(
-					new SymbolUpdateDTO(279000L, toMap(3, "mamba", 4, "garpia")),
-					new SymbolUpdateDTO(279100L, toMap(1, "foo")),
-					new SymbolUpdateDTO(279200L, toMap(5, "back", 7, "rogers"))
+			List<EventsDTO> expected = Arrays.asList(
+					new EventsDTO(279000L, toMap(3, "mamba", 4, "garpia")),
+					new EventsDTO(279100L, toMap(1, "foo")),
+					new EventsDTO(279200L, toMap(5, "back", 7, "rogers"))
 				);
 			assertEquals(expected, response.data.rows);
+		}
+	}
+	
+	@Test
+	public void C2061_GetEvents_ShouldConsiderTimeFromInclusiveAndTimeToExclusive() throws Exception {
+		CatSym cs = ath.newSymbol();
+		assertNotError(ath.apiPutEvents(ath.getSpec(), cs.symbol, 18291054L, 1, "foo", 2, "bar"));
+		assertNotError(ath.apiPutEvents(ath.getSpec(), cs.symbol, 19275491L, 1, "lol", 2, "mal"));
+		assertNotError(ath.apiPutEvents(ath.getSpec(), cs.symbol, 20176644L, 5, "212", 7, "top"));
+		assertNotError(ath.apiPutEvents(ath.getSpec(), cs.symbol, 21002989L, 1, "1.5", 2, "bar"));
+		assertNotError(ath.apiPutEvents(ath.getSpec(), cs.symbol, 21500882L, 7, "o_O", 9, "zab"));
+		assertNotError(ath.apiPutEvents(ath.getSpec(), cs.symbol, 22098130L, 3, "ups", 4, "ala"));
+		
+		List<EventsDTO> expected = Arrays.asList(
+				new EventsDTO(19275491L, toMap(1, "lol", 2, "mal")),
+				new EventsDTO(20176644L, toMap(5, "212", 7, "top")),
+				new EventsDTO(21002989L, toMap(1, "1.5", 2, "bar"))
+			);
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			CompletableFuture<GetEventsResponseDTO> r = new CompletableFuture<>();
+			waitUntil(() -> {
+				GetEventsResponseDTO response = ath.apiGetEvents(spec, cs.symbol, 19275491L, 21500882L, null);
+				assertNotError(response);
+				return expected.equals(response.data.rows) ? r.complete(response) : false;
+			});
+			r.get(1, TimeUnit.SECONDS);
+		}
+	}
+	
+	@Test
+	public void C2062_GetEvents_ShouldConsiderLimitRequested() throws Exception {
+		CatSym cs = ath.newSymbol();
+		assertNotError(ath.apiPutEvents(ath.getSpec(), cs.symbol, 18291054L, 1, "foo", 2, "bar"));
+		assertNotError(ath.apiPutEvents(ath.getSpec(), cs.symbol, 19275491L, 1, "lol", 2, "mal"));
+		assertNotError(ath.apiPutEvents(ath.getSpec(), cs.symbol, 20176644L, 5, "212", 7, "top"));
+		assertNotError(ath.apiPutEvents(ath.getSpec(), cs.symbol, 21002989L, 1, "1.5", 2, "bar"));
+		assertNotError(ath.apiPutEvents(ath.getSpec(), cs.symbol, 21500882L, 7, "o_O", 9, "zab"));
+		assertNotError(ath.apiPutEvents(ath.getSpec(), cs.symbol, 22098130L, 3, "ups", 4, "ala"));
+
+		List<EventsDTO> expected = Arrays.asList(
+				new EventsDTO(18291054L, toMap(1, "foo", 2, "bar")),
+				new EventsDTO(19275491L, toMap(1, "lol", 2, "mal")),
+				new EventsDTO(20176644L, toMap(5, "212", 7, "top"))
+			);
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			CompletableFuture<GetEventsResponseDTO> r = new CompletableFuture<>();
+			waitUntil(() -> {
+				GetEventsResponseDTO response = ath.apiGetEvents(spec, cs.symbol, null, null, 3);
+				assertNotError(response);
+				return expected.equals(response.data.rows) ? r.complete(response) : false;
+			});
+			r.get(1, TimeUnit.SECONDS);
+		}
+	}
+	
+	@Test
+	public void C2063_GetEvents_MaxLimitHasGreaterPriority() throws Exception {
+		CatSym cs = ath.newSymbol();
+		List<EventsDTO> expected = new ArrayList<>();
+		for ( int i = 0; i < 5100; i ++ ) {
+			EventsDTO e = new EventsDTO(1728619 + i, toMap(1, "foo", 2, "bar"));
+			assertNotError(ath.apiPutEvents(ath.getSpec(), cs.symbol, e.time, e.events));
+			if ( expected.size() < 5000 ) {
+				expected.add(e);
+			}
+		}
+		
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			CompletableFuture<GetEventsResponseDTO> r = new CompletableFuture<>();
+			waitUntil(() -> {
+				GetEventsResponseDTO response = ath.apiGetEvents(spec, cs.symbol, null, null, 6000);
+				assertNotError(response);
+				return expected.equals(response.data.rows) ? r.complete(response) : false;
+			});
+			r.get(1, TimeUnit.SECONDS);
+		}
+	}
+	
+	@Test
+	public void C2070_DeleteEvents_ShouldDeleteSlotCompletelyIfAllEventsRemoved() throws Exception {
+		CatSym cs = ath.newSymbol();
+		assertNotError(ath.apiPutEvents(ath.getSpec(), cs.symbol, 17247904L, 1, "hello", 2, "world"));
+		assertNotError(ath.apiPutEvents(ath.getSpec(), cs.symbol, 17247908L, 5, "basta", 7, "camry"));
+		assertNotError(ath.apiPutEvents(ath.getSpec(), cs.symbol, 17247912L, 3, "chiks", 9, "booms"));
+		
+		assertNotError(ath.apiDelEvents(ath.getSpecRandom(), cs.symbol, 17247908L, 5, 7));
+		
+		List<EventsDTO> expected = Arrays.asList(
+				new EventsDTO(17247904L, toMap(1, "hello", 2, "world")),
+				new EventsDTO(17247912L, toMap(3, "chiks", 9, "booms"))
+			);
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			CompletableFuture<GetEventsResponseDTO> r = new CompletableFuture<>();
+			waitUntil(() -> {
+				GetEventsResponseDTO response = ath.apiGetEvents(spec, cs.symbol);
+				assertNotError(response);
+				return expected.equals(response.data.rows) ? r.complete(response) : false;
+			});
+			r.get(1, TimeUnit.SECONDS);
+		}
+	}
+	
+	@Test
+	public void C2071_DeleteEvents_PartialDeletionShouldNotRemovEntireSlot() throws Exception {
+		CatSym cs = ath.newSymbol();
+		assertNotError(ath.apiPutEvents(ath.getSpec(), cs.symbol, 17247904L, 1, "hello", 2, "world"));
+		assertNotError(ath.apiPutEvents(ath.getSpec(), cs.symbol, 17247908L, 5, "basta", 7, "camry", 9, "guffy"));
+		assertNotError(ath.apiPutEvents(ath.getSpec(), cs.symbol, 17247912L, 3, "chiks", 9, "booms"));
+		
+		assertNotError(ath.apiDelEvents(ath.getSpecRandom(), cs.symbol, 17247908L, 7));
+		assertNotError(ath.apiDelEvents(ath.getSpecRandom(), cs.symbol, 17247912L, 9));
+		
+		List<EventsDTO> expected = Arrays.asList(
+				new EventsDTO(17247904L, toMap(1, "hello", 2, "world")),
+				new EventsDTO(17247908L, toMap(5, "basta", 9, "guffy")),
+				new EventsDTO(17247912L, toMap(3, "chiks"))
+			);
+		for ( RequestSpecification spec : ath.getSpecAll() ) {
+			CompletableFuture<GetEventsResponseDTO> r = new CompletableFuture<>();
+			waitUntil(() -> {
+				GetEventsResponseDTO response = ath.apiGetEvents(spec, cs.symbol);
+				assertNotError(response);
+				return expected.equals(response.data.rows) ? r.complete(response) : false;
+			});
+			r.get(1, TimeUnit.SECONDS);
 		}
 	}
 	

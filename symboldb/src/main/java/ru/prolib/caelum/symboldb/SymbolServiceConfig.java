@@ -12,6 +12,7 @@ public class SymbolServiceConfig extends AbstractConfig {
 	public static final String BUILDER				= "caelum.symboldb.builder";
 	public static final String CATEGORY_EXTRACTOR	= "caelum.symboldb.category.extractor";
 	public static final String LIST_SYMBOLS_LIMIT	= "caelum.symboldb.list.symbols.limit";
+	public static final String LIST_EVENTS_LIMIT	= "caelum.symboldb.list.events.limit";
 	
 	public SymbolServiceConfig() {
 		super();
@@ -22,6 +23,7 @@ public class SymbolServiceConfig extends AbstractConfig {
 		props.put(BUILDER, FDBSymbolServiceBuilder.class.getName());
 		props.put(CATEGORY_EXTRACTOR, CommonCategoryExtractor.class.getName());
 		props.put(LIST_SYMBOLS_LIMIT, "5000");
+		props.put(LIST_EVENTS_LIMIT, "5000");
 	}
 	
 	@Override

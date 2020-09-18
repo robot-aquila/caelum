@@ -1,21 +1,19 @@
 package ru.prolib.caelum.symboldb;
 
-import java.util.Map;
-
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-public class SymbolUpdate {
+public class EventKey {
 	private final String symbol;
 	private final long time;
-	private final Map<Integer, String> tokens;
+	private final int eventID;
 	
-	public SymbolUpdate(String symbol, long time, Map<Integer, String> tokens) {
+	public EventKey(String symbol, long time, int event_id) {
 		this.symbol = symbol;
 		this.time = time;
-		this.tokens = tokens;
+		this.eventID = event_id;
 	}
 	
 	public String getSymbol() {
@@ -26,8 +24,8 @@ public class SymbolUpdate {
 		return time;
 	}
 	
-	public Map<Integer, String> getTokens() {
-		return tokens;
+	public int getEventID() {
+		return eventID;
 	}
 	
 	@Override
@@ -35,16 +33,16 @@ public class SymbolUpdate {
 		return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
 				.append("symbol", symbol)
 				.append("time", time)
-				.append("tokens", tokens)
+				.append("eventID", eventID)
 				.build();
 	}
 	
 	@Override
 	public int hashCode() {
-		return new HashCodeBuilder(107789, 405)
+		return new HashCodeBuilder(100235, 91)
 				.append(symbol)
 				.append(time)
-				.append(tokens)
+				.append(eventID)
 				.build();
 	}
 	
@@ -53,15 +51,15 @@ public class SymbolUpdate {
 		if ( other == this ) {
 			return true;
 		}
-		if ( other == null || other.getClass() != SymbolUpdate.class ) {
+		if ( other == null || other.getClass() != EventKey.class ) {
 			return false;
 		}
-		SymbolUpdate o = (SymbolUpdate) other;
+		EventKey o = (EventKey) other;
 		return new EqualsBuilder()
 				.append(o.symbol, symbol)
 				.append(o.time, time)
-				.append(o.tokens, tokens)
+				.append(o.eventID, eventID)
 				.build();
 	}
-	
+
 }

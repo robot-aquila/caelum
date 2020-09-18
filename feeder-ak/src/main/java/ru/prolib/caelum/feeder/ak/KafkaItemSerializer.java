@@ -2,7 +2,7 @@ package ru.prolib.caelum.feeder.ak;
 
 import org.apache.kafka.common.serialization.Serializer;
 
-import ru.prolib.caelum.core.ByteUtils;
+import ru.prolib.caelum.lib.ByteUtils;
 
 public class KafkaItemSerializer implements Serializer<KafkaItem> {
 	private final ByteUtils utils;

@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title>Caelum: Symbol updates</title>
+        <title>Caelum: Events</title>
         <link rel="stylesheet" type="text/css" href="style.css" />
         <link rel="stylesheet" type="text/css" href="js/jquery.datetimepicker.min.css" />
         <script src="js/caelum-console.js"></script>
@@ -11,7 +11,6 @@
         <script>
 jQuery(function($) {
     
-    // Add new symbol update form definitions
     const ansuSetErrorMsg = function(message) {
         let element = $('#ansuErrorMsg')
         element.text(message)
@@ -40,8 +39,8 @@ jQuery(function($) {
         step: 5,
         format: 'Y-m-d H:i:s'
     })
-    const ansuGetHiddenTokens = function() {
-        let list = $('#ansuTokensTargetBody').find('input')
+    const ansuGetHiddenEvents = function() {
+        let list = $('#ansuEventsTargetBody').find('input')
         let result = { }
         for ( let i = 0; i < list.length; i ++ ) {
             let element = list[i]
@@ -56,10 +55,10 @@ jQuery(function($) {
         }
         $('#ansuNewSymbol').val('')
         $('#ansuTime').val('')
-        $('#ansuTokensTargetBody').empty()
+        $('#ansuEventsTargetBody').empty()
     }
     const ansuFormHandler = function(form) {
-        let params = ansuGetHiddenTokens()
+        let params = ansuGetHiddenEvents()
         let time = Date.parse(ansuTime.val() + 'Z')
         if ( ! time || isNaN(time) ) {
             ansuSetErrorMsg('Invalid time or time was not defined')
@@ -79,7 +78,7 @@ jQuery(function($) {
         params['symbol'] = symbol
         $.ajax({
             type: 'PUT',
-            url: '/api/v1/symbol/update',
+            url: '/api/v1/events',
             data: params
         }).done(function(data, textStatus, jqXHR) {
             ansuProcessResponse(params, data)
@@ -94,45 +93,45 @@ jQuery(function($) {
                 ansuTime: {
                     required: true
                 },
-                ansuTokenID: {
+                ansuEventID: {
                     required: false,
                     min: 1
                 }
             },
             submitHandler: ansuFormHandler
         })
-    $('#ansuAddToken').click(function() {
-        ansuGetHiddenTokens()
-        const ansuTokenID = $('#ansuTokenID')
-        const ansuTokenVal = $('#ansuTokenValue')
-        const token_id = ansuTokenID.val()
-        const token_val = ansuTokenVal.val()
-        const tokens = ansuGetHiddenTokens()
-        if ( tokens.hasOwnProperty(token_id) ) {
-            ansuSetErrorMsg('Token already exists: ' + token_id)
+    $('#ansuAddEvent').click(function() {
+        ansuGetHiddenEvents()
+        const ansuEventID = $('#ansuEventID')
+        const ansuEventVal = $('#ansuEventValue')
+        const event_id = ansuEventID.val()
+        const event_val = ansuEventVal.val()
+        const events = ansuGetHiddenEvents()
+        if ( events.hasOwnProperty(event_id) ) {
+            ansuSetErrorMsg('Event already exists: ' + event_id)
             return false
         }
         let tr = $('<tr>')
         let td1 = $('<td valign="top" align="center">')
-        let td2 = $('<td valign="top">' + token_id + '</td>')
-        let td3 = $('<td valign="top">' + token_val + '</td>')
-        let input = $('<input type="hidden" name="' + token_id + '" value="' + token_val + '" />')
+        let td2 = $('<td valign="top">' + event_id + '</td>')
+        let td3 = $('<td valign="top">' + event_val + '</td>')
+        let input = $('<input type="hidden" name="' + event_id + '" value="' + event_val + '" />')
         let button = $('<button>X</button>')
         td1.append(input)
         td1.append(button)
         tr.append(td1)
         tr.append(td2)
         tr.append(td3)
-        tr.appendTo($('#ansuTokensTargetBody'))
+        tr.appendTo($('#ansuEventsTargetBody'))
         button.click(function() { tr.remove(); return false })
-        ansuTokenID.val('')
-        ansuTokenVal.val('')
+        ansuEventID.val('')
+        ansuEventVal.val('')
         return false
     })
     
-    // Display updates form definitions
+    // Display events form definitions
     const refreshResponseInfo = function(params, response) {
-        let msg = 'Total ' + response.data.rows.length + ' updates of symbol ' + response.data.symbol
+        let msg = 'Total ' + response.data.rows.length + ' events of symbol ' + response.data.symbol
         msg += ' shown'
         $('#responseInfo').text(msg)
     };
@@ -147,10 +146,10 @@ jQuery(function($) {
         const params = {
             symbol: $('#symbol').val()
         }
-        $.getJSON('/api/v1/symbol/updates', params, function(response) {
+        $.getJSON('/api/v1/events', params, function(response) {
             const targetBody = $('#targetBody'); targetBody.empty()
             if ( response.error == true ) {
-                $('#errorMsg').text('Symbol updates query failed: [' + response.code + '] ' + response.message)
+                $('#errorMsg').text('Events query failed: [' + response.code + '] ' + response.message)
                 return
             }
             
@@ -161,12 +160,12 @@ jQuery(function($) {
             	let time = new Date(data_rows[i].time).format(dt_format, true)
                 let tr = $('<tr>')
                 $('<td valign="top" nowrap>' + time + '</td>').appendTo(tr)
-                let tokens_msg = ''
-                let tokens = data_rows[i].tokens
-                for ( let propName in tokens ) {
-                    tokens_msg += propName + ' => ' + tokens[propName] + '<br/>'
+                let events_msg = ''
+                let events = data_rows[i].events
+                for ( let propName in events ) {
+                    events_msg += propName + ' => ' + events[propName] + '<br/>'
                 }
-                $('<td>' + tokens_msg + '</td>').appendTo(tr)
+                $('<td>' + events_msg + '</td>').appendTo(tr)
                 targetBody.append(tr)
             }
         })
@@ -181,18 +180,18 @@ jQuery(function($) {
         </script>
     </head>
     <body>
-<h2>Caelum: Symbol updates</h2>
+<h2>Caelum: Events</h2>
 <a href="index.html">Main</a>
 | <a href="items.html">Items</a>
 | <a href="tuples.html">Tuples</a>
 | <a href="symbols.html">Symbols</a>
 | <a href="categories.html">Categories</a>
-| <b>Symbol updates</b>
+| <b>Events</b>
 <p>
 <hr>
 
 <p>
-<button id="ansuToggleForm">Toggle add update form</button>
+<button id="ansuToggleForm">Toggle add events form</button>
 <form id="ansuForm" >
 <table>
     <tr>
@@ -216,19 +215,19 @@ Timestamp (UTC) <input type="text" id="ansuTime" size="19" autocomplete="off" />
         </td>
     </tr>
     <tr>
-        <td nowrap><b>List of update tokens:</b></td>
+        <td nowrap><b>List of events:</b></td>
     </tr>
     <tr>
         <td nowrap>
             <table class="blueTable">
-                <thead><tr><td>Remove</td><td>Token ID</td><td>Value</td></tr></thead>
-                <tbody id="ansuTokensTargetBody"></tbody>
+                <thead><tr><td>Remove</td><td>Event ID</td><td>Value</td></tr></thead>
+                <tbody id="ansuEventsTargetBody"></tbody>
             </table>
         </td>
     </tr>
     <tr>
         <td nowrap>
-            <button>Send update</button>
+            <button>Send events</button>
         </td>
     </tr>
     <tr>
@@ -239,18 +238,18 @@ Timestamp (UTC) <input type="text" id="ansuTime" size="19" autocomplete="off" />
     </tr>
     <tr>
         <td nowrap>
-Add token ID: <input type="text" id="ansuTokenID" name="ansuTokenID" size="14" />
+Add event ID: <input type="text" id="ansuEventID" name="ansuEventID" size="14" />
 with value:
         </td>
     </tr>
     <tr>
         <td nowrap valign="top">
-<textarea cols="58" rows="6" id="ansuTokenValue" name="ansuTokenValue" ></textarea>
+<textarea cols="58" rows="6" id="ansuEventValue" name="ansuEventValue" ></textarea>
         </td>
     </tr>
     <tr>
         <td nowrap>
-<button id="ansuAddToken">Add token</button>
+<button id="ansuAddEvent">Add event</button>
         </td>
     </tr>
 </table>
@@ -262,7 +261,7 @@ with value:
 <table>
     <tr>
         <td nowrap>
-Select updates of category <select name="category" id="category" ></select>
+Select events of category <select name="category" id="category" ></select>
 <button id="refreshCategories" title="Refresh categories">O</button>
 symbol <select name="symbol" id="symbol"></select>
 <button id="refreshSymbols" title="Refresh symbols">O</button>
@@ -281,7 +280,7 @@ symbol <select name="symbol" id="symbol"></select>
     <thead id="targetHead">
         <tr>
             <td>Time</td>
-            <td>Tokens</td>
+            <td>Events</td>
         </tr>
     </thead>
     <tbody id="targetBody"></tbody>

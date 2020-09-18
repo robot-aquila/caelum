@@ -101,8 +101,8 @@
                 </executions>
                 <configuration>
                     <ignoreMissingFile>false</ignoreMissingFile>
-                    <file>version.template</file>
-                    <outputFile>version.built</outputFile>
+                    <file>${project.basedir}/version.template</file>
+                    <outputFile>${project.basedir}/version.built</outputFile>
                     <regex>false</regex>
                     <token>VERSION</token>
                     <value>${project.version}</value>

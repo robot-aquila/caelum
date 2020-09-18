@@ -37,7 +37,8 @@ public class FDBSymbolServiceBuilder implements ISymbolServiceBuilder {
 		FDBSymbolService service = new FDBSymbolService(
 				createCategoryExtractor(config.getString(FDBSymbolServiceConfig.CATEGORY_EXTRACTOR)),
 				createSchema(config.getString(FDBSymbolServiceConfig.SUBSPACE)),
-				config.getInt(FDBSymbolServiceConfig.LIST_SYMBOLS_LIMIT));
+				config.getInt(FDBSymbolServiceConfig.LIST_SYMBOLS_LIMIT),
+				config.getInt(FDBSymbolServiceConfig.LIST_EVENTS_LIMIT));
 		services.register(new FDBDatabaseService(service, config.getString(FDBSymbolServiceConfig.FDB_CLUSTER)));
 		return service;
 	}

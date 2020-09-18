@@ -4,8 +4,8 @@ import java.math.BigInteger;
 
 import org.apache.kafka.common.serialization.Deserializer;
 
-import ru.prolib.caelum.core.ByteUtils;
 import ru.prolib.caelum.core.TupleType;
+import ru.prolib.caelum.lib.ByteUtils;
 
 public class KafkaTupleDeserializer implements Deserializer<KafkaTuple>  {
 	protected final ByteUtils utils;

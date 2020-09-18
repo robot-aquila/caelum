@@ -2,11 +2,8 @@ package ru.prolib.caelum.symboldb.fdb;
 
 import static org.junit.Assert.*;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -15,8 +12,7 @@ import com.apple.foundationdb.subspace.Subspace;
 import com.apple.foundationdb.tuple.Tuple;
 
 import ru.prolib.caelum.symboldb.CategorySymbol;
-import ru.prolib.caelum.symboldb.SymbolTime;
-import ru.prolib.caelum.symboldb.SymbolUpdate;
+import ru.prolib.caelum.symboldb.EventKey;
 
 public class FDBSchemaTest {
 	FDBSchema service;
@@ -58,68 +54,6 @@ public class FDBSchemaTest {
 		
 		Subspace expected = new Subspace(Tuple.from("test"));
 		assertEquals(expected, actual);
-	}
-	
-	@Test
-	public void testPackTokens() {
-		Map<Integer, String> source = new LinkedHashMap<>();
-		source.put(1001, "zulu24");
-		source.put(1002, "hello, world!");
-		source.put(5008, "world of magic");
-		
-		byte actual[] = service.packTokens(source);
-		
-		byte expected[] = new Tuple()
-				.add(1001).add("zulu24")
-				.add(1002).add("hello, world!")
-				.add(5008).add("world of magic")
-				.pack();
-		assertArrayEquals(expected, actual);
-	}
-	
-	@Test
-	public void testPackTokens_EmptyMap() {
-		byte actual[] = service.packTokens(new LinkedHashMap<>());
-		
-		byte expected[] = new byte[0];
-		assertArrayEquals(expected, actual);
-	}
-	
-	@Test
-	public void testUnpackTokens() {
-		byte source[] = new Tuple()
-				.add(1001).add("zulu24")
-				.add(1002).add("hello, world!")
-				.add(5008).add("world of magic")
-				.pack();
-		
-		Map<Integer, String> actual = service.unpackTokens(source);
-		
-		Map<Integer, String> expected = new HashMap<>();
-		expected.put(1001, "zulu24");
-		expected.put(1002, "hello, world!");
-		expected.put(5008, "world of magic");
-		assertEquals(expected, actual);
-	}
-	
-	@Test
-	public void testUnpackTokens_EmptyMap() {
-		
-		Map<Integer, String> actual = service.unpackTokens(new byte[0]);
-
-		Map<Integer, String> expected = new HashMap<>();
-		assertEquals(expected, actual);
-	}
-	
-	@Test
-	public void testUnpackTokens_ThrowsIfUnevenSize() {
-		byte source[] = new Tuple()
-				.add(1001).add("zulu24")
-				.add(1002)
-				.pack();
-		
-		IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> service.unpackTokens(source));
-		assertEquals("Uneven amount of elements", e.getMessage());
 	}
 	
 	@Test
@@ -191,68 +125,70 @@ public class FDBSchemaTest {
 	}
 	
 	@Test
-	public void testGetSpaceSymbolUpdate1() {
-		Subspace actual = service.getSpaceSymbolUpdate("bamba");
+	public void testGetSpaceEvents1() {
+		Subspace actual = service.getSpaceEvents("bamba");
 
 		Subspace expected = new Subspace(Tuple.from("test", 0x03, "bamba"));
 		assertEquals(expected, actual);
 	}
 	
 	@Test
-	public void testGetKeySymbolUpdate2() {
-		byte[] actual = service.getKeySymbolUpdate("zulu-15", 15882668192L);
+	public void testGetKeyEvent3() {
+		byte[] actual = service.getKeyEvent("zulu-15", 15882668192L, 1001);
 		
-		byte[] expected = new Subspace(Tuple.from("test", 0x03, "zulu-15", 15882668192L)).pack();
+		byte[] expected = new Subspace(Tuple.from("test", 0x03, "zulu-15", 15882668192L, 1001)).pack();
 		assertArrayEquals(expected, actual);
 	}
 	
 	@Test
-	public void testGetKeySymbolUpdate1() {
-		byte[] actual = service.getKeySymbolUpdate(new SymbolTime("zulu-15", 15882668192L));
+	public void testGetKeyEvent1() {
+		byte[] actual = service.getKeyEvent(new EventKey("zulu-15", 15882668192L, 2480));
 		
-		byte[] expected = new Subspace(Tuple.from("test", 0x03, "zulu-15", 15882668192L)).pack();
+		byte[] expected = new Subspace(Tuple.from("test", 0x03, "zulu-15", 15882668192L, 2480)).pack();
 		assertArrayEquals(expected, actual);
 	}
 	
 	@Test
-	public void testParseKeySymbolUpdate() {
-		byte[] source = new Subspace(Tuple.from("test", 0x03, "zulu-15", 15882668192L)).pack();
+	public void testGetKeyEvent2() {
+		byte[] actual = service.getKeyEvent("bobby", 1222348899L);
 		
-		SymbolTime actual = service.parseKeySymbolUpdate(source);
+		byte[] expected = new Subspace(Tuple.from("test", 0x03, "bobby", 1222348899L)).pack();
+		assertArrayEquals(expected, actual);
+	}
+	
+	@Test
+	public void testParseKeyEvent() {
+		byte[] source = new Subspace(Tuple.from("test", 0x03, "zulu-15", 15882668192L, 85026)).pack();
 		
-		SymbolTime expected = new SymbolTime("zulu-15", 15882668192L);
+		EventKey actual = service.parseKeyEvent(source);
+		
+		EventKey expected = new EventKey("zulu-15", 15882668192L, 85026);
 		assertEquals(expected, actual);
 	}
 
 	@Test
-	public void testPackSymbolUpdate() {
-		Map<Integer, String> tokens = new LinkedHashMap<>();
-		tokens.put(1200, "foo");
-		tokens.put(1201, "bar");
-		tokens.put(1300, "buz");
-		SymbolUpdate source = new SymbolUpdate("symbol", 16627822990L, tokens);
+	public void testPackEventData() {
+		byte actual[] = service.packEventData("lumbaza capuccino");
 		
-		KeyValue actual = service.packSymbolUpdate(source);
-		
-		KeyValue expected = new KeyValue(
-			new Subspace(Tuple.from("test", 0x03, "symbol", 16627822990L)).pack(),
-			Tuple.from(1200, "foo", 1201, "bar", 1300, "buz").pack());
-		assertEquals(expected, actual);
+		byte expected[] = "lumbaza capuccino".getBytes();
+		assertArrayEquals(expected, actual);
 	}
 	
 	@Test
-	public void testUnpackSymbolUpdate() {
-		KeyValue source = new KeyValue(
-				new Subspace(Tuple.from("test", 0x03, "zyamba", 15778003120L)).pack(),
-				Tuple.from(1345, "alpha", 1346, "beta", 1347, "gamma").pack());
+	public void testUnpackEventData() {
+		String actual = service.unpackEventData("kabambaber".getBytes());
 		
-		SymbolUpdate actual = service.unpackSymbolUpdate(source);
+		assertEquals("kabambaber", actual);
+	}
+	
+	@Test
+	public void testUnpackEvent() {
+		KeyValue source = new KeyValue(new Subspace(Tuple.from("test", 0x03, "zyamba", 15778003120L, 5001)).pack(),
+				"tulusa visconci".getBytes());
 		
-		Map<Integer, String> expected_tokens = new LinkedHashMap<>();
-		expected_tokens.put(1345, "alpha");
-		expected_tokens.put(1346, "beta");
-		expected_tokens.put(1347, "gamma");
-		SymbolUpdate expected = new SymbolUpdate("zyamba", 15778003120L, expected_tokens);
+		Pair<EventKey, String> actual = service.unpackEvent(source);
+		
+		Pair<EventKey, String> expected = Pair.of(new EventKey("zyamba", 15778003120L, 5001), "tulusa visconci");
 		assertEquals(expected, actual);
 	}
 

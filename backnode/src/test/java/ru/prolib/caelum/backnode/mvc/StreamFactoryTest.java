@@ -21,8 +21,9 @@ import ru.prolib.caelum.core.ICloseableIterator;
 import ru.prolib.caelum.core.ITuple;
 import ru.prolib.caelum.itemdb.IItemDataRequest;
 import ru.prolib.caelum.itemdb.IItemIterator;
+import ru.prolib.caelum.lib.Events;
+import ru.prolib.caelum.symboldb.EventListRequest;
 import ru.prolib.caelum.symboldb.SymbolListRequest;
-import ru.prolib.caelum.symboldb.SymbolUpdate;
 
 @SuppressWarnings("unchecked")
 public class StreamFactoryTest {
@@ -113,18 +114,19 @@ public class StreamFactoryTest {
 	}
 	
 	@Test
-	public void testSymbolUpdatesToJson() {
-		ICloseableIterator<SymbolUpdate> itMock = control.createMock(ICloseableIterator.class);
+	public void testEventsToJson() {
+		ICloseableIterator<Events> itMock = control.createMock(ICloseableIterator.class);
+		EventListRequest request = new EventListRequest("foo@bar");
 		
-		StreamingOutput actual = service.symbolUpdatesToJson(itMock, "foo@bar");
+		StreamingOutput actual = service.eventsToJson(itMock, request);
 		
 		assertNotNull(actual);
-		assertThat(actual, is(instanceOf(StreamSymbolUpdatesToJson.class)));
-		StreamSymbolUpdatesToJson x = (StreamSymbolUpdatesToJson) actual;
+		assertThat(actual, is(instanceOf(StreamEventsToJson.class)));
+		StreamEventsToJson x = (StreamEventsToJson) actual;
 		assertSame(jsonFactoryMock, x.getJsonFactory());
 		assertSame(clockMock, x.getClock());
 		assertSame(itMock, x.getIterator());
-		assertEquals("foo@bar", x.getRequest());
+		assertEquals(request, x.getRequest());
 	}
 	
 	@Test

@@ -3,7 +3,6 @@ package ru.prolib.caelum.symboldb.fdb;
 import static org.junit.Assert.*;
 
 import java.util.Arrays;
-import java.util.HashMap;
 
 import static org.easymock.EasyMock.*;
 
@@ -16,10 +15,12 @@ import com.apple.foundationdb.subspace.Subspace;
 import com.apple.foundationdb.tuple.Tuple;
 
 import ru.prolib.caelum.core.ICloseableIterator;
+import ru.prolib.caelum.lib.Events;
+import ru.prolib.caelum.lib.EventsBuilder;
 import ru.prolib.caelum.symboldb.ICategoryExtractor;
 import ru.prolib.caelum.symboldb.CommonCategoryExtractor;
+import ru.prolib.caelum.symboldb.EventListRequest;
 import ru.prolib.caelum.symboldb.SymbolListRequest;
-import ru.prolib.caelum.symboldb.SymbolUpdate;
 
 @SuppressWarnings("unchecked")
 public class FDBSymbolServiceTest {
@@ -37,7 +38,7 @@ public class FDBSymbolServiceTest {
 		itMock = control.createMock(ICloseableIterator.class);
 		catExt = new CommonCategoryExtractor();
 		schema = new FDBSchema(new Subspace(Tuple.from("xxx")));
-		service = new FDBSymbolService(catExt, schema, 4000);
+		service = new FDBSymbolService(catExt, schema, 4000, 5000);
 		service.setDatabase(dbMock);
 	}
 	
@@ -47,6 +48,7 @@ public class FDBSymbolServiceTest {
 		assertSame(catExt, service.getCategoryExtractor());
 		assertSame(schema, service.getSchema());
 		assertEquals(4000, service.getListSymbolsMaxLimit());
+		assertEquals(5000, service.getListEventsMaxLimit());
 	}
 	
 	@Test
@@ -71,13 +73,77 @@ public class FDBSymbolServiceTest {
 	}
 	
 	@Test
-	public void testRegisterSymbolUpdate() {
-		expect(dbMock.run(new FDBTransactionRegisterSymbolUpdate(schema, catExt,
-				new SymbolUpdate("kappa", 1872628L, new HashMap<>()))))
-			.andReturn(null);
+	public void testRegisterEvents_S() {
+		Events e = new EventsBuilder()
+				.withSymbol("kappa")
+				.withTime(1872626L)
+				.withEvent(5001, "lumumbr")
+				.withEvent(5004, "25.19")
+				.build();
+		expect(dbMock.run(new FDBTransactionRegisterEvents(schema, catExt, Arrays.asList(e)))).andReturn(null);
 		control.replay();
 		
-		service.registerSymbolUpdate(new SymbolUpdate("kappa", 1872628L, new HashMap<>()));
+		service.registerEvents(e);
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testRegisterEvents_L() {
+		Events
+			e1 = new EventsBuilder()
+				.withSymbol("kappa")
+				.withTime(1872626L)
+				.withEvent(5001, "lumumbr")
+				.withEvent(5004, "25.19")
+				.build(),
+			e2 = new EventsBuilder()
+				.withSymbol("foo@bar")
+				.withTime(1728361L)
+				.withEvent(3045, "hello, world")
+				.build();
+		expect(dbMock.run(new FDBTransactionRegisterEvents(schema, catExt, Arrays.asList(e1, e2)))).andReturn(null);
+		control.replay();
+		
+		service.registerEvents(Arrays.asList(e1, e2));
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testDeleteEvents_S() {
+		Events e = new EventsBuilder()
+				.withSymbol("kappa")
+				.withTime(1872626L)
+				.withEvent(5001, "lumumbr")
+				.withEvent(5004, "25.19")
+				.build();
+		expect(dbMock.run(new FDBTransactionDeleteEvents(schema, Arrays.asList(e)))).andReturn(null);
+		control.replay();
+		
+		service.deleteEvents(e);
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testDeleteEvents_L() {
+		Events
+			e1 = new EventsBuilder()
+				.withSymbol("kappa")
+				.withTime(1872626L)
+				.withEvent(5001, "lumumbr")
+				.withEvent(5004, "25.19")
+				.build(),
+			e2 = new EventsBuilder()
+				.withSymbol("foo@bar")
+				.withTime(1728361L)
+				.withEvent(3045, "hello, world")
+				.build();
+		expect(dbMock.run(new FDBTransactionDeleteEvents(schema, Arrays.asList(e1, e2)))).andReturn(null);
+		control.replay();
+		
+		service.deleteEvents(Arrays.asList(e1, e2));
 		
 		control.verify();
 	}
@@ -104,12 +170,13 @@ public class FDBSymbolServiceTest {
 	}
 	
 	@Test
-	public void testListSymbolUpdates() {
-		expect(dbMock.run(new FDBTransactionListSymbolUpdates(schema, "foo@bar")))
-			.andReturn((ICloseableIterator<SymbolUpdate>) itMock);
+	public void testListEvents() {
+		EventListRequest request = new EventListRequest("foo@bar");
+		expect(dbMock.run(new FDBTransactionListEvents(schema, request, 5000)))
+			.andReturn((ICloseableIterator<Events>) itMock);
 		control.replay();
 		
-		assertSame(itMock, service.listSymbolUpdates("foo@bar"));
+		assertSame(itMock, service.listEvents(request));
 		
 		control.verify();
 	}

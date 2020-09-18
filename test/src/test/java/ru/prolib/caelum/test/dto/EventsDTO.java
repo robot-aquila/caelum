@@ -7,17 +7,17 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-public class SymbolUpdateDTO {
+public class EventsDTO {
 	public Long time;
-	public Map<Integer, String> tokens;
+	public Map<Integer, String> events;
 	
-	public SymbolUpdateDTO() {
+	public EventsDTO() {
 		
 	}
 	
-	public SymbolUpdateDTO(long time, Map<Integer, String> tokens) {
+	public EventsDTO(long time, Map<Integer, String> tokens) {
 		this.time = time;
-		this.tokens = tokens;
+		this.events = tokens;
 	}
 	
 	@Override
@@ -25,13 +25,13 @@ public class SymbolUpdateDTO {
 		if ( other == this ) {
 			return true;
 		}
-		if ( other == null || other.getClass() != SymbolUpdateDTO.class ) {
+		if ( other == null || other.getClass() != EventsDTO.class ) {
 			return false;
 		}
-		SymbolUpdateDTO o = (SymbolUpdateDTO) other;
+		EventsDTO o = (EventsDTO) other;
 		return new EqualsBuilder()
 				.append(o.time, time)
-				.append(o.tokens, tokens)
+				.append(o.events, events)
 				.build();
 	}
 	
@@ -39,7 +39,7 @@ public class SymbolUpdateDTO {
 	public int hashCode() {
 		return new HashCodeBuilder(8290117, 79)
 				.append(time)
-				.append(tokens)
+				.append(events)
 				.build();
 	}
 	
@@ -47,7 +47,7 @@ public class SymbolUpdateDTO {
 	public String toString() {
 		return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
 				.append("time", time)
-				.append("tokens", tokens)
+				.append("events", events)
 				.build();
 	}
 	

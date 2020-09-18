@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -39,7 +40,6 @@ import ru.prolib.caelum.aggregator.AggregatedDataRequest;
 import ru.prolib.caelum.aggregator.AggregatedDataResponse;
 import ru.prolib.caelum.backnode.mvc.AggregatorStatusMvcAdapter;
 import ru.prolib.caelum.backnode.mvc.StreamFactory;
-import ru.prolib.caelum.core.ByteUtils;
 import ru.prolib.caelum.core.HostInfo;
 import ru.prolib.caelum.core.IItem;
 import ru.prolib.caelum.core.Item;
@@ -48,9 +48,12 @@ import ru.prolib.caelum.core.Interval;
 import ru.prolib.caelum.core.Intervals;
 import ru.prolib.caelum.itemdb.ItemDataRequest;
 import ru.prolib.caelum.itemdb.ItemDataRequestContinue;
+import ru.prolib.caelum.lib.ByteUtils;
+import ru.prolib.caelum.lib.Events;
+import ru.prolib.caelum.lib.EventsBuilder;
 import ru.prolib.caelum.service.ICaelum;
+import ru.prolib.caelum.symboldb.EventListRequest;
 import ru.prolib.caelum.symboldb.SymbolListRequest;
-import ru.prolib.caelum.symboldb.SymbolUpdate;
 
 @Path("/api/v1/")
 @Produces(MediaType.APPLICATION_JSON)
@@ -186,12 +189,23 @@ public class NodeService {
 		return new SymbolListRequest(validateCategory(category), afterSymbol, limit);
 	}
 	
-	private Result<Void> success() {
+	private EventListRequest toEventListRequest(String symbol, Long from, Long to, Integer limit) {
+		from = validateFrom(from);
+		to = validateTo(to);
+		validateFromAndTo(from, to);
+		return new EventListRequest(symbol, from, to, limit);
+	}
+	
+	Result<Void> success() {
 		return new Result<Void>(System.currentTimeMillis(), null);
 	}
 	
-	private <T> Result<T> success(T data) {
+	<T> Result<T> success(T data) {
 		return new Result<>(System.currentTimeMillis(), data);
+	}
+	
+	Result<Void> failure(int code, String message) {
+		return new Result<>(System.currentTimeMillis(), code, message);
 	}
 	
 	private long toLong(BigDecimal value) {
@@ -386,20 +400,26 @@ public class NodeService {
 	}
 	
 	@GET
-	@Path("/symbol/updates")
-	public Response symbolUpdates(@QueryParam("symbol") @NotNull final String symbol) {
+	@Path("/events")
+	public Response getEvents(
+			@QueryParam("symbol") @NotNull final String symbol,
+			@QueryParam("from") final Long from,
+			@QueryParam("to") final Long to,
+			@QueryParam("limit") final Integer limit)
+	{
+		EventListRequest request = toEventListRequest(symbol, from, to, limit);
 		return Response.status(200)
-			.entity(streamFactory.symbolUpdatesToJson(caelum.fetchSymbolUpdates(validateSymbol(symbol)), symbol))
+			.entity(streamFactory.eventsToJson(caelum.fetchEvents(request), request))
 			.build();
 	}
 	
 	@PUT
-	@Path("/symbol/update")
+	@Path("/events")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public Result<Void> symbolUpdate(MultivaluedMap<String, String> params) {
+	public Result<Void> putEvents(MultivaluedMap<String, String> params) {
 		String symbol = null;
 		Long time = null;
-		Map<Integer, String> tokens = new LinkedHashMap<>();
+		Map<Integer, String> events = new LinkedHashMap<>();
 		for ( String param : params.keySet() ) {
 			String value = params.getFirst(param);
 			if ( "symbol".equals(param) ) {
@@ -408,16 +428,45 @@ public class NodeService {
 				time = Long.parseLong(value);
 			} else if ( StringUtils.isNumeric(param) ) {
 				try {
-					tokens.put(Integer.parseInt(param), value);
+					events.put(Integer.parseInt(param), value);
 				} catch ( NumberFormatException e ) {
-					throw new BadRequestException("Illegal token: " + param);
+					throw new BadRequestException("Illegal event ID: " + param);
 				}
 			} else {
 				throw new BadRequestException("Unknown parameter or parameter type: " + param);
 			}
 		}
-		caelum.registerSymbolUpdate(new SymbolUpdate(validateSymbol(symbol), validateTime(time), tokens));
+		caelum.registerEvents(new Events(validateSymbol(symbol), validateTime(time), events));
 		return success(); 
+	}
+	
+	@DELETE
+	@Path("/events")
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	public Result<Void> delEvents(MultivaluedMap<String, String> params) {
+		String symbol = null;
+		Long time = null;
+		EventsBuilder builder = new EventsBuilder();
+		for ( String param : params.keySet() ) {
+			String value = params.getFirst(param);
+			if ( "symbol".equals(param) ) {
+				builder.withSymbol(symbol = value);
+			} else if ( "time".equals(param) ) {
+				builder.withTime(time = Long.parseLong(value));
+			} else if ( StringUtils.isNumeric(param) ) {
+				try {
+					builder.withEvent(Integer.parseInt(param), "delete");
+				} catch ( NumberFormatException e ) {
+					throw new BadRequestException("Illegal event ID: " + param);
+				}
+			} else {
+				throw new BadRequestException("Unknown parameter or parameter type: " + param);
+			}
+		}
+		validateSymbol(symbol);
+		validateTime(time);
+		caelum.deleteEvents(builder.build());
+		return success();
 	}
 	
 	@PUT

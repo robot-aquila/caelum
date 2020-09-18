@@ -7,7 +7,6 @@ import static ru.prolib.caelum.aggregator.AggregatorState.*;
 import static ru.prolib.caelum.aggregator.AggregatorType.*;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 import org.easymock.IMocksControl;
@@ -26,9 +25,11 @@ import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.itemdb.IItemDatabaseService;
 import ru.prolib.caelum.itemdb.ItemDataRequest;
 import ru.prolib.caelum.itemdb.ItemDataRequestContinue;
+import ru.prolib.caelum.lib.Events;
+import ru.prolib.caelum.lib.EventsBuilder;
 import ru.prolib.caelum.symboldb.SymbolListRequest;
+import ru.prolib.caelum.symboldb.EventListRequest;
 import ru.prolib.caelum.symboldb.ISymbolService;
-import ru.prolib.caelum.symboldb.SymbolUpdate;
 
 @SuppressWarnings("unchecked")
 public class CaelumTest {
@@ -82,11 +83,79 @@ public class CaelumTest {
 	}
 	
 	@Test
-	public void testRegisterSymbolUpdate() {
-		symbolSvcMock.registerSymbolUpdate(new SymbolUpdate("foo@bar", 15272893L, new HashMap<>()));
+	public void testRegisterEvents_S() {
+		Events e = new EventsBuilder()
+				.withSymbol("foo@bar")
+				.withTime(15272893L)
+				.withEvent(101, "pop")
+				.withEvent(102, "gap")
+				.build();
+		symbolSvcMock.registerEvents(e);
 		control.replay();
 		
-		service.registerSymbolUpdate(new SymbolUpdate("foo@bar", 15272893L, new HashMap<>()));
+		service.registerEvents(e);
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testRegisterEvents_L() {
+		Events
+			e1 = new EventsBuilder()
+				.withSymbol("foo@bar")
+				.withTime(15272893L)
+				.withEvent(101, "pop")
+				.withEvent(102, "gap")
+				.build(),
+			e2 = new EventsBuilder()
+				.withSymbol("zoo@spa")
+				.withTime(14284415L)
+				.withEvent(5004, "luna")
+				.withEvent(5005, "44")
+				.build();
+		symbolSvcMock.registerEvents(Arrays.asList(e1, e2));
+		control.replay();
+		
+		service.registerEvents(Arrays.asList(e1, e2));
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testDeleteEvents_S() {
+		Events e = new EventsBuilder()
+				.withSymbol("foo@bar")
+				.withTime(15272893L)
+				.withEvent(101, "pop")
+				.withEvent(102, "gap")
+				.build();
+		symbolSvcMock.deleteEvents(e);
+		control.replay();
+		
+		service.deleteEvents(e);
+		
+		control.verify();
+	}
+	
+	@Test
+	public void testDeleteEvents_L() {
+		Events
+			e1 = new EventsBuilder()
+				.withSymbol("foo@bar")
+				.withTime(15272893L)
+				.withEvent(101, "pop")
+				.withEvent(102, "gap")
+				.build(),
+			e2 = new EventsBuilder()
+				.withSymbol("zoo@spa")
+				.withTime(14284415L)
+				.withEvent(5004, "luna")
+				.withEvent(5005, "44")
+				.build();
+		symbolSvcMock.deleteEvents(Arrays.asList(e1, e2));
+		control.replay();
+		
+		service.deleteEvents(Arrays.asList(e1, e2));
 		
 		control.verify();
 	}
@@ -175,12 +244,13 @@ public class CaelumTest {
 	}
 	
 	@Test
-	public void testFetchSymbolUpdates() {
-		ICloseableIterator<SymbolUpdate> resultMock = control.createMock(ICloseableIterator.class);
-		expect(symbolSvcMock.listSymbolUpdates("kabucha@listed")).andReturn(resultMock);
+	public void testFetchEvents() {
+		EventListRequest request = new EventListRequest("kabucha@listed");
+		ICloseableIterator<Events> resultMock = control.createMock(ICloseableIterator.class);
+		expect(symbolSvcMock.listEvents(request)).andReturn(resultMock);
 		control.replay();
 		
-		assertSame(resultMock, service.fetchSymbolUpdates("kabucha@listed"));
+		assertSame(resultMock, service.fetchEvents(request));
 		
 		control.verify();
 	}

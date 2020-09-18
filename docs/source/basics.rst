@@ -1,131 +1,121 @@
 .. _basics:
 
-*****************
-Базовая концепция
-*****************
-
-Модель данных
-=============
-
-**Caelum** - это система сбора, хранения и анализа статистических данных. Несмотря на то, что модель данных **Caelum**
-(далее - данные **Caelum**) покрывает широкий диапазон вариантов использования, существуют задачи, для решения которых
-данная система не подходит. Прежде всего следует понимать, что данные **Caelum** - это временные ряды. Если отобразить
-данные **Caelum** в виде графика, то одна ось всегда представляет время с точностью до миллисекунд.
-
-.. figure:: _static/plot_blank_236x200.png
-    :align: right
-    :figwidth: 236px
-
-
-Три картинки: items, tuples и events
-
-items - моментный интервальный ряд, где есть качественный и количественный показатели
-tuples - интервальный
-events - просто фиксирует момент наступления события и его тип
-
-Архитектура системы
-===================
-
-Картинка:
-слева фидер подает items в кафку
-слева регистрирует события через REST API
-
-по центру кафка и fdb
-снизу REST API коннектится к кафке и fdb
-
-между субд и REST API backnode - caelum app
-caelum app включает в себя агрегаторы, itemdb, symboldb, extensions
-
-Про докер
-=========
-
-
-TODO: The case???
-
-The main concept is to provide consumer-like interface to gather all critical data, process and access it ASAP.
-There are dependencies between incoming data and resources needed to process and store all data in suitable time.
-How much resources and which resources needed is an issue which outside of scope. The solution is to change
-configuration instead of software. You can choose number of nodes and their specification exactly to that needed to
-process all incoming volume of data, up enought nodes and enjoy of the result. Processed data can pass thru to be
-consumed by software of higher level or to be consumed external consumers via unified APIs.
-
-These are just few terms you have to know to understand how it works:
+****************
+Основные понятия
+****************
 
 .. contents::
     :local:
     :depth: 2
 
-****
+**Caelum** - это система сбора, хранения и анализа статистических данных. **Caelum** собирает факты нескольких типов
+и формирует из них временные ряды, пригодные для последующего использования в качестве источника исторических данных,
+для визуализации, прогнозирования динамики показателей или автоматизации принятия решений. В данном разделе
+рассматриваются предметная область и элементы модели данных **Caelum**.
 
-Symbol
+
+Пункты
 ------
 
-A *Symbol* is a string-type natural key representing a single event type. For example it can be a stock-exchange
-security ticker or sensor ID or any other string to make possible distinguish one data source (or data meaning) from
-other. *Symbol* is used to logically group the data of same event type together. To access event data in any kind of its
-representation via **Caelum** a *symbol* is mandatory parameter. **Caelum** automatically tracks incoming *symbols* and
-stores it in special directory. Also *symbols* can be stored to the directory explicitly by calling API method. Looking
-ahead, you cannot obtain the list of *symbols* without specifying a *category*.
+.. figure:: _static/items_236x200.png
+    :align: right
+    :figwidth: 236px
+ 
+    Пример визуализации временного ряда пунктов.
+ 
+Факты, фиксирующие значения числовых показателей в определенный момент времени в системе **Caelum** называются пунктами
+(*items*). В околобиржевой среде эти данные более известны как тики или тиковые данные. Однако, **Caelum** стремится
+абстрагироваться от узкоспециализированных отраслей и по этому мы будем называть их пунктами. Каждый пункт
+характеризуется парой числовых значений: качественным и количественным показателями. С каждым моментом времени могут
+быть связаны ноль, один или несколько пунктов. Совокупность всех пунктов образует моментный временной ряд.
 
-Category
---------
+Что конкретно символизирует каждый отдельный пункт, полностью зависит от предметной области и поставленной задачи.
+Это может быть торговая сделка, где качественный показатель выражает цену за единицу товара, а количественный
+показатель - это количество сделки. Или значение определенного сенсора, где качественный показатель выражает
+измерение с датчика в определенный момент времени. Или количество сообщений, полученных в процессе отдельного сеанса
+с почтовым сервисом. В общем, это могут быть любые данные, которые можно выразить качественно или количественно и
+которые необходимо собирать, хранить, получать и анализировать.
 
-Because we said there thousands of event types are possible that mean we will face with lot of *symbols*. To make
-navigation easier there are *categories*. *Category* is the string-type identifier that allow to group *symbols*
-together. *Category* cannot be assigned manually but you can assign *Category Extractor* that will responsible to assign
-*category* (or *categories*) for incoming events. By default **Caelum** consider that each *symbol* contains
-information about *category*: the part of *symbol* from start up to *@* character considering as *category*. If *@*
-character is not present then empty *category* will be assigned. With minor development efforts you can assign your own
-*category extractor* with specific logic. For example with default *category extractor* there will be new *category*
-in the system if at least one event of symbol *NYSE@AAPL* came. The *category* is *NYSE*. You can get the list of all
-available *categories* and *symbols* belong to concrete *category* via API call. 
+Важно понимать, что качественный и количественный показатели пунктов используются принципиально разными агрегатными
+функциями для получения кортежей - интервального временного ряда, построенного на базе пунктов, в отношении которых
+применены функции агрегирования данных. Если при подаче данных в систему неправильно определить характер показателя,
+то можно получить неожиданный результат.
 
-Item
-----
+В системе **Caelum** Каждому моменту времени может соответствовать ни одного, один или несколько пунктов. Иными
+словами, в системе могут быть несколько разных или даже одинаковых по показателям пунктов с одинаковым временем.
+Это критично для тех систем, где первичным является факт, а не состояние в определенный момент времени. Например,
+для фиксации торговых сделок, где несколько сделок могут быть выполнены одновременно. Или в системах мониторинга
+программно-аппаратных комплексов, где в один момент времени могут поступать показатели из различных источников.
 
-An *item* is main food of the system. You should feed the system with *items* to get it work. An *item* represents of a
-single event that comes in and should be stored and processed inside the system. *Item* is just a tuple of four
-components: *symbol*, time, value and volume. *Symbol* is described above. Time of *item* is the time when event is
-happened. Value is something valuable (like price or sensor reading). And volume is optional quantitative measurement
-(like quantity of purchase). You should provide such data to make it stored and get aggregates as output. Depends on
-configuration you can get *items* stored forever or just for particular period. Available *items* can be requested via
-special API call.
 
-Tuple
------
-
-A *Tuple* is a result of aggregation *items* for particular period of time. *Tuple* calculation based on *items*
-belonging to the same period of time that *tuple* is. These are four elements based on *items* value movement: opening,
-high, low and closing values; total sum of volume of all *items* included to the period, *symbol* (as described above)
-and time of beginning particular time period. Depends on configuration *tuples* can be produced and stored by **Caelum**
-automatically. If at least one aggregator is started **Caelum** could produce *tuples* of bigger time frames on-the-fly
-(definitely it will cost you performance). So you can configure to run aggregators for particular periods for example
-1 minute, 5 minutes, 6 hours or whatever you want depending on case and **Caelum** will produce
-`OHLC+Volume <https://en.wikipedia.org/wiki/Open-high-low-close_chart>`__ *tuples* for you. In case if there is
-real-time consumers of *OHLC* data the output stream can be forwarded to another software or retranslated via
-thin software layer especially developed for that purposes. *Tuples* of particular *symbol* for particular time frame
-and period of time can be obtained via API call.
-
-Symbol update
--------------
-
-*Items* and *tuples* are for aggregation and time series. But what if the data cannot be aggregated? What is there are
-some attribute of *symbol* that can be changed with time but it is string or boolean value? **Caelum** offers solution
-for such cases - the sequence of updates of symbol. Consider *symbol updates* as sequence of changes of secondary
-attributes of data source where each update provides information of when, what attributes has been changed and which
-new values they are got. Each *symbol update* contains *symbol*, time of update happened and map of key->values
-representing the changes. For example if you operate stock-exchange market data and there is an initial margin attribute
-of symbol which changes from time to time it can be stored as *symbol update*. Tracking all updates from beginning
-will give the actual state of *symbol* attributes at the end of time. Tracking updates from beginning up to particular
-time will give a snapshot of attributes at specific time. *Symbol updates* can be stored and obtained via API calls.
-
-Feeder
+Кортежи
 -------
 
-TODO:
+.. figure:: _static/tuples_236x200.png
+    :align: right
+    :figwidth: 236px
+ 
+    Пример визуализации интервального временного ряда кортежей.
+ 
+**Caelum** автоматически подготавливает данные для более удобной обработки в виде интервальных временных рядов.
+Все факты, фиксирующие значения числовых показателей с помощью агрегатных функций группируются в *OHLC+V*
+кортежи, представляющие сводные данные за определенные равные промежутки времени.
 
-Backnode
----------
+*OHLC+V* буквально означает Open-High-Low-Close+Volume. Такой кортеж представляет собой группу значений
+соответственно открытия, максимума, минимума и закрытия расчитанных на базе качественного показателя, а также сумму
+значений количественного показателя для всех пунктов, входящих во временной интервал кортежа. Данный формат является
+стандартом де-факто в индустрии биржевой торговли, активно используется при анализе рыночных данных и подходит для
+любых данных в отношении которых применим анализ интервальных временных рядов. **Caelum** позволяет работать с
+интервалами различной длины, начиная с минутных.
 
-TODO:
 
+События
+-------
+
+.. figure:: _static/events_236x200.png
+    :align: right
+    :figwidth: 236px
+ 
+    Пример визуализации временного ряда событий.
+
+Факты, не имеющие численного выражения или не предназначенные для агрегирования называются событиями (*events*).
+Тип события определяется целочисленным идентификатором, а значение - произвольной строкой. В отличии от пунктов,
+на каждый момент времени может быть зарегистрировано только одно событие конкретного типа. События разных типов
+группируются по времени и сохраняются в отдельном слоте, представляя собой состояние определенных характеристик в
+конкретный момент времени. В технических выражениях, с определенным моментом времени связывается ассоциативный
+массив, где целочисленные ключи - это типы событий, а значения - строки, более детально характеризующие событие
+типа.
+
+Совокупность событий образует временную последовательность, которая представляет собой историю обновлений
+значимых характеристик. Например, даты выплаты дивидендов и суммы выплат на акцию, даты публикаций отчетов, даты
+изменений процентной ставки по кредитам и ее новые значения и так далее. Рассматривать последовательность можно
+с разных точек зрения в зависимости от потребностей. Если каждый слот событий представляет собой слепок всех
+атрибутов объекта, то такую последовательность можно использовать для определения состояния объекта на конкретную
+дату. Если же слоты содержат только те атрибуты, для которых произошло изменение, то такую последовательность
+можно рассматривать как последовательность инкрементальных обновлений. Совмещая графики пунктов и событий или
+кортежей и событий можно выявлять корелляции и делать выводы о том, как то или иное событие влияет на динамику
+измеряемых показателей.
+
+
+Символы и категории
+-------------------
+
+В предыдущих параграфах рассматривались данные в обобщенном виде, но не раскрывалось как **Caelum** работает с
+номенклатурой. **Caelum** разработан с учетом того, что количество учетных единиц будет достигать десятков
+тысяч, сотен тысяч или даже миллионов единиц.
+
+Для логического разделения данных в **Caelum** используются символы (*symbols*). Символ это произвольная строка,
+позволяющая идентифицировать номенклатурную единицу. В терминах базы данных, символ - это первичный ключ объекта
+учета. Символом может быть тикер, идентификатор товара, идентификатор пользователя, компьютера или иного сенсора.
+Символ является обязательным атрибутом в отношении пунктов, кортежей и событий. Это значит, что каждый пункт,
+кортеж или событие связаны с одним и только одним символом. С другой стороны, наличие в системе символа не
+означает, что с этим символом связаны пункты, кортежи или события. Каталог символов не связан жестко с учетными
+данными может быть использован обособлено.
+
+**Caelum** предполагает наличие большого количества символов. Для облегчения навигации по каталогу символов в
+**Caelum** введено понятие категорий (*categories*). Также как и символы, категории представляются строковыми
+идентификаторами, позволяющими группировать символы в отдельные группы по определенному признаку. Категория не
+может быть назначена для символа явно. При обнаружении нового символа, **Caelum** с помощью специального алгоритма
+автоматически определяет список категорий этого символа и создает соответствующие записи в каталогах символов и
+категорий. Впоследствии, используя идентификатор категории можно делать выборки символов, объединенных по общему
+признаку. А используя символ, можно делать выборки пунктов, кортежей и событий.

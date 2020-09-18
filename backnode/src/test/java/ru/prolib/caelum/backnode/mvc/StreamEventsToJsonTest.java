@@ -17,9 +17,10 @@ import org.skyscreamer.jsonassert.JSONAssert;
 import com.fasterxml.jackson.core.JsonFactory;
 
 import ru.prolib.caelum.core.IteratorStub;
-import ru.prolib.caelum.symboldb.SymbolUpdate;
+import ru.prolib.caelum.lib.Events;
+import ru.prolib.caelum.symboldb.EventListRequest;
 
-public class StreamSymbolUpdatesToJsonTest {
+public class StreamEventsToJsonTest {
 	
 	static Map<Integer, String> toMap(Object... args) {
 		if ( args.length % 2 != 0 ) {
@@ -32,16 +33,17 @@ public class StreamSymbolUpdatesToJsonTest {
 		return result;
 	}
 	
-	static SymbolUpdate U(String symbol, long time, Object... args) {
-		return new SymbolUpdate(symbol, time, toMap(args));
+	static Events E(String symbol, long time, Object... args) {
+		return new Events(symbol, time, toMap(args));
 	}
 	
 	JsonFactory jsonFactory = new JsonFactory();
 	IMocksControl control;
 	Clock clockMock;
 	ByteArrayOutputStream output;
-	IteratorStub<SymbolUpdate> iterator;
-	StreamSymbolUpdatesToJson service;
+	IteratorStub<Events> iterator;
+	StreamEventsToJson service;
+	EventListRequest request;
 
 	@Before
 	public void setUp() throws Exception {
@@ -49,18 +51,19 @@ public class StreamSymbolUpdatesToJsonTest {
 		clockMock = control.createMock(Clock.class);
 		output = new ByteArrayOutputStream();
 		iterator = new IteratorStub<>(Arrays.asList(
-				U("foo", 16899263L, 30, "foo", 31, "bar", 32, "buz"),
-				U("foo", 16899350L, 11, "ups", 12, "dup", 13, "boo"),
-				U("foo", 16899400L, 30, "gap", 32, "goo", 33, "pop")
+				E("foo", 16899263L, 30, "foo", 31, "bar", 32, "buz"),
+				E("foo", 16899350L, 11, "ups", 12, "dup", 13, "boo"),
+				E("foo", 16899400L, 30, "gap", 32, "goo", 33, "pop")
 			), true);
-		service = new StreamSymbolUpdatesToJson(jsonFactory, iterator, "foo@bar", clockMock);
+		request = new EventListRequest("foo@bar");
+		service = new StreamEventsToJson(jsonFactory, iterator, request, clockMock);
 	}
 	
 	@Test
 	public void testGetters() {
 		assertSame(jsonFactory, service.getJsonFactory());
 		assertSame(iterator, service.getIterator());
-		assertSame("foo@bar", service.getRequest());
+		assertSame(request, service.getRequest());
 		assertSame(clockMock, service.getClock());
 	}
 
@@ -83,9 +86,9 @@ public class StreamSymbolUpdatesToJsonTest {
 				.append("   \"data\": {")
 				.append("      \"symbol\": \"foo@bar\",")
 				.append("      \"rows\": [")
-				.append("        {\"time\": 16899263,\"tokens\":{\"30\": \"foo\", \"31\": \"bar\", \"32\": \"buz\"}},")
-				.append("        {\"time\": 16899350,\"tokens\":{\"11\": \"ups\", \"12\": \"dup\", \"13\": \"boo\"}},")
-				.append("        {\"time\": 16899400,\"tokens\":{\"30\": \"gap\", \"32\": \"goo\", \"33\": \"pop\"}}")
+				.append("        {\"time\": 16899263,\"events\":{\"30\": \"foo\", \"31\": \"bar\", \"32\": \"buz\"}},")
+				.append("        {\"time\": 16899350,\"events\":{\"11\": \"ups\", \"12\": \"dup\", \"13\": \"boo\"}},")
+				.append("        {\"time\": 16899400,\"events\":{\"30\": \"gap\", \"32\": \"goo\", \"33\": \"pop\"}}")
 				.append("      ]")
 				.append("   }")
 				.append("}")
