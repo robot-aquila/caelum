@@ -14,7 +14,8 @@ import ru.prolib.caelum.backnode.NodeService;
 import ru.prolib.caelum.backnode.StaticResourceServlet;
 import ru.prolib.caelum.backnode.mvc.StreamFactory;
 import ru.prolib.caelum.backnode.rest.IRestServiceBuilder;
-import ru.prolib.caelum.backnode.rest.jetty.ws.EchoSocketServlet;
+import ru.prolib.caelum.backnode.rest.jetty.ws.TestCreator;
+import ru.prolib.caelum.backnode.rest.jetty.ws.WebSocketServletImpl;
 import ru.prolib.caelum.core.IService;
 import ru.prolib.caelum.core.Intervals;
 import ru.prolib.caelum.lib.ByteUtils;
@@ -44,7 +45,7 @@ public class JettyServerBuilder implements IRestServiceBuilder {
 		rc.register(component);
 		
 		context.addServlet(new ServletHolder(new StaticResourceServlet()), "/console/*");
-		context.addServlet(new ServletHolder(new EchoSocketServlet()), "/ws");
+		context.addServlet(new ServletHolder(new WebSocketServletImpl(new TestCreator())), "/ws");
 		context.addServlet(new ServletHolder(new ServletContainer(rc)), "/*");
 		
 		return new JettyServerStarter(server);

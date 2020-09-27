@@ -11,6 +11,8 @@
         };
         
         ws.onmessage = function (evt) {
+        	console.log("Message: ");
+        	console.log(evt);
             alert("Message: " + evt.data);
         };
         
@@ -19,6 +21,8 @@
         };
         
         ws.onerror = function(err) {
+        	console.log("Error: ");
+            console.log(err);
             alert("Error: " + err);
         };
         </script>
