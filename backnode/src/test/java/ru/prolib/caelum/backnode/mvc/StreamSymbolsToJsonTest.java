@@ -14,8 +14,8 @@ import org.skyscreamer.jsonassert.JSONAssert;
 
 import com.fasterxml.jackson.core.JsonFactory;
 
-import ru.prolib.caelum.core.IteratorStub;
-import ru.prolib.caelum.symboldb.SymbolListRequest;
+import ru.prolib.caelum.lib.IteratorStub;
+import ru.prolib.caelum.service.symboldb.SymbolListRequest;
 
 public class StreamSymbolsToJsonTest {
 	JsonFactory jsonFactory = new JsonFactory();

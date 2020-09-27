@@ -4,7 +4,7 @@ import java.util.Properties;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 
-import ru.prolib.caelum.core.AbstractConfig;
+import ru.prolib.caelum.lib.AbstractConfig;
 
 public class TupleConsumerConfig extends AbstractConfig {
 	public static final String DEFAULT_CONFIG_FILE	= "app.tupleconsumer.properties";

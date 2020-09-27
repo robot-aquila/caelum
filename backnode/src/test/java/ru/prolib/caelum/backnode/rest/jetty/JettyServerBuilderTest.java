@@ -13,7 +13,7 @@ import org.junit.Test;
 
 import ru.prolib.caelum.backnode.BacknodeConfig;
 import ru.prolib.caelum.backnode.NodeService;
-import ru.prolib.caelum.core.IService;
+import ru.prolib.caelum.lib.IService;
 import ru.prolib.caelum.service.ICaelum;
 
 public class JettyServerBuilderTest {

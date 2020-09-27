@@ -36,24 +36,24 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ru.prolib.caelum.aggregator.AggregatedDataRequest;
-import ru.prolib.caelum.aggregator.AggregatedDataResponse;
 import ru.prolib.caelum.backnode.mvc.AggregatorStatusMvcAdapter;
 import ru.prolib.caelum.backnode.mvc.StreamFactory;
-import ru.prolib.caelum.core.HostInfo;
-import ru.prolib.caelum.core.IItem;
-import ru.prolib.caelum.core.Item;
-import ru.prolib.caelum.core.IteratorStub;
-import ru.prolib.caelum.core.Interval;
-import ru.prolib.caelum.core.Intervals;
-import ru.prolib.caelum.itemdb.ItemDataRequest;
-import ru.prolib.caelum.itemdb.ItemDataRequestContinue;
 import ru.prolib.caelum.lib.ByteUtils;
 import ru.prolib.caelum.lib.Events;
 import ru.prolib.caelum.lib.EventsBuilder;
+import ru.prolib.caelum.lib.HostInfo;
+import ru.prolib.caelum.lib.IItem;
+import ru.prolib.caelum.lib.Interval;
+import ru.prolib.caelum.lib.Intervals;
+import ru.prolib.caelum.lib.Item;
+import ru.prolib.caelum.lib.IteratorStub;
 import ru.prolib.caelum.service.ICaelum;
-import ru.prolib.caelum.symboldb.EventListRequest;
-import ru.prolib.caelum.symboldb.SymbolListRequest;
+import ru.prolib.caelum.service.aggregator.AggregatedDataRequest;
+import ru.prolib.caelum.service.aggregator.AggregatedDataResponse;
+import ru.prolib.caelum.service.itemdb.ItemDataRequest;
+import ru.prolib.caelum.service.itemdb.ItemDataRequestContinue;
+import ru.prolib.caelum.service.symboldb.EventListRequest;
+import ru.prolib.caelum.service.symboldb.SymbolListRequest;
 
 @Path("/api/v1/")
 @Produces(MediaType.APPLICATION_JSON)

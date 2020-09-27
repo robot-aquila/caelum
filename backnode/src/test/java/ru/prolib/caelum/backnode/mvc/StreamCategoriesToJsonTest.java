@@ -15,7 +15,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
 
 import com.fasterxml.jackson.core.JsonFactory;
 
-import ru.prolib.caelum.core.IteratorStub;
+import ru.prolib.caelum.lib.IteratorStub;
 
 public class StreamCategoriesToJsonTest {
 	JsonFactory jsonFactory = new JsonFactory();

@@ -4,8 +4,8 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import ru.prolib.caelum.backnode.ValueFormatter;
-import ru.prolib.caelum.core.IItem;
-import ru.prolib.caelum.core.ItemType;
+import ru.prolib.caelum.lib.IItem;
+import ru.prolib.caelum.lib.ItemType;
 
 public class ItemMvcAdapter {
 	private final ValueFormatter formatter;

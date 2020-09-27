@@ -18,8 +18,8 @@ import org.apache.kafka.streams.kstream.Windowed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ru.prolib.caelum.aggregator.kafka.KafkaTuple;
-import ru.prolib.caelum.aggregator.kafka.KafkaTupleSerdes;
+import ru.prolib.caelum.lib.kafka.KafkaTuple;
+import ru.prolib.caelum.lib.kafka.KafkaTupleSerdes;
 
 public class TupleConsumer implements Runnable {
 	static final Logger logger = LoggerFactory.getLogger(TupleConsumer.class);

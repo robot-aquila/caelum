@@ -4,7 +4,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import ru.prolib.caelum.backnode.ValueFormatter;
-import ru.prolib.caelum.core.ITuple;
+import ru.prolib.caelum.lib.ITuple;
 
 public class TupleMvcAdapter {
 	private final ValueFormatter formatter;

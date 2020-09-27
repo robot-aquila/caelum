@@ -15,15 +15,15 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonFactory;
 
-import ru.prolib.caelum.aggregator.AggregatedDataRequest;
 import ru.prolib.caelum.backnode.ValueFormatter;
-import ru.prolib.caelum.core.ICloseableIterator;
-import ru.prolib.caelum.core.ITuple;
-import ru.prolib.caelum.itemdb.IItemDataRequest;
-import ru.prolib.caelum.itemdb.IItemIterator;
 import ru.prolib.caelum.lib.Events;
-import ru.prolib.caelum.symboldb.EventListRequest;
-import ru.prolib.caelum.symboldb.SymbolListRequest;
+import ru.prolib.caelum.lib.ICloseableIterator;
+import ru.prolib.caelum.lib.ITuple;
+import ru.prolib.caelum.service.aggregator.AggregatedDataRequest;
+import ru.prolib.caelum.service.itemdb.IItemDataRequest;
+import ru.prolib.caelum.service.itemdb.IItemIterator;
+import ru.prolib.caelum.service.symboldb.EventListRequest;
+import ru.prolib.caelum.service.symboldb.SymbolListRequest;
 
 @SuppressWarnings("unchecked")
 public class StreamFactoryTest {

@@ -45,6 +45,7 @@ public class IntStrMapDeserializerTest {
 		assertEquals(2009865103, service.hashCode());
 	}
 	
+	@SuppressWarnings("unlikely-arg-type")
 	@Test
 	public void testEquals() {
 		assertTrue(service.equals(service));

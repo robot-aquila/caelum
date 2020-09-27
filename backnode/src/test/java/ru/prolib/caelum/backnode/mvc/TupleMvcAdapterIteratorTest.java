@@ -8,11 +8,11 @@ import java.util.NoSuchElementException;
 import org.junit.Before;
 import org.junit.Test;
 
-import ru.prolib.caelum.aggregator.kafka.KafkaTuple;
-import ru.prolib.caelum.aggregator.kafka.Tuple;
-import ru.prolib.caelum.core.IteratorStub;
-import ru.prolib.caelum.core.ITuple;
-import ru.prolib.caelum.core.TupleType;
+import ru.prolib.caelum.lib.ITuple;
+import ru.prolib.caelum.lib.IteratorStub;
+import ru.prolib.caelum.lib.TupleType;
+import ru.prolib.caelum.lib.kafka.KafkaTuple;
+import ru.prolib.caelum.service.aggregator.kafka.Tuple;
 
 public class TupleMvcAdapterIteratorTest {
 	

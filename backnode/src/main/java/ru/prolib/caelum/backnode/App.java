@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
-import ru.prolib.caelum.core.IService;
+import ru.prolib.caelum.lib.IService;
 
 public class App {
 	static final Logger logger = LoggerFactory.getLogger(App.class);

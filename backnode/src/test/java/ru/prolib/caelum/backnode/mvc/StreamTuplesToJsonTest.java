@@ -14,12 +14,12 @@ import org.skyscreamer.jsonassert.JSONAssert;
 
 import com.fasterxml.jackson.core.JsonFactory;
 
-import ru.prolib.caelum.aggregator.AggregatedDataRequest;
 import ru.prolib.caelum.backnode.ValueFormatter;
-import ru.prolib.caelum.core.ITuple;
-import ru.prolib.caelum.core.IteratorStub;
-import ru.prolib.caelum.core.Interval;
-import ru.prolib.caelum.core.Tuple;
+import ru.prolib.caelum.lib.ITuple;
+import ru.prolib.caelum.lib.Interval;
+import ru.prolib.caelum.lib.IteratorStub;
+import ru.prolib.caelum.lib.Tuple;
+import ru.prolib.caelum.service.aggregator.AggregatedDataRequest;
 
 public class StreamTuplesToJsonTest {
 	JsonFactory jsonFactory = new JsonFactory();

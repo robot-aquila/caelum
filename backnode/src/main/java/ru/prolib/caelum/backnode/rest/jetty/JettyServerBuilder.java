@@ -16,9 +16,9 @@ import ru.prolib.caelum.backnode.mvc.StreamFactory;
 import ru.prolib.caelum.backnode.rest.IRestServiceBuilder;
 import ru.prolib.caelum.backnode.rest.jetty.ws.TestCreator;
 import ru.prolib.caelum.backnode.rest.jetty.ws.WebSocketServletImpl;
-import ru.prolib.caelum.core.IService;
-import ru.prolib.caelum.core.Intervals;
 import ru.prolib.caelum.lib.ByteUtils;
+import ru.prolib.caelum.lib.IService;
+import ru.prolib.caelum.lib.Intervals;
 import ru.prolib.caelum.service.ICaelum;
 
 public class JettyServerBuilder implements IRestServiceBuilder {

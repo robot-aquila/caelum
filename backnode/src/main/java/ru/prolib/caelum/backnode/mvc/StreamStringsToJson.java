@@ -10,7 +10,7 @@ import javax.ws.rs.core.StreamingOutput;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 
-import ru.prolib.caelum.core.ICloseableIterator;
+import ru.prolib.caelum.lib.ICloseableIterator;
 
 public class StreamStringsToJson implements StreamingOutput {
 	private final JsonFactory jsonFactory;

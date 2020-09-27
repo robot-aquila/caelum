@@ -1,8 +1,0 @@
-/target/
-/logs/
-.project
-.settings/
-.classpath
-/*.properties
-fdb.cluster
-fdb.cluster.template

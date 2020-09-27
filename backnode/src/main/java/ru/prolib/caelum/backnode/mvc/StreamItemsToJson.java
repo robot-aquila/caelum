@@ -12,10 +12,10 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 
 import ru.prolib.caelum.backnode.ValueFormatter;
-import ru.prolib.caelum.core.IItem;
-import ru.prolib.caelum.itemdb.IItemIterator;
-import ru.prolib.caelum.itemdb.ItemDataResponse;
-import ru.prolib.caelum.itemdb.IItemDataRequest;
+import ru.prolib.caelum.lib.IItem;
+import ru.prolib.caelum.service.itemdb.IItemDataRequest;
+import ru.prolib.caelum.service.itemdb.IItemIterator;
+import ru.prolib.caelum.service.itemdb.ItemDataResponse;
 
 public class StreamItemsToJson implements StreamingOutput {
 	private final JsonFactory jsonFactory;

@@ -16,7 +16,7 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.log4j.BasicConfigurator;
 
-import ru.prolib.caelum.feeder.ak.KafkaItem;
+import ru.prolib.caelum.lib.kafka.KafkaItem;
 
 public class TradeGenerator {
 	static final double MAX_VOLATILITY = 0.30d, MIN_VOLATILITY = 0.01d, AVG_VOLATILITY = 0.15d;

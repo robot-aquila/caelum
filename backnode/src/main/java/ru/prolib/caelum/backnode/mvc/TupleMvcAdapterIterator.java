@@ -1,7 +1,7 @@
 package ru.prolib.caelum.backnode.mvc;
 
-import ru.prolib.caelum.core.ICloseableIterator;
-import ru.prolib.caelum.core.ITuple;
+import ru.prolib.caelum.lib.ICloseableIterator;
+import ru.prolib.caelum.lib.ITuple;
 
 public class TupleMvcAdapterIterator implements ICloseableIterator<TupleMvcAdapter> {
 	private final ICloseableIterator<ITuple> iterator;

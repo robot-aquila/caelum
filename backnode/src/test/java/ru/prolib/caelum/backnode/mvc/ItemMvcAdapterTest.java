@@ -8,9 +8,9 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.junit.Before;
 import org.junit.Test;
 
-import ru.prolib.caelum.core.ItemType;
-import ru.prolib.caelum.feeder.ak.KafkaItem;
-import ru.prolib.caelum.itemdb.kafka.Item;
+import ru.prolib.caelum.lib.ItemType;
+import ru.prolib.caelum.lib.kafka.KafkaItem;
+import ru.prolib.caelum.service.itemdb.kafka.Item;
 
 public class ItemMvcAdapterTest {
 	KafkaItem item;

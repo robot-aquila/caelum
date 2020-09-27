@@ -4,8 +4,8 @@ import java.io.IOException;
 
 import ru.prolib.caelum.backnode.rest.IRestServiceBuilder;
 import ru.prolib.caelum.backnode.rest.jetty.JettyServerBuilder;
-import ru.prolib.caelum.core.CompositeService;
-import ru.prolib.caelum.core.IService;
+import ru.prolib.caelum.lib.CompositeService;
+import ru.prolib.caelum.lib.IService;
 import ru.prolib.caelum.service.CaelumBuilder;
 import ru.prolib.caelum.service.ICaelum;
 

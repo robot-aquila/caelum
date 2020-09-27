@@ -2,7 +2,7 @@ package ru.prolib.caelum.backnode;
 
 import java.util.Arrays;
 
-import ru.prolib.caelum.core.AbstractConfig;
+import ru.prolib.caelum.lib.AbstractConfig;
 
 public class BacknodeConfig extends AbstractConfig {
 	public static final String DEFAULT_CONFIG_FILE		= "app.backnode.properties";

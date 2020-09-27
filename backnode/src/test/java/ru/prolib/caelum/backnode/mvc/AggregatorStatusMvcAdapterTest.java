@@ -5,10 +5,10 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
-import ru.prolib.caelum.aggregator.AggregatorState;
-import ru.prolib.caelum.aggregator.AggregatorStatus;
-import ru.prolib.caelum.aggregator.AggregatorType;
-import ru.prolib.caelum.core.Interval;
+import ru.prolib.caelum.lib.Interval;
+import ru.prolib.caelum.service.aggregator.AggregatorState;
+import ru.prolib.caelum.service.aggregator.AggregatorStatus;
+import ru.prolib.caelum.service.aggregator.AggregatorType;
 
 public class AggregatorStatusMvcAdapterTest {
 	Object statusInfo;

@@ -4,8 +4,8 @@ import org.eclipse.jetty.server.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ru.prolib.caelum.core.IService;
-import ru.prolib.caelum.core.ServiceException;
+import ru.prolib.caelum.lib.IService;
+import ru.prolib.caelum.lib.ServiceException;
 
 public class JettyServerStarter implements IService {
 	private static final Logger logger = LoggerFactory.getLogger(JettyServerStarter.class);

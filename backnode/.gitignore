@@ -3,5 +3,7 @@
 .settings/
 .classpath
 /logs/
+/contrib/
 /*.properties
 version.built
+fdb.cluster

@@ -13,13 +13,6 @@
 
 	<modules>
         <module>lib</module>
-		<module>core</module>
-		<module>feeder-ak</module>
-		<module>aggregator</module>
-		<module>itemdb</module>
-		<module>symboldb</module>
-		<module>service</module>
-		<module>itesym-ak</module>
 		<module>backnode</module>
 		<module>utils</module>
 	</modules>
