@@ -7,7 +7,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ru.prolib.caelum.lib.CompositeService;
 import ru.prolib.caelum.service.aggregator.AggregatorServiceBuilder;
 import ru.prolib.caelum.service.aggregator.IAggregatorServiceBuilder;
 import ru.prolib.caelum.service.itemdb.IItemDatabaseServiceBuilder;
@@ -42,25 +41,23 @@ public class CaelumBuilder {
 		}
 	}
 	
-	public ICaelum build(String default_config_file, String config_file, CompositeService services)
-		throws IOException
-	{
+	public ICaelum build(BuildingContext context) throws IOException {
 		CaelumConfig config = createConfig();
-		config.load(default_config_file, config_file);
+		config.load(context.getDefaultConfigFileName(), context.getConfigFileName());
 		logger.debug("Configuration loaded: ");
 		config.print(logger);
-		List<IExtension> extensions = new ArrayList<>(); 
-		ICaelum caelum = new Caelum(
-				createAggregatorServiceBuilder().build(default_config_file, config_file, services),
-				createItemDatabaseServiceBuilder().build(default_config_file, config_file, services),
-				createSymbolServiceBuilder().build(default_config_file, config_file, services),
+		ICaelum caelum;
+		List<IExtension> extensions = new ArrayList<>();
+		context = context.withCaelum(caelum = new Caelum(
+				createAggregatorServiceBuilder().build(context),
+				createItemDatabaseServiceBuilder().build(context),
+				createSymbolServiceBuilder().build(context),
 				extensions
-			);
+			));
 		for ( ExtensionConf c : config.getExtensions() ) {
 			if ( c.isEnabled() ) {
 				logger.debug("Loading extension: {}", c);
-				extensions.add(createExtensionBuilder(c.getBuilderClass())
-						.build(default_config_file, config_file, services, caelum));
+				extensions.add(createExtensionBuilder(c.getBuilderClass()).build(context));
 			}
 		}
 		return caelum;

@@ -14,8 +14,8 @@ import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 
-import ru.prolib.caelum.lib.CompositeService;
 import ru.prolib.caelum.lib.kafka.KafkaItem;
+import ru.prolib.caelum.service.IBuildingContext;
 import ru.prolib.caelum.service.itemdb.IItemDatabaseService;
 import ru.prolib.caelum.service.itemdb.kafka.utils.KafkaProducerService;
 import ru.prolib.caelum.service.itemdb.kafka.utils.KafkaUtils;
@@ -27,7 +27,7 @@ public class KafkaItemDatabaseServiceBuilderTest {
 	KafkaItemDatabaseService serviceMock;
 	KafkaUtils utilsMock;
 	KafkaProducer<String, KafkaItem> producerMock;
-	CompositeService servicesMock;
+	IBuildingContext contextMock;
 	Clock clockMock;
 	KafkaItemDatabaseServiceBuilder service, mockedService;
 
@@ -38,7 +38,7 @@ public class KafkaItemDatabaseServiceBuilderTest {
 		serviceMock = control.createMock(KafkaItemDatabaseService.class);
 		utilsMock = control.createMock(KafkaUtils.class);
 		producerMock = control.createMock(KafkaProducer.class);
-		servicesMock = control.createMock(CompositeService.class);
+		contextMock = control.createMock(IBuildingContext.class);
 		clockMock = control.createMock(Clock.class);
 		mockedService = partialMockBuilder(KafkaItemDatabaseServiceBuilder.class)
 				.withConstructor(KafkaUtils.class, Clock.class)
@@ -88,15 +88,17 @@ public class KafkaItemDatabaseServiceBuilderTest {
 	public void testBuild() throws Exception {
 		Properties propsMock = control.createMock(Properties.class);
 		expect(mockedService.createConfig()).andReturn(configMock);
+		expect(contextMock.getDefaultConfigFileName()).andStubReturn("bururum.props");
+		expect(contextMock.getConfigFileName()).andStubReturn("tutumbr.props");
 		configMock.load("bururum.props", "tutumbr.props");
 		expect(configMock.getProducerKafkaProperties()).andReturn(propsMock);
 		expect(utilsMock.createProducer(propsMock)).andReturn(producerMock);
-		expect(servicesMock.register(new KafkaProducerService(producerMock))).andReturn(servicesMock);
+		expect(contextMock.registerService(new KafkaProducerService(producerMock))).andReturn(contextMock);
 		expect(mockedService.createService(configMock, producerMock)).andReturn(serviceMock);
 		replay(mockedService);
 		control.replay();
 		
-		IItemDatabaseService actual = mockedService.build("bururum.props", "tutumbr.props", servicesMock);
+		IItemDatabaseService actual = mockedService.build(contextMock);
 		
 		control.verify();
 		verify(mockedService);

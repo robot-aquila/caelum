@@ -2,8 +2,8 @@ package ru.prolib.caelum.service.aggregator.kafka;
 
 import java.util.concurrent.locks.Lock;
 
-import ru.prolib.caelum.lib.CompositeService;
 import ru.prolib.caelum.service.AggregatorType;
+import ru.prolib.caelum.service.IBuildingContext;
 import ru.prolib.caelum.service.aggregator.IAggregator;
 import ru.prolib.caelum.service.aggregator.kafka.utils.IRecoverableStreamsService;
 import ru.prolib.caelum.service.aggregator.kafka.utils.RecoverableStreamsService;
@@ -17,7 +17,7 @@ public class KafkaAggregatorBuilder {
 		private KafkaAggregatorTopologyBuilder topologyBuilder;
 		private KafkaAggregatorConfig config;
 		private KafkaStreamsRegistry streamsRegistry;
-		private CompositeService services;
+		private IBuildingContext context;
 		private Lock cleanUpMutex;
 		
 		public Objects setUtils(KafkaUtils utils) {
@@ -40,8 +40,8 @@ public class KafkaAggregatorBuilder {
 			return this;
 		}
 		
-		public Objects setServices(CompositeService services) {
-			this.services = services;
+		public Objects setBuildingContext(IBuildingContext context) {
+			this.context = context;
 			return this;
 		}
 		
@@ -78,11 +78,11 @@ public class KafkaAggregatorBuilder {
 			return streamsRegistry;
 		}
 		
-		public CompositeService getServices() {
-			if ( services == null ) {
-				throw new IllegalStateException("Services was not defined");
+		public IBuildingContext getBuildingContext() {
+			if ( context == null ) {
+				throw new IllegalStateException("Building context was not defined");
 			}
-			return services;
+			return context;
 		}
 		
 		public Lock getCleanUpMutex() {
@@ -124,8 +124,8 @@ public class KafkaAggregatorBuilder {
 		return this;
 	}
 	
-	public KafkaAggregatorBuilder withServices(CompositeService services) {
-		objects.setServices(services);
+	public KafkaAggregatorBuilder withBuildingContext(IBuildingContext context) {
+		objects.setBuildingContext(context);
 		return this;
 	}
 	
@@ -162,7 +162,7 @@ public class KafkaAggregatorBuilder {
 				config.getTargetTopic(),
 				config.getStoreName());
 		RecoverableStreamsService streamsService = createStreamsService(descr);
-		objects.getServices().register(new RecoverableStreamsServiceStarter(
+		objects.getBuildingContext().registerService(new RecoverableStreamsServiceStarter(
 				createThread(config.getApplicationId() + "-thread", streamsService),
 				streamsService,
 				config.getDefaultTimeout()));

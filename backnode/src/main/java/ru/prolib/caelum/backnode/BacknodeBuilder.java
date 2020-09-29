@@ -2,33 +2,31 @@ package ru.prolib.caelum.backnode;
 
 import java.io.IOException;
 
-import ru.prolib.caelum.backnode.rest.IRestServiceBuilder;
-import ru.prolib.caelum.backnode.rest.jetty.JettyServerBuilder;
-import ru.prolib.caelum.lib.CompositeService;
 import ru.prolib.caelum.lib.IService;
+import ru.prolib.caelum.service.BuildingContext;
 import ru.prolib.caelum.service.CaelumBuilder;
-import ru.prolib.caelum.service.ICaelum;
+import ru.prolib.caelum.service.ServiceRegistry;
+import ru.prolib.caelum.service.ServletRegistry;
 
 public class BacknodeBuilder {
-	
-	protected CompositeService createServices() {
-		return new CompositeService();
-	}
 	
 	protected CaelumBuilder createCaelumBuilder() {
 		return new CaelumBuilder();
 	}
 	
-	protected IRestServiceBuilder createRestServerBuilder() {
-		return new JettyServerBuilder();
+	protected ServiceRegistry createServiceRegistry() {
+		return new ServiceRegistry();
 	}
 	
-	public IService build(String config_file) throws IOException {
-		final String default_config_file = BacknodeConfig.DEFAULT_CONFIG_FILE;
-		CompositeService services = createServices();
-		ICaelum caelum = createCaelumBuilder().build(default_config_file, config_file, services);
-		services.register(createRestServerBuilder().build(default_config_file, config_file, caelum));
-		return services;
+	protected ServletRegistry createServletRegistry() {
+		return new ServletRegistry();
+	}
+	
+	public IService build(String configFileName) throws IOException {
+		ServiceRegistry services = createServiceRegistry();
+		createCaelumBuilder().build(new BuildingContext(null, BacknodeConfig.DEFAULT_CONFIG_FILE,
+				configFileName, null, services, createServletRegistry()));
+		return services.getServices();
 	}
 	
 	@Override

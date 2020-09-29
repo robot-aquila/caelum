@@ -5,7 +5,7 @@ import java.io.IOException;
 import com.apple.foundationdb.subspace.Subspace;
 import com.apple.foundationdb.tuple.Tuple;
 
-import ru.prolib.caelum.lib.CompositeService;
+import ru.prolib.caelum.service.IBuildingContext;
 import ru.prolib.caelum.service.ICategoryExtractor;
 import ru.prolib.caelum.service.symboldb.ISymbolService;
 import ru.prolib.caelum.service.symboldb.ISymbolServiceBuilder;
@@ -29,17 +29,15 @@ public class FDBSymbolServiceBuilder implements ISymbolServiceBuilder {
 	}
 
 	@Override
-	public ISymbolService build(String default_config_file, String config_file, CompositeService services)
-			throws IOException
-	{
+	public ISymbolService build(IBuildingContext context) throws IOException {
 		FDBSymbolServiceConfig config = createConfig();
-		config.load(default_config_file, config_file);
+		config.load(context.getDefaultConfigFileName(), context.getConfigFileName());
 		FDBSymbolService service = new FDBSymbolService(
 				createCategoryExtractor(config.getString(FDBSymbolServiceConfig.CATEGORY_EXTRACTOR)),
 				createSchema(config.getString(FDBSymbolServiceConfig.SUBSPACE)),
 				config.getInt(FDBSymbolServiceConfig.LIST_SYMBOLS_LIMIT),
 				config.getInt(FDBSymbolServiceConfig.LIST_EVENTS_LIMIT));
-		services.register(new FDBDatabaseService(service, config.getString(FDBSymbolServiceConfig.FDB_CLUSTER)));
+		context.registerService(new FDBDatabaseService(service, config.getString(FDBSymbolServiceConfig.FDB_CLUSTER)));
 		return service;
 	}
 	

@@ -15,8 +15,8 @@ import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 
-import ru.prolib.caelum.lib.CompositeService;
 import ru.prolib.caelum.lib.IService;
+import ru.prolib.caelum.service.IBuildingContext;
 import ru.prolib.caelum.service.ICaelum;
 import ru.prolib.caelum.service.IExtension;
 
@@ -25,7 +25,7 @@ public class ItesymBuilderTest {
 	KafkaConsumer<String, byte[]> consumerMock;
 	ItesymConfig mockedConfig;
 	ItesymBuilder mockedService, service;
-	CompositeService servicesMock;
+	IBuildingContext contextMock;
 	ICaelum caelumMock;
 	Thread threadMock;
 
@@ -45,7 +45,7 @@ public class ItesymBuilderTest {
 				.addMockedMethod("createConsumer", Properties.class)
 				.addMockedMethod("createThread", String.class, Runnable.class)
 				.createMock();
-		servicesMock = control.createMock(CompositeService.class);
+		contextMock = control.createMock(IBuildingContext.class);
 		caelumMock = control.createMock(ICaelum.class);
 		threadMock = control.createMock(Thread.class);
 	}
@@ -86,6 +86,9 @@ public class ItesymBuilderTest {
 
 	@Test
 	public void testBuild() throws Exception {
+		expect(contextMock.getDefaultConfigFileName()).andStubReturn("foo.props");
+		expect(contextMock.getConfigFileName()).andStubReturn("bar.props");
+		expect(contextMock.getCaelum()).andStubReturn(caelumMock);
 		mockedConfig.getProperties().put("caelum.itesym.bootstrap.servers", "172.94.13.37:8082");
 		mockedConfig.getProperties().put("caelum.itesym.group.id", "tutumbr");
 		mockedConfig.getProperties().put("caelum.itesym.source.topic", "bambr");
@@ -102,12 +105,12 @@ public class ItesymBuilderTest {
 		Capture<Runnable> cap1 = newCapture();
 		expect(mockedService.createThread(eq("tutumbr"), capture(cap1))).andReturn(threadMock);
 		Capture<IService> cap2 = newCapture();
-		expect(servicesMock.register(capture(cap2))).andReturn(servicesMock);
+		expect(contextMock.registerService(capture(cap2))).andReturn(contextMock);
 		control.replay();
 		replay(mockedConfig);
 		replay(mockedService);
 		
-		IExtension actual = mockedService.build("foo.props", "bar.props", servicesMock, caelumMock);
+		IExtension actual = mockedService.build(contextMock);
 		
 		verify(mockedService);
 		verify(mockedConfig);

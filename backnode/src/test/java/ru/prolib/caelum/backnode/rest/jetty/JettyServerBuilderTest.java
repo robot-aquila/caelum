@@ -1,39 +1,68 @@
 package ru.prolib.caelum.backnode.rest.jetty;
 
 import static org.junit.Assert.*;
+
+import javax.servlet.Servlet;
+
 import static org.easymock.EasyMock.*;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import org.easymock.Capture;
 import org.easymock.IMocksControl;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.junit.Before;
 import org.junit.Test;
 
 import ru.prolib.caelum.backnode.BacknodeConfig;
-import ru.prolib.caelum.backnode.NodeService;
 import ru.prolib.caelum.lib.IService;
-import ru.prolib.caelum.service.ICaelum;
+import ru.prolib.caelum.service.BuildingContext;
+import ru.prolib.caelum.service.ExtensionState;
+import ru.prolib.caelum.service.ExtensionStatus;
+import ru.prolib.caelum.service.ExtensionStub;
+import ru.prolib.caelum.service.IExtension;
+import ru.prolib.caelum.service.ServletRegistry;
 
 public class JettyServerBuilderTest {
 	IMocksControl control;
-	ICaelum caelumMock;
 	IService serviceMock;
-	BacknodeConfig configStub;
+	Server jserverMock;
+	ServletContextHandler ctxhMock;
+	BacknodeConfig mockedConfig;
+	BuildingContext contextMock;
+	Servlet servletMock1, servletMock2, servletMock3;
+	ServletRegistry servlets;
+	ServletHolder sholderMock1, sholderMock2, sholderMock3;
 	JettyServerBuilder service, mockedService;
 
 	@Before
 	public void setUp() throws Exception {
 		control = createStrictControl();
-		caelumMock = control.createMock(ICaelum.class);
 		serviceMock = control.createMock(IService.class);
+		jserverMock = control.createMock(Server.class);
+		ctxhMock = control.createMock(ServletContextHandler.class);
+		contextMock = control.createMock(BuildingContext.class);
+		servletMock1 = control.createMock(Servlet.class);
+		servletMock2 = control.createMock(Servlet.class);
+		servletMock3 = control.createMock(Servlet.class);
+		sholderMock1 = control.createMock(ServletHolder.class);
+		sholderMock2 = control.createMock(ServletHolder.class);
+		sholderMock3 = control.createMock(ServletHolder.class);
+		servlets = new ServletRegistry();
 		service = new JettyServerBuilder();
 		mockedService = partialMockBuilder(JettyServerBuilder.class)
+				.withConstructor()
 				.addMockedMethod("createConfig")
-				.addMockedMethod("createComponent", ICaelum.class, boolean.class)
-				.addMockedMethod("createServer", String.class, int.class, Object.class)
-				.createMock();
+				.addMockedMethod("createContextHandler")
+				.addMockedMethod("createJettyServer", String.class, int.class)
+				.addMockedMethod("createServletHolder", Servlet.class)
+				.addMockedMethod("createServer", String.class, int.class, ServletRegistry.class)
+				.createMock(control);
+		mockedConfig = partialMockBuilder(BacknodeConfig.class)
+				.withConstructor()
+				.addMockedMethod("load", String.class, String.class)
+				.createMock(control);
 	}
 	
 	@Test
@@ -44,61 +73,74 @@ public class JettyServerBuilderTest {
 	}
 	
 	@Test
-	public void testCreateComponent() {
-		Object actual = service.createComponent(caelumMock, true);
+	public void testCreateContextHandler() {
+		ServletContextHandler actual = service.createContextHandler();
 		
 		assertNotNull(actual);
-		assertThat(actual, is(instanceOf(NodeService.class)));
-		NodeService x = (NodeService) actual;
-		assertSame(caelumMock, x.getCaelum());
-		assertNotNull(x.getStreamFactory());
-		assertNotNull(x.getIntervals());
-		assertNotNull(x.getByteUtils());
-		assertTrue(x.isTestMode());
+	}
+	
+	@Test
+	public void testCreateJettyServer() {
+		Server actual = service.createJettyServer("localhost", 5678);
 		
-		actual = service.createComponent(caelumMock, false);
 		assertNotNull(actual);
-		assertThat(actual, is(instanceOf(NodeService.class)));
-		x = (NodeService) actual;
-		assertFalse(x.isTestMode());
+	}
+	
+	@Test
+	public void testCreateServletHolder() throws Exception {
+		ServletHolder actual = service.createServletHolder(servletMock1);
+		
+		assertNotNull(actual);
 	}
 	
 	@Test
 	public void testCreateServer() {
-		IService actual = service.createServer("localhost", 9698, new Object());
+		mockedService = partialMockBuilder(JettyServerBuilder.class)
+				.withConstructor()
+				.addMockedMethod("createContextHandler")
+				.addMockedMethod("createJettyServer", String.class, int.class)
+				.addMockedMethod("createServletHolder", Servlet.class)
+				.createMock(control);
+		expect(mockedService.createContextHandler()).andReturn(ctxhMock);
+		ctxhMock.setContextPath("/");
+		expect(mockedService.createJettyServer("mutabor", 2567)).andReturn(jserverMock);
+		jserverMock.setHandler(ctxhMock);
+		expect(mockedService.createServletHolder(servletMock1)).andReturn(sholderMock1);
+		ctxhMock.addServlet(sholderMock1, "/foo/*");
+		expect(mockedService.createServletHolder(servletMock2)).andReturn(sholderMock2);
+		ctxhMock.addServlet(sholderMock2, "/bar/24");
+		expect(mockedService.createServletHolder(servletMock3)).andReturn(sholderMock3);
+		ctxhMock.addServlet(sholderMock3, "/gap/pop");
+		control.replay();
+		servlets.registerServlet(servletMock1, "/foo/*");
+		servlets.registerServlet(servletMock2, "/bar/24");
+		servlets.registerServlet(servletMock3, "/gap/pop");
 		
+		IService actual = mockedService.createServer("mutabor", 2567, servlets);
+		
+		control.verify();
 		assertNotNull(actual);
 		assertThat(actual, is(instanceOf(JettyServerStarter.class)));
-		JettyServerStarter x = (JettyServerStarter) actual;
-		Server s = x.getServer();
-		assertNotNull(s);
+		assertSame(jserverMock, ((JettyServerStarter) actual).getServer());
 	}
 
 	@Test
-	public void testBuild3() throws Exception {
-		Object componentStub = new Object();
-		Capture<String> cap1 = newCapture(), cap2 = newCapture();
-		configStub = new BacknodeConfig() {
-			@Override
-			public void load(String default_config_file, String config_file) {
-				cap1.setValue(default_config_file);
-				cap2.setValue(config_file);
-			}
-		};
-		configStub.getProperties().put("caelum.backnode.rest.http.host", "bambr1");
-		configStub.getProperties().put("caelum.backnode.rest.http.port", "7281");
-		configStub.getProperties().put("caelum.backnode.mode", "prod");
-		expect(mockedService.createConfig()).andReturn(configStub);
-		expect(mockedService.createComponent(caelumMock, false)).andReturn(componentStub);
-		expect(mockedService.createServer("bambr1", 7281, componentStub)).andReturn(serviceMock);
+	public void testBuild() throws Exception {
+		expect(contextMock.getDefaultConfigFileName()).andStubReturn("foo.props");
+		expect(contextMock.getConfigFileName()).andStubReturn("bar.props");
+		expect(mockedService.createConfig()).andReturn(mockedConfig);
+		mockedConfig.load("foo.props", "bar.props");
+		expect(contextMock.getServlets()).andReturn(servlets);
+		expect(mockedService.createServer("bambr1", 7281, servlets)).andReturn(serviceMock);
+		expect(contextMock.registerService(serviceMock)).andReturn(contextMock);
 		control.replay();
-		replay(mockedService);
+		mockedConfig.getProperties().put("caelum.backnode.rest.http.host", "bambr1");
+		mockedConfig.getProperties().put("caelum.backnode.rest.http.port", "7281");
 		
-		IService actual = mockedService.build("foo.props", "bar.props", caelumMock);
-		
-		verify(mockedService);
+		IExtension actual = mockedService.build(contextMock);
+
 		control.verify();
-		assertSame(serviceMock, actual);
+		assertEquals(new ExtensionStub(new ExtensionStatus("HTTP", ExtensionState.RUNNING, null)), actual);
 	}
 
 }

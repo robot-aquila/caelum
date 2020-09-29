@@ -6,7 +6,7 @@ import java.util.List;
 
 import javax.servlet.Servlet;
 
-public class ServletRegistry {
+public class ServletRegistry implements IServletRegistry {
 	private final List<ServletMapping> servlets;
 	
 	public ServletRegistry(List<ServletMapping> servlets) {
@@ -17,11 +17,13 @@ public class ServletRegistry {
 		this(new ArrayList<>());
 	}
 	
+	@Override
 	public ServletRegistry registerServlet(ServletMapping servlet) {
 		servlets.add(servlet);
 		return this;
 	}
 	
+	@Override
 	public ServletRegistry registerServlet(Servlet servlet, String pathSpec) {
 		return registerServlet(new ServletMapping(servlet, pathSpec));
 	}

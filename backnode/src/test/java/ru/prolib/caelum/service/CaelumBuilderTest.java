@@ -17,7 +17,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import ru.prolib.caelum.lib.CompositeService;
 import ru.prolib.caelum.service.aggregator.AggregatorServiceBuilder;
 import ru.prolib.caelum.service.aggregator.IAggregatorServiceBuilder;
 import ru.prolib.caelum.service.aggregator.kafka.KafkaAggregatorService;
@@ -32,7 +31,7 @@ public class CaelumBuilderTest {
 	
 	static class TestExtBuilder1 implements IExtensionBuilder {
 		@Override
-		public IExtension build(String x, String y, CompositeService s, ICaelum c) throws IOException {
+		public IExtension build(IBuildingContext context) throws IOException {
 			throw new UnsupportedOperationException();
 		}
 	}
@@ -47,7 +46,7 @@ public class CaelumBuilderTest {
 	KafkaAggregatorService aggrSvcMock;
 	IItemDatabaseService itemDbSvcMock;
 	ISymbolService symbolSvcMock;
-	CompositeService servicesMock;
+	BuildingContext contextMock;
 	IItemDatabaseServiceBuilder itemDbSvcBuilderMock;
 	IAggregatorServiceBuilder aggrSvcBuilderMock;
 	ISymbolServiceBuilder symbolSvcBuilderMock;
@@ -62,7 +61,7 @@ public class CaelumBuilderTest {
 		aggrSvcMock = control.createMock(KafkaAggregatorService.class);
 		itemDbSvcMock = control.createMock(IItemDatabaseService.class);
 		symbolSvcMock = control.createMock(ISymbolService.class);
-		servicesMock = control.createMock(CompositeService.class);
+		contextMock = control.createMock(BuildingContext.class);
 		itemDbSvcBuilderMock = control.createMock(IItemDatabaseServiceBuilder.class);
 		aggrSvcBuilderMock = control.createMock(IAggregatorServiceBuilder.class);
 		symbolSvcBuilderMock = control.createMock(ISymbolServiceBuilder.class);
@@ -127,6 +126,8 @@ public class CaelumBuilderTest {
 		
 	@Test
 	public void testBuild3() throws Exception {
+		expect(contextMock.getDefaultConfigFileName()).andStubReturn("foo.props");
+		expect(contextMock.getConfigFileName()).andStubReturn("bar.props");
 		mockedConfig.getProperties().put("caelum.extension.builder.001", "Foo");
 		mockedConfig.getProperties().put("caelum.extension.enabled.001", "true");
 		mockedConfig.getProperties().put("caelum.extension.builder.002", "Bar");
@@ -136,21 +137,22 @@ public class CaelumBuilderTest {
 		expect(mockedService.createConfig()).andReturn(mockedConfig);
 		mockedConfig.load("foo.props", "bar.props");
 		expect(mockedService.createAggregatorServiceBuilder()).andReturn(aggrSvcBuilderMock);
-		expect(aggrSvcBuilderMock.build("foo.props", "bar.props", servicesMock)).andReturn(aggrSvcMock);
+		expect(aggrSvcBuilderMock.build(contextMock)).andReturn(aggrSvcMock);
 		expect(mockedService.createItemDatabaseServiceBuilder()).andReturn(itemDbSvcBuilderMock);
-		expect(itemDbSvcBuilderMock.build("foo.props", "bar.props", servicesMock)).andReturn(itemDbSvcMock);
+		expect(itemDbSvcBuilderMock.build(contextMock)).andReturn(itemDbSvcMock);
 		expect(mockedService.createSymbolServiceBuilder()).andReturn(symbolSvcBuilderMock);
-		expect(symbolSvcBuilderMock.build("foo.props", "bar.props", servicesMock)).andReturn(symbolSvcMock);
-		Capture<ICaelum> cap1 = newCapture(), cap2 = newCapture();
+		expect(symbolSvcBuilderMock.build(contextMock)).andReturn(symbolSvcMock);
+		Capture<ICaelum> cap1 = newCapture();
+		expect(contextMock.withCaelum(capture(cap1))).andReturn(contextMock);
 		expect(mockedService.createExtensionBuilder("Foo")).andReturn(extBldrMock1);
-		expect(extBldrMock1.build(eq("foo.props"),eq("bar.props"),same(servicesMock),capture(cap1))).andReturn(extMock1);
+		expect(extBldrMock1.build(contextMock)).andReturn(extMock1);
 		expect(mockedService.createExtensionBuilder("Gap")).andReturn(extBldrMock3);
-		expect(extBldrMock3.build(eq("foo.props"),eq("bar.props"),same(servicesMock),capture(cap2))).andReturn(extMock3);
+		expect(extBldrMock3.build(contextMock)).andReturn(extMock3);
 		control.replay();
 		replay(mockedService);
 		replay(mockedConfig);
 		
-		ICaelum actual = mockedService.build("foo.props", "bar.props", servicesMock);
+		ICaelum actual = mockedService.build(contextMock);
 		
 		verify(mockedConfig);
 		verify(mockedService);
@@ -162,7 +164,6 @@ public class CaelumBuilderTest {
 		assertSame(itemDbSvcMock, x.getItemDatabaseService());
 		assertSame(symbolSvcMock, x.getSymbolService());
 		assertEquals(actual, cap1.getValue());
-		assertEquals(actual, cap2.getValue());
 		assertEquals(Arrays.asList(extMock1, extMock3), x.getExtensions());
 	}
 

@@ -2,7 +2,7 @@ package ru.prolib.caelum.service.itemdb;
 
 import java.io.IOException;
 
-import ru.prolib.caelum.lib.CompositeService;
+import ru.prolib.caelum.service.IBuildingContext;
 
 public class ItemDatabaseServiceBuilder implements IItemDatabaseServiceBuilder {
 
@@ -19,13 +19,11 @@ public class ItemDatabaseServiceBuilder implements IItemDatabaseServiceBuilder {
 	}
 	
 	@Override
-	public IItemDatabaseService build(String default_config_file, String config_file, CompositeService services)
-			throws IOException
-	{
+	public IItemDatabaseService build(IBuildingContext context) throws IOException {
 		ItemDatabaseConfig config = createConfig();
-		config.load(default_config_file, config_file);
+		config.load(context.getDefaultConfigFileName(), context.getConfigFileName());
 		IItemDatabaseServiceBuilder builder = createBuilder(config.getString(ItemDatabaseConfig.BUILDER));
-		return builder.build(default_config_file, config_file, services);
+		return builder.build(context);
 	}
 	
 	@Override

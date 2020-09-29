@@ -7,6 +7,9 @@ import java.util.Properties;
 import org.junit.Before;
 import org.junit.Test;
 
+import ru.prolib.caelum.backnode.rest.jetty.JettyServerBuilder;
+import ru.prolib.caelum.service.itesym.ItesymBuilder;
+
 public class BacknodeConfigTest {
 	BacknodeConfig service;
 
@@ -19,6 +22,16 @@ public class BacknodeConfigTest {
 		assertEquals("localhost", props.get("caelum.backnode.rest.http.host"));
 		assertEquals("9698", props.get("caelum.backnode.rest.http.port"));
 		assertEquals("prod", props.get("caelum.backnode.mode"));
+		
+		// Extensions
+		assertEquals(ItesymBuilder.class.getName(), props.get("caelum.extension.builder.001_Itesym"));
+		assertEquals("true", props.get("caelum.extension.enabled.001_Itesym"));
+		
+		assertEquals(RestServiceBuilder.class.getName(), props.get("caelum.extension.builder.010_REST"));
+		assertEquals("true", props.get("caelum.extension.enabled.010_REST"));
+		
+		assertEquals(JettyServerBuilder.class.getName(), props.get("caelum.extension.builder.900_HTTP"));
+		assertEquals("true", props.get("caelum.extension.enabled.900_HTTP"));
 	}
 
 	@Test
@@ -58,5 +71,5 @@ public class BacknodeConfigTest {
 		service.getProperties().put("caelum.backnode.mode", "prod");
 		assertFalse(service.isTestMode());
 	}
-
+	
 }

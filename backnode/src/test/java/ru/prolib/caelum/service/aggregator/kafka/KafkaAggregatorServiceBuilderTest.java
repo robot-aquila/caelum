@@ -20,9 +20,12 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import ru.prolib.caelum.lib.CompositeService;
 import ru.prolib.caelum.lib.HostInfo;
 import ru.prolib.caelum.lib.Intervals;
+import ru.prolib.caelum.service.BuildingContext;
+import ru.prolib.caelum.service.IBuildingContext;
+import ru.prolib.caelum.service.ServiceRegistry;
+import ru.prolib.caelum.service.ServletRegistry;
 import ru.prolib.caelum.service.aggregator.IAggregator;
 import ru.prolib.caelum.service.aggregator.IAggregatorService;
 import ru.prolib.caelum.service.itemdb.kafka.utils.KafkaCreateTopicService;
@@ -40,7 +43,7 @@ public class KafkaAggregatorServiceBuilderTest {
 	HostInfo hostInfo;
 	Intervals intervals;
 	KafkaAggregatorBuilder builderMock;
-	CompositeService servicesMock;
+	IBuildingContext contextMock;
 	KafkaAggregatorConfig mockedConfig, config1, config2, config3;
 	IAggregator aggregatorMock1, aggregatorMock2, aggregatorMock3;
 	KafkaStreamsRegistry streamsRegistryMock;
@@ -55,7 +58,7 @@ public class KafkaAggregatorServiceBuilderTest {
 		intervals = new Intervals();
 		control = createStrictControl();
 		builderMock = control.createMock(KafkaAggregatorBuilder.class);
-		servicesMock = control.createMock(CompositeService.class);
+		contextMock = control.createMock(IBuildingContext.class);
 		mockedConfig = partialMockBuilder(KafkaAggregatorConfig.class)
 				.withConstructor(Intervals.class)
 				.withArgs(intervals)
@@ -132,6 +135,8 @@ public class KafkaAggregatorServiceBuilderTest {
 	
 	@Test
 	public void testBuild() throws Exception {
+		expect(contextMock.getDefaultConfigFileName()).andStubReturn("kappa.props");
+		expect(contextMock.getConfigFileName()).andStubReturn("beta.props");
 		mockedConfig.load("kappa.props", "beta.props");
 		// duplicates should be ignored
 		Properties props = mockedConfig.getProperties();
@@ -150,11 +155,11 @@ public class KafkaAggregatorServiceBuilderTest {
 		expect(mockedService.createTopologyBuilder()).andReturn(topologyBuilderMock);
 		expect(mockedService.createLock()).andReturn(mutexMock);
 		expect(mockedService.createUtils()).andReturn(utilsMock);
-		expect(servicesMock.register(new KafkaCreateTopicService(utilsMock,
+		expect(contextMock.registerService(new KafkaCreateTopicService(utilsMock,
 				mockedConfig.getAdminClientProperties(),
 				new NewTopic("tora-tora", 24, (short)2).configs(toMap("retention.ms", "2226781")),
-				2345L))).andReturn(servicesMock);
-		expect(builderMock.withServices(servicesMock)).andReturn(builderMock);
+				2345L))).andReturn(contextMock);
+		expect(builderMock.withBuildingContext(contextMock)).andReturn(builderMock);
 		expect(builderMock.withStreamsRegistry(streamsRegistryMock)).andReturn(builderMock);
 		expect(builderMock.withTopologyBuilder(topologyBuilderMock)).andReturn(builderMock);
 		expect(builderMock.withCleanUpMutex(mutexMock)).andReturn(builderMock);
@@ -175,7 +180,7 @@ public class KafkaAggregatorServiceBuilderTest {
 		replay(mockedService);
 		replay(mockedConfig);
 		
-		IAggregatorService actual = mockedService.build("kappa.props", "beta.props", servicesMock);
+		IAggregatorService actual = mockedService.build(contextMock);
 		
 		verify(mockedConfig);
 		verify(mockedService);
@@ -204,7 +209,9 @@ public class KafkaAggregatorServiceBuilderTest {
 				.withArgs(new KafkaAggregatorBuilder())
 				.createMock();
 		expect(mockedService.createConfig(anyObject())).andReturn(mockedConfig);
-		expect(servicesMock.register(anyObject())).andReturn(servicesMock);
+		expect(contextMock.getDefaultConfigFileName()).andStubReturn("bubba.hut");
+		expect(contextMock.getConfigFileName()).andStubReturn("jubba.hut");
+		expect(contextMock.registerService(anyObject())).andReturn(contextMock);
 		mockedConfig.load("bubba.hut", "jubba.hut");
 		mockedConfig.getProperties().put("caelum.aggregator.interval", "");
 		mockedConfig.getProperties().put("caelum.aggregator.kafka.force.parallel.clear", "0");
@@ -212,7 +219,7 @@ public class KafkaAggregatorServiceBuilderTest {
 		replay(mockedService);
 		replay(mockedConfig);
 		
-		IAggregatorService actual = mockedService.build("bubba.hut", "jubba.hut", servicesMock);
+		IAggregatorService actual = mockedService.build(contextMock);
 		
 		verify(mockedConfig);
 		verify(mockedService);
@@ -226,9 +233,10 @@ public class KafkaAggregatorServiceBuilderTest {
 	@Test
 	public void testBuild_SmallIntegrationTest() throws Exception {
 		service = new KafkaAggregatorServiceBuilder();
-		CompositeService services = new CompositeService();
+		BuildingContext context = new BuildingContext(mockedConfig, KafkaAggregatorConfig.DEFAULT_CONFIG_FILE,
+				null, null, new ServiceRegistry(), new ServletRegistry());
 		
-		IAggregatorService actual = service.build(KafkaAggregatorConfig.DEFAULT_CONFIG_FILE, null, services);
+		IAggregatorService actual = service.build(context);
 		
 		assertNotNull(actual);
 	}

@@ -19,9 +19,9 @@ import org.apache.kafka.clients.admin.NewTopic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ru.prolib.caelum.lib.CompositeService;
 import ru.prolib.caelum.lib.HostInfo;
 import ru.prolib.caelum.lib.Intervals;
+import ru.prolib.caelum.service.IBuildingContext;
 import ru.prolib.caelum.service.aggregator.IAggregator;
 import ru.prolib.caelum.service.aggregator.IAggregatorService;
 import ru.prolib.caelum.service.aggregator.IAggregatorServiceBuilder;
@@ -76,14 +76,12 @@ public class KafkaAggregatorServiceBuilder implements IAggregatorServiceBuilder 
 	}
 
 	@Override
-	public IAggregatorService build(String default_config_file, String config_file, CompositeService services)
-			throws IOException
-	{
+	public IAggregatorService build(IBuildingContext context) throws IOException {
 		final Intervals intervals = createIntervals();
 		KafkaAggregatorConfig config = createConfig(intervals);
 		final KafkaUtils utils = createUtils();
-		config.load(default_config_file, config_file);
-		services.register(new KafkaCreateTopicService(utils,
+		config.load(context.getDefaultConfigFileName(), context.getConfigFileName());
+		context.registerService(new KafkaCreateTopicService(utils,
 				config.getAdminClientProperties(),
 				new NewTopic(config.getSourceTopic(),
 						config.getSourceTopicNumPartitions(),
@@ -99,7 +97,7 @@ public class KafkaAggregatorServiceBuilder implements IAggregatorServiceBuilder 
 			.stream()
 			.map(String::trim)
 			.collect(Collectors.toList()));
-		builder.withServices(services)
+		builder.withBuildingContext(context)
 			.withStreamsRegistry(streams_registry)
 			.withTopologyBuilder(createTopologyBuilder())
 			.withCleanUpMutex(createLock())

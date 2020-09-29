@@ -13,22 +13,19 @@ import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 
-import ru.prolib.caelum.lib.CompositeService;
 import ru.prolib.caelum.lib.Interval;
 import ru.prolib.caelum.service.AggregatedDataRequest;
 import ru.prolib.caelum.service.AggregatedDataResponse;
 import ru.prolib.caelum.service.AggregatorStatus;
+import ru.prolib.caelum.service.IBuildingContext;
 
 public class AggregatorServiceBuilderTest {
 	
 	static class TestService implements IAggregatorService {
-		private final String default_config_file, config_file;
-		private final CompositeService services;
+		private final IBuildingContext context;
 		
-		public TestService(String default_config_file, String config_file, CompositeService services) {
-			this.default_config_file = default_config_file;
-			this.config_file = config_file;
-			this.services = services;
+		public TestService(IBuildingContext context) {
+			this.context = context;
 		}
 
 		@Override
@@ -56,22 +53,22 @@ public class AggregatorServiceBuilderTest {
 	static class TestBuilder implements IAggregatorServiceBuilder {
 
 		@Override
-		public IAggregatorService build(String default_config_file, String config_file, CompositeService services) {
-			return new TestService(default_config_file, config_file, services);
+		public IAggregatorService build(IBuildingContext context) {
+			return new TestService(context);
 		}
 		
 	}
 	
 	IMocksControl control;
 	AggregatorConfig configStub;
-	CompositeService servicesMock;
+	IBuildingContext contextMock;
 	AggregatorServiceBuilder service, mockedService;
 
 	@Before
 	public void setUp() throws Exception {
 		control = createStrictControl();
 		configStub = new AggregatorConfig();
-		servicesMock = control.createMock(CompositeService.class);
+		contextMock = control.createMock(IBuildingContext.class);
 		service = new AggregatorServiceBuilder();
 		mockedService = partialMockBuilder(AggregatorServiceBuilder.class)
 				.addMockedMethod("createConfig")
@@ -106,19 +103,21 @@ public class AggregatorServiceBuilderTest {
 		Properties props = configStub.getProperties();
 		props.put("caelum.aggregator.builder", TestBuilder.class.getName());
 		expect(mockedService.createConfig()).andReturn(configStub);
+		expect(contextMock.getDefaultConfigFileName()).andReturn("/foo/bar.props");
+		expect(contextMock.getConfigFileName()).andReturn("/foo/gap.props");
 		control.replay();
 		replay(mockedService);
 		
-		IAggregatorService actual = mockedService.build("bumba.props", "balboa.props", servicesMock);
+		IAggregatorService actual = mockedService.build(contextMock);
 		
 		verify(mockedService);
 		control.verify();
 		assertNotNull(actual);
 		assertThat(actual, is(instanceOf(TestService.class)));
 		TestService x = (TestService) actual;
-		assertEquals("bumba.props", x.default_config_file);
-		assertEquals("balboa.props", x.config_file);
-		assertSame(servicesMock, x.services);
+		assertSame(contextMock, x.context);
+		assertEquals("/foo/bar.props", cap1.getValue());
+		assertEquals("/foo/gap.props", cap2.getValue());
 	}
 	
 	@Test

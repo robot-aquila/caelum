@@ -14,11 +14,11 @@ import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 
-import ru.prolib.caelum.lib.CompositeService;
 import ru.prolib.caelum.lib.IService;
 import ru.prolib.caelum.lib.Interval;
 import ru.prolib.caelum.lib.Intervals;
 import ru.prolib.caelum.service.AggregatorType;
+import ru.prolib.caelum.service.IBuildingContext;
 import ru.prolib.caelum.service.aggregator.IAggregator;
 import ru.prolib.caelum.service.aggregator.kafka.KafkaAggregatorBuilder.Objects;
 import ru.prolib.caelum.service.aggregator.kafka.utils.IRecoverableStreamsService;
@@ -32,7 +32,7 @@ public class KafkaAggregatorBuilderTest {
 	KafkaAggregatorTopologyBuilder topologyBuilderMock;
 	KafkaAggregatorConfig config;
 	KafkaStreamsRegistry registryMock;
-	CompositeService servicesMock;
+	IBuildingContext contextMock;
 	RecoverableStreamsService streamsServiceMock;
 	Thread threadMock;
 	IAggregator aggregatorMock;
@@ -48,7 +48,7 @@ public class KafkaAggregatorBuilderTest {
 		topologyBuilderMock = control.createMock(KafkaAggregatorTopologyBuilder.class);
 		config = new KafkaAggregatorConfig(new Intervals());
 		registryMock = control.createMock(KafkaStreamsRegistry.class);
-		servicesMock = control.createMock(CompositeService.class);
+		contextMock = control.createMock(IBuildingContext.class);
 		streamsServiceMock = control.createMock(RecoverableStreamsService.class);
 		aggregatorMock = control.createMock(IAggregator.class);
 		mutexMock = control.createMock(Lock.class);
@@ -118,16 +118,16 @@ public class KafkaAggregatorBuilderTest {
 	}
 	
 	@Test
-	public void testObjects_GetServices_ShouldThrowsIfNotDefined() {
-		IllegalStateException e = assertThrows(IllegalStateException.class, () -> objects.getServices());
-		assertEquals("Services was not defined", e.getMessage());
+	public void testObjects_GetBuildingContext_ShouldThrowsIfNotDefined() {
+		IllegalStateException e = assertThrows(IllegalStateException.class, () -> objects.getBuildingContext());
+		assertEquals("Building context was not defined", e.getMessage());
 	}
 	
 	@Test
-	public void testObjects_GetServices() {
-		assertSame(objects, objects.setServices(servicesMock));
+	public void testObjects_GetBuildingContext() {
+		assertSame(objects, objects.setBuildingContext(contextMock));
 		
-		assertSame(servicesMock, objects.getServices());
+		assertSame(contextMock, objects.getBuildingContext());
 	}
 	
 	@Test
@@ -172,14 +172,14 @@ public class KafkaAggregatorBuilderTest {
 	}
 	
 	@Test
-	public void testWithServices() {
-		assertSame(service, service.withServices(servicesMock));
+	public void testWithBuildingContext() {
+		assertSame(service, service.withBuildingContext(contextMock));
 
-		assertSame(servicesMock, objects.getServices());
+		assertSame(contextMock, objects.getBuildingContext());
 	}
 	
 	@Test
-	public void testWithCleanUoMutex() {
+	public void testWithCleanUpMutex() {
 		assertSame(service, service.withCleanUpMutex(mutexMock));
 		
 		assertSame(mutexMock, objects.getCleanUpMutex());
@@ -248,13 +248,13 @@ public class KafkaAggregatorBuilderTest {
 		config.getProperties().put("caelum.aggregator.kafka.pfx.target.topic", "target-");
 		config.getProperties().put("caelum.aggregator.kafka.pfx.aggregation.store", "store-");
 		config.getProperties().put("caelum.aggregator.kafka.default.timeout", "25000");
-		objects.setConfig(config).setServices(servicesMock);
+		objects.setConfig(config).setBuildingContext(contextMock);
 		KafkaAggregatorDescr expected_descr =
 				new KafkaAggregatorDescr(AggregatorType.ITEM, Interval.M5, "source-data", "target-m5", "store-m5");
 		Capture<IService> cap = newCapture();
 		expect(mockedService.createStreamsService(expected_descr)).andReturn(streamsServiceMock);
 		expect(mockedService.createThread("MyApp-m5-thread", streamsServiceMock)).andReturn(threadMock);
-		expect(servicesMock.register(capture(cap))).andReturn(servicesMock);
+		expect(contextMock.registerService(capture(cap))).andReturn(contextMock);
 		expect(mockedService.createAggregator(expected_descr, streamsServiceMock)).andReturn(aggregatorMock);
 		control.replay();
 		replay(mockedService);

@@ -2,7 +2,7 @@ package ru.prolib.caelum.service.aggregator;
 
 import java.io.IOException;
 
-import ru.prolib.caelum.lib.CompositeService;
+import ru.prolib.caelum.service.IBuildingContext;
 
 public class AggregatorServiceBuilder implements IAggregatorServiceBuilder {
 
@@ -19,13 +19,10 @@ public class AggregatorServiceBuilder implements IAggregatorServiceBuilder {
 	}
 	
 	@Override
-	public IAggregatorService build(String default_config_file, String config_file, CompositeService services)
-			throws IOException
-	{
+	public IAggregatorService build(IBuildingContext context) throws IOException {
 		AggregatorConfig config = createConfig();
-		config.load(default_config_file, config_file);
-		return createBuilder(config.getString(AggregatorConfig.BUILDER))
-				.build(default_config_file, config_file, services);
+		config.load(context.getDefaultConfigFileName(), context.getConfigFileName());
+		return createBuilder(config.getString(AggregatorConfig.BUILDER)).build(context);
 	}
 	
 	@Override

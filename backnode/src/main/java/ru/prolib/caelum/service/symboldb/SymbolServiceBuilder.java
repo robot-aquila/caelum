@@ -2,7 +2,7 @@ package ru.prolib.caelum.service.symboldb;
 
 import java.io.IOException;
 
-import ru.prolib.caelum.lib.CompositeService;
+import ru.prolib.caelum.service.IBuildingContext;
 
 public class SymbolServiceBuilder implements ISymbolServiceBuilder {
 	
@@ -19,13 +19,11 @@ public class SymbolServiceBuilder implements ISymbolServiceBuilder {
 	}
 
 	@Override
-	public ISymbolService build(String default_config_file, String config_file, CompositeService services)
-			throws IOException
-	{
+	public ISymbolService build(IBuildingContext context) throws IOException {
 		SymbolServiceConfig config = createConfig();
-		config.load(default_config_file, config_file);
+		config.load(context.getDefaultConfigFileName(), context.getConfigFileName());
 		ISymbolServiceBuilder builder = createBuilder(config.getString(SymbolServiceConfig.BUILDER));
-		return builder.build(default_config_file, config_file, services);
+		return builder.build(context);
 	}
 	
 	@Override

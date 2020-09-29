@@ -57,8 +57,8 @@ import ru.prolib.caelum.service.SymbolListRequest;
 
 @Path("/api/v1/")
 @Produces(MediaType.APPLICATION_JSON)
-public class NodeService {
-	static final Logger logger = LoggerFactory.getLogger(NodeService.class);
+public class RestService {
+	static final Logger logger = LoggerFactory.getLogger(RestService.class);
 	public static final Interval DEFAULT_INTERVAL = Interval.M5;
 	
 	static class RowsWrapper<T> {
@@ -75,7 +75,7 @@ public class NodeService {
 	private final ByteUtils byteUtils;
 	private final boolean testMode;
 	
-	public NodeService(ICaelum caelum,
+	public RestService(ICaelum caelum,
 			StreamFactory streamFactory,
 			Intervals intervals,
 			ByteUtils byteUtils,

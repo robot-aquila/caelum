@@ -5,8 +5,8 @@ import java.time.Clock;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 
-import ru.prolib.caelum.lib.CompositeService;
 import ru.prolib.caelum.lib.kafka.KafkaItem;
+import ru.prolib.caelum.service.IBuildingContext;
 import ru.prolib.caelum.service.itemdb.IItemDatabaseService;
 import ru.prolib.caelum.service.itemdb.IItemDatabaseServiceBuilder;
 import ru.prolib.caelum.service.itemdb.kafka.utils.KafkaProducerService;
@@ -44,13 +44,11 @@ public class KafkaItemDatabaseServiceBuilder implements IItemDatabaseServiceBuil
 	}
 
 	@Override
-	public IItemDatabaseService build(String default_config_file, String config_file, CompositeService services)
-			throws IOException
-	{
+	public IItemDatabaseService build(IBuildingContext context) throws IOException {
 		KafkaItemDatabaseConfig config = createConfig();
-		config.load(default_config_file, config_file);
+		config.load(context.getDefaultConfigFileName(), context.getConfigFileName());
 		KafkaProducer<String, KafkaItem> producer = utils.createProducer(config.getProducerKafkaProperties());
-		services.register(new KafkaProducerService(producer));
+		context.registerService(new KafkaProducerService(producer));
 		return createService(config, producer);
 	}
 	

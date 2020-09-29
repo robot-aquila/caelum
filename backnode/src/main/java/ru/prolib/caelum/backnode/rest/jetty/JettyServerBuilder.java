@@ -3,88 +3,58 @@ package ru.prolib.caelum.backnode.rest.jetty;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import javax.servlet.Servlet;
+
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.glassfish.jersey.servlet.ServletContainer;
 
 import ru.prolib.caelum.backnode.BacknodeConfig;
-import ru.prolib.caelum.backnode.CommonResourceConfig;
-import ru.prolib.caelum.backnode.NodeService;
-import ru.prolib.caelum.backnode.StaticResourceServlet;
-import ru.prolib.caelum.backnode.mvc.StreamFactory;
-import ru.prolib.caelum.backnode.rest.IRestServiceBuilder;
-import ru.prolib.caelum.backnode.rest.jetty.ws.TestCreator;
-import ru.prolib.caelum.backnode.rest.jetty.ws.WebSocketServletImpl;
-import ru.prolib.caelum.lib.ByteUtils;
 import ru.prolib.caelum.lib.IService;
-import ru.prolib.caelum.lib.Intervals;
-import ru.prolib.caelum.service.ICaelum;
+import ru.prolib.caelum.service.BuildingContext;
+import ru.prolib.caelum.service.ExtensionState;
+import ru.prolib.caelum.service.ExtensionStatus;
+import ru.prolib.caelum.service.ExtensionStub;
+import ru.prolib.caelum.service.IBuildingContext;
+import ru.prolib.caelum.service.IExtension;
+import ru.prolib.caelum.service.IExtensionBuilder;
+import ru.prolib.caelum.service.ServletRegistry;
 
-public class JettyServerBuilder implements IRestServiceBuilder {
-	private String host;
-	private Integer port;
-	private Object component;
+public class JettyServerBuilder implements IExtensionBuilder {
 	
 	protected BacknodeConfig createConfig() {
 		return new BacknodeConfig();
 	}
 	
-	protected Object createComponent(ICaelum caelum, boolean testMode) {
-		return new NodeService(caelum, new StreamFactory(), new Intervals(), ByteUtils.getInstance(), testMode);
+	protected ServletContextHandler createContextHandler() {
+		return new ServletContextHandler(ServletContextHandler.SESSIONS);
 	}
 	
-	protected IService createServer(String host, int port, Object component) {
-		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+	protected Server createJettyServer(String host, int port) {
+		return new Server(new InetSocketAddress(host, port));
+	}
+	
+	protected ServletHolder createServletHolder(Servlet servlet) {
+		return new ServletHolder(servlet);
+	}
+	
+	protected IService createServer(String host, int port, ServletRegistry servlets) {
+		ServletContextHandler context = createContextHandler();
 		context.setContextPath("/");
-		
-		Server server = new Server(new InetSocketAddress(host, port));
+		Server server = createJettyServer(host, port);
 		server.setHandler(context);
-		
-		CommonResourceConfig rc = new CommonResourceConfig();
-		rc.register(component);
-		
-		context.addServlet(new ServletHolder(new StaticResourceServlet()), "/console/*");
-		context.addServlet(new ServletHolder(new WebSocketServletImpl(new TestCreator())), "/ws");
-		context.addServlet(new ServletHolder(new ServletContainer(rc)), "/*");
-		
+		servlets.getServlets().stream()
+			.forEach(s -> context.addServlet(createServletHolder(s.getServlet()), s.getPathSpec()));
 		return new JettyServerStarter(server);
 	}
 	
-	public JettyServerBuilder withHost(String host) {
-		this.host = host;
-		return this;
-	}
-	
-	public JettyServerBuilder withPort(int port) {
-		this.port = port;
-		return this;
-	}
-	
-	public JettyServerBuilder withComponent(Object component) {
-		this.component = component;
-		return this;
-	}
-	
-	public IService build() {
-		if ( host == null ) {
-			throw new IllegalStateException("Server host was not defined");
-		}
-		if ( port == null ) {
-			throw new IllegalStateException("Server port was not defined");
-		}
-		if ( component == null ) {
-			throw new IllegalStateException("Component was not defined");
-		}
-		return createServer(host, port, component);
-	}
-	
 	@Override
-	public IService build(String default_config_file, String config_file, ICaelum caelum) throws IOException {
+	public IExtension build(IBuildingContext context) throws IOException {
 		BacknodeConfig config = createConfig();
-		config.load(default_config_file, config_file);
-		return createServer(config.getRestHttpHost(), config.getRestHttpPort(),
-				createComponent(caelum, config.isTestMode()));
+		config.load(context.getDefaultConfigFileName(), context.getConfigFileName());
+		ServletRegistry servlets = (ServletRegistry) ((BuildingContext) context).getServlets();
+		context.registerService(createServer(config.getRestHttpHost(), config.getRestHttpPort(), servlets));
+		return new ExtensionStub(new ExtensionStatus("HTTP", ExtensionState.RUNNING, null));
 	}
-		
+	
 }

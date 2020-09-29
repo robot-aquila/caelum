@@ -14,8 +14,8 @@ import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 
-import ru.prolib.caelum.lib.CompositeService;
 import ru.prolib.caelum.lib.IItem;
+import ru.prolib.caelum.service.IBuildingContext;
 import ru.prolib.caelum.service.IItemIterator;
 import ru.prolib.caelum.service.ItemDataRequest;
 import ru.prolib.caelum.service.ItemDataRequestContinue;
@@ -23,13 +23,10 @@ import ru.prolib.caelum.service.ItemDataRequestContinue;
 public class ItemDatabaseServiceBuilderTest {
 	
 	static class TestService implements IItemDatabaseService {
-		private final String default_config_file, config_file;
-		private final CompositeService services;
+		private final IBuildingContext context;
 		
-		public TestService(String default_config_file, String config_file, CompositeService services) {
-			this.default_config_file = default_config_file;
-			this.config_file = config_file;
-			this.services = services;
+		public TestService(IBuildingContext context) {
+			this.context = context;
 		}
 		
 		@Override
@@ -62,24 +59,22 @@ public class ItemDatabaseServiceBuilderTest {
 	static class TestBuilder implements IItemDatabaseServiceBuilder {
 
 		@Override
-		public IItemDatabaseService build(String default_config_file, String config_file, CompositeService services)
-				throws IOException
-		{
-			return new TestService(default_config_file, config_file, services);
+		public IItemDatabaseService build(IBuildingContext context) throws IOException {
+			return new TestService(context);
 		}
 		
 	}
 	
 	IMocksControl control;
 	ItemDatabaseConfig configStub;
-	CompositeService servicesMock;
+	IBuildingContext contextMock;
 	ItemDatabaseServiceBuilder service, mockedService;
 
 	@Before
 	public void setUp() throws Exception {
 		control = createStrictControl();
 		configStub = new ItemDatabaseConfig();
-		servicesMock = control.createMock(CompositeService.class);
+		contextMock = control.createMock(IBuildingContext.class);
 		service = new ItemDatabaseServiceBuilder();
 		mockedService = partialMockBuilder(ItemDatabaseServiceBuilder.class)
 				.addMockedMethod("createConfig")
@@ -103,6 +98,8 @@ public class ItemDatabaseServiceBuilderTest {
 
 	@Test
 	public void testBuild() throws Exception {
+		expect(contextMock.getDefaultConfigFileName()).andStubReturn("/jumbo/foo.props");
+		expect(contextMock.getConfigFileName()).andStubReturn("/jumbo/bar.props");
 		final Capture<String> cap1 = newCapture(), cap2 = newCapture();
 		configStub = new ItemDatabaseConfig() {
 			@Override
@@ -117,16 +114,16 @@ public class ItemDatabaseServiceBuilderTest {
 		control.replay();
 		replay(mockedService);
 
-		IItemDatabaseService actual = mockedService.build("/jumbo/foo.props", "/jumbo/bar.props", servicesMock);
+		IItemDatabaseService actual = mockedService.build(contextMock);
 		
 		verify(mockedService);
 		control.verify();
 		assertNotNull(actual);
 		assertThat(actual, is(instanceOf(TestService.class)));
 		TestService x = (TestService) actual;
-		assertEquals("/jumbo/foo.props", x.default_config_file);
-		assertEquals("/jumbo/bar.props", x.config_file);
-		assertSame(servicesMock, x.services);
+		assertEquals("/jumbo/foo.props", cap1.getValue());
+		assertEquals("/jumbo/bar.props", cap2.getValue());
+		assertSame(contextMock, x.context);
 	}
 
 	@Test

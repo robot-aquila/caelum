@@ -21,7 +21,7 @@ import com.apple.foundationdb.FDB;
 import com.apple.foundationdb.subspace.Subspace;
 import com.apple.foundationdb.tuple.Tuple;
 
-import ru.prolib.caelum.lib.CompositeService;
+import ru.prolib.caelum.service.IBuildingContext;
 import ru.prolib.caelum.service.ICategoryExtractor;
 import ru.prolib.caelum.service.symboldb.ISymbolService;
 
@@ -40,8 +40,8 @@ public class FDBSymbolServiceBuilderTest {
 	FDB fdbMock;
 	Database dbMock;
 	File fileMock;
-	FDBSymbolServiceConfig configStub;
-	CompositeService servicesMock;
+	FDBSymbolServiceConfig configStub, mockedConfig;
+	IBuildingContext contextMock;
 	FDBSymbolServiceBuilder service, mockedService;
 
 	@Before
@@ -51,10 +51,15 @@ public class FDBSymbolServiceBuilderTest {
 		dbMock = control.createMock(Database.class);
 		fileMock = control.createMock(File.class);
 		configStub = new FDBSymbolServiceConfig();
-		servicesMock = control.createMock(CompositeService.class);
+		contextMock = control.createMock(IBuildingContext.class);
 		service = new FDBSymbolServiceBuilder();
 		mockedService = partialMockBuilder(FDBSymbolServiceBuilder.class)
+				.withConstructor()
 				.addMockedMethod("createConfig")
+				.createMock();
+		mockedConfig = partialMockBuilder(FDBSymbolServiceConfig.class)
+				.withConstructor()
+				.addMockedMethod("load", String.class, String.class)
 				.createMock();
 	}
 	
@@ -83,27 +88,24 @@ public class FDBSymbolServiceBuilderTest {
 	
 	@Test
 	public void testBuild() throws Exception {
-		final Capture<String> cap1 = newCapture(), cap2 = newCapture();
-		configStub = new FDBSymbolServiceConfig() {
-			@Override
-			public void load(String default_props_file, String props_file) {
-				cap1.setValue(default_props_file);
-				cap2.setValue(props_file);
-			}
-		};
-		Properties props = configStub.getProperties();
+		Properties props = mockedConfig.getProperties();
 		props.put("caelum.symboldb.category.extractor", TestCategoryExtractor.class.getName());
 		props.put("caelum.symboldb.list.symbols.limit", "2000");
 		props.put("caelum.symboldb.fdb.subspace", "zulu24");
 		props.put("caelum.symboldb.fdb.cluster", "gamurappi");
-		expect(mockedService.createConfig()).andReturn(configStub);
+		expect(mockedService.createConfig()).andReturn(mockedConfig);
+		expect(contextMock.getDefaultConfigFileName()).andStubReturn("/foo/default.props");
+		expect(contextMock.getConfigFileName()).andStubReturn("/foo/my.props");
+		mockedConfig.load("/foo/default.props", "/foo/my.props");
 		Capture<FDBDatabaseService> cap3 = newCapture();
-		expect(servicesMock.register(capture(cap3))).andReturn(servicesMock);
+		expect(contextMock.registerService(capture(cap3))).andReturn(contextMock);
 		control.replay();
 		replay(mockedService);
+		replay(mockedConfig);
 		
-		ISymbolService actual = mockedService.build("/foo/default.props", "/foo/my.props", servicesMock);
+		ISymbolService actual = mockedService.build(contextMock);
 		
+		verify(mockedConfig);
 		verify(mockedService);
 		control.verify();
 		assertNotNull(actual);
@@ -118,9 +120,6 @@ public class FDBSymbolServiceBuilderTest {
 		FDBDatabaseService reg_svc = cap3.getValue();
 		assertSame(produced_service, reg_svc.getTarget());
 		assertEquals("gamurappi", reg_svc.getFdbCluster());
-		// Test configuration loading
-		assertEquals("/foo/default.props", cap1.getValue());
-		assertEquals("/foo/my.props", cap2.getValue());
 	}
 	
 	@Test

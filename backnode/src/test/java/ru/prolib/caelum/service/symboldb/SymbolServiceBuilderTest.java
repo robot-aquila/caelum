@@ -7,30 +7,25 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Properties;
 
-import org.easymock.Capture;
 import org.easymock.IMocksControl;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import ru.prolib.caelum.lib.CompositeService;
 import ru.prolib.caelum.lib.Events;
 import ru.prolib.caelum.lib.ICloseableIterator;
 import ru.prolib.caelum.service.EventListRequest;
+import ru.prolib.caelum.service.IBuildingContext;
 import ru.prolib.caelum.service.SymbolListRequest;
 
 public class SymbolServiceBuilderTest {
 	
 	static class TestService implements ISymbolService {
-		private final String default_config_file, config_file;
-		private final CompositeService services;
+		private final IBuildingContext context;
 		
-		public TestService(String default_config_file, String config_file, CompositeService services) {
-			this.default_config_file = default_config_file;
-			this.config_file = config_file;
-			this.services = services;
+		public TestService(IBuildingContext context) {
+			this.context = context;
 		}
 
 		@Override
@@ -87,24 +82,22 @@ public class SymbolServiceBuilderTest {
 	static class TestBuilder implements ISymbolServiceBuilder {
 
 		@Override
-		public ISymbolService build(String default_config_file, String config_file, CompositeService services)
-				throws IOException
-		{
-			return new TestService(default_config_file, config_file, services);
+		public ISymbolService build(IBuildingContext context) throws IOException {
+			return new TestService(context);
 		}
 		
 	}
 	
 	IMocksControl control;
-	SymbolServiceConfig configStub;
-	CompositeService servicesMock;
+	SymbolServiceConfig configMock;
+	IBuildingContext contextMock;
 	SymbolServiceBuilder service, mockedService;
 
 	@Before
 	public void setUp() throws Exception {
 		control = createStrictControl();
-		configStub = new SymbolServiceConfig();
-		servicesMock = control.createMock(CompositeService.class);
+		configMock = control.createMock(SymbolServiceConfig.class);
+		contextMock = control.createMock(IBuildingContext.class);
 		service = new SymbolServiceBuilder();
 		mockedService = partialMockBuilder(SymbolServiceBuilder.class)
 				.addMockedMethod("createConfig")
@@ -128,30 +121,22 @@ public class SymbolServiceBuilderTest {
 
 	@Test
 	public void testBuild() throws Exception {
-		final Capture<String> cap1 = newCapture(), cap2 = newCapture();
-		configStub = new SymbolServiceConfig() {
-			@Override
-			public void load(String default_props_file, String props_file) {
-				cap1.setValue(default_props_file);
-				cap2.setValue(props_file);
-			}
-		};
-		Properties props = configStub.getProperties();
-		props.put("caelum.symboldb.builder", TestBuilder.class.getName());
-		expect(mockedService.createConfig()).andReturn(configStub);
+		expect(contextMock.getDefaultConfigFileName()).andStubReturn("/bar/bums.defaults");
+		expect(contextMock.getConfigFileName()).andStubReturn("/bar/bums.props");
+		configMock.load("/bar/bums.defaults", "/bar/bums.props");
+		expect(configMock.getString("caelum.symboldb.builder")).andReturn(TestBuilder.class.getName());
+		expect(mockedService.createConfig()).andReturn(configMock);
 		control.replay();
 		replay(mockedService);
 		
-		ISymbolService actual = mockedService.build("/bar/bums.defaults", "/bar/bums.props", servicesMock);
+		ISymbolService actual = mockedService.build(contextMock);
 		
 		verify(mockedService);
 		control.verify();
 		assertNotNull(actual);
 		assertThat(actual, is(instanceOf(TestService.class)));
 		TestService x = (TestService) actual;
-		assertEquals("/bar/bums.defaults", x.default_config_file);
-		assertEquals("/bar/bums.props", x.config_file);
-		assertSame(servicesMock, x.services);
+		assertSame(contextMock, x.context);
 	}
 	
 	@Test
