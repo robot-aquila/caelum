@@ -13,8 +13,8 @@ import com.apple.foundationdb.async.AsyncIterator;
 
 import ru.prolib.caelum.lib.ICloseableIterator;
 import ru.prolib.caelum.lib.IteratorStub;
+import ru.prolib.caelum.service.SymbolListRequest;
 import ru.prolib.caelum.service.symboldb.CategorySymbol;
-import ru.prolib.caelum.service.symboldb.SymbolListRequest;
 
 public class FDBTransactionListSymbols extends FDBTransaction<ICloseableIterator<String>> {
 	protected final SymbolListRequest request;

@@ -17,8 +17,8 @@ import com.apple.foundationdb.Transaction;
 import com.apple.foundationdb.subspace.Subspace;
 import com.apple.foundationdb.tuple.Tuple;
 
+import ru.prolib.caelum.service.ICategoryExtractor;
 import ru.prolib.caelum.service.symboldb.CommonCategoryExtractor;
-import ru.prolib.caelum.service.symboldb.ICategoryExtractor;
 
 public class FDBTransactionRegisterSymbolTest {
 	static Subspace space = new Subspace(Tuple.from("foo"));

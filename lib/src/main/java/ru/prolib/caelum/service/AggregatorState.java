@@ -1,4 +1,4 @@
-package ru.prolib.caelum.service.aggregator;
+package ru.prolib.caelum.service;
 
 public enum AggregatorState {
 	CREATED,

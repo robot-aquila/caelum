@@ -1,4 +1,4 @@
-package ru.prolib.caelum.backnode.http;
+package ru.prolib.caelum.service;
 
 import static org.junit.Assert.*;
 import static org.easymock.EasyMock.*;

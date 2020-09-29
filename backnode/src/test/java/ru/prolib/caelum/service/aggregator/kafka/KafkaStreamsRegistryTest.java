@@ -5,7 +5,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.easymock.EasyMock.*;
 import static ru.prolib.caelum.lib.Interval.*;
-import static ru.prolib.caelum.service.aggregator.AggregatorType.*;
+import static ru.prolib.caelum.service.AggregatorType.*;
 
 import java.util.Arrays;
 import java.util.HashMap;

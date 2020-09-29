@@ -16,6 +16,9 @@ import org.junit.Test;
 
 import ru.prolib.caelum.lib.CompositeService;
 import ru.prolib.caelum.lib.IItem;
+import ru.prolib.caelum.service.IItemIterator;
+import ru.prolib.caelum.service.ItemDataRequest;
+import ru.prolib.caelum.service.ItemDataRequestContinue;
 
 public class ItemDatabaseServiceBuilderTest {
 	

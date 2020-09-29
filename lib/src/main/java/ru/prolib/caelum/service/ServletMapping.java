@@ -1,4 +1,4 @@
-package ru.prolib.caelum.backnode.http;
+package ru.prolib.caelum.service;
 
 import javax.servlet.Servlet;
 

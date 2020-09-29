@@ -15,6 +15,9 @@ import org.junit.Test;
 
 import ru.prolib.caelum.lib.CompositeService;
 import ru.prolib.caelum.lib.Interval;
+import ru.prolib.caelum.service.AggregatedDataRequest;
+import ru.prolib.caelum.service.AggregatedDataResponse;
+import ru.prolib.caelum.service.AggregatorStatus;
 
 public class AggregatorServiceBuilderTest {
 	

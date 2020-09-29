@@ -16,7 +16,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import ru.prolib.caelum.lib.ServiceException;
-import ru.prolib.caelum.service.aggregator.AggregatorState;
+import ru.prolib.caelum.service.AggregatorState;
 
 public class RecoverableStreamsServiceStarterTest {
 	

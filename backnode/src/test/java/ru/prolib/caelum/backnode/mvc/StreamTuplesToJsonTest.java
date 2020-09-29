@@ -19,7 +19,7 @@ import ru.prolib.caelum.lib.ITuple;
 import ru.prolib.caelum.lib.Interval;
 import ru.prolib.caelum.lib.IteratorStub;
 import ru.prolib.caelum.lib.Tuple;
-import ru.prolib.caelum.service.aggregator.AggregatedDataRequest;
+import ru.prolib.caelum.service.AggregatedDataRequest;
 
 public class StreamTuplesToJsonTest {
 	JsonFactory jsonFactory = new JsonFactory();

@@ -10,11 +10,11 @@ import ru.prolib.caelum.backnode.ValueFormatter;
 import ru.prolib.caelum.lib.Events;
 import ru.prolib.caelum.lib.ICloseableIterator;
 import ru.prolib.caelum.lib.ITuple;
-import ru.prolib.caelum.service.aggregator.AggregatedDataRequest;
-import ru.prolib.caelum.service.itemdb.IItemDataRequest;
-import ru.prolib.caelum.service.itemdb.IItemIterator;
-import ru.prolib.caelum.service.symboldb.EventListRequest;
-import ru.prolib.caelum.service.symboldb.SymbolListRequest;
+import ru.prolib.caelum.service.AggregatedDataRequest;
+import ru.prolib.caelum.service.EventListRequest;
+import ru.prolib.caelum.service.IItemDataRequest;
+import ru.prolib.caelum.service.IItemIterator;
+import ru.prolib.caelum.service.SymbolListRequest;
 
 public class StreamFactory {
 	private final JsonFactory jsonFactory;

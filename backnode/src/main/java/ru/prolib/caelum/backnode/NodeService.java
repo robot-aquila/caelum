@@ -47,13 +47,13 @@ import ru.prolib.caelum.lib.Interval;
 import ru.prolib.caelum.lib.Intervals;
 import ru.prolib.caelum.lib.Item;
 import ru.prolib.caelum.lib.IteratorStub;
+import ru.prolib.caelum.service.AggregatedDataRequest;
+import ru.prolib.caelum.service.AggregatedDataResponse;
+import ru.prolib.caelum.service.EventListRequest;
 import ru.prolib.caelum.service.ICaelum;
-import ru.prolib.caelum.service.aggregator.AggregatedDataRequest;
-import ru.prolib.caelum.service.aggregator.AggregatedDataResponse;
-import ru.prolib.caelum.service.itemdb.ItemDataRequest;
-import ru.prolib.caelum.service.itemdb.ItemDataRequestContinue;
-import ru.prolib.caelum.service.symboldb.EventListRequest;
-import ru.prolib.caelum.service.symboldb.SymbolListRequest;
+import ru.prolib.caelum.service.ItemDataRequest;
+import ru.prolib.caelum.service.ItemDataRequestContinue;
+import ru.prolib.caelum.service.SymbolListRequest;
 
 @Path("/api/v1/")
 @Produces(MediaType.APPLICATION_JSON)

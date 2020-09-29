@@ -23,10 +23,10 @@ import org.slf4j.LoggerFactory;
 
 import ru.prolib.caelum.lib.IItem;
 import ru.prolib.caelum.lib.kafka.KafkaItem;
+import ru.prolib.caelum.service.IItemIterator;
+import ru.prolib.caelum.service.ItemDataRequest;
+import ru.prolib.caelum.service.ItemDataRequestContinue;
 import ru.prolib.caelum.service.itemdb.IItemDatabaseService;
-import ru.prolib.caelum.service.itemdb.IItemIterator;
-import ru.prolib.caelum.service.itemdb.ItemDataRequest;
-import ru.prolib.caelum.service.itemdb.ItemDataRequestContinue;
 import ru.prolib.caelum.service.itemdb.ItemDatabaseConfig;
 import ru.prolib.caelum.service.itemdb.kafka.utils.KafkaUtils;
 

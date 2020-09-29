@@ -18,6 +18,8 @@ import org.junit.Test;
 import ru.prolib.caelum.lib.CompositeService;
 import ru.prolib.caelum.lib.Events;
 import ru.prolib.caelum.lib.ICloseableIterator;
+import ru.prolib.caelum.service.EventListRequest;
+import ru.prolib.caelum.service.SymbolListRequest;
 
 public class SymbolServiceBuilderTest {
 	

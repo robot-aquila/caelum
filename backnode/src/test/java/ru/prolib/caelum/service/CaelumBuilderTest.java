@@ -32,11 +32,7 @@ public class CaelumBuilderTest {
 	
 	static class TestExtBuilder1 implements IExtensionBuilder {
 		@Override
-		public IExtension build(String default_config_file,
-				String config_file,
-				CompositeService services,
-				ICaelum caelum) throws IOException
-		{
+		public IExtension build(String x, String y, CompositeService s, ICaelum c) throws IOException {
 			throw new UnsupportedOperationException();
 		}
 	}

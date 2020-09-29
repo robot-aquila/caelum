@@ -1,8 +1,8 @@
 package ru.prolib.caelum.service.aggregator.kafka;
 
 import static org.junit.Assert.*;
-import static ru.prolib.caelum.service.aggregator.AggregatorState.*;
-import static ru.prolib.caelum.service.aggregator.AggregatorType.*;
+import static ru.prolib.caelum.service.AggregatorState.*;
+import static ru.prolib.caelum.service.AggregatorType.*;
 
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.streams.KafkaStreams;
@@ -17,7 +17,7 @@ import org.junit.Test;
 
 import ru.prolib.caelum.lib.Interval;
 import ru.prolib.caelum.lib.Intervals;
-import ru.prolib.caelum.service.aggregator.AggregatorStatus;
+import ru.prolib.caelum.service.AggregatorStatus;
 import ru.prolib.caelum.service.aggregator.kafka.utils.IRecoverableStreamsService;
 import ru.prolib.caelum.service.itemdb.kafka.utils.KafkaUtils;
 

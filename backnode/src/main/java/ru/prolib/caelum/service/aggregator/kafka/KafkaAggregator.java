@@ -3,7 +3,7 @@ package ru.prolib.caelum.service.aggregator.kafka;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.streams.KafkaStreams;
 
-import ru.prolib.caelum.service.aggregator.AggregatorStatus;
+import ru.prolib.caelum.service.AggregatorStatus;
 import ru.prolib.caelum.service.aggregator.IAggregator;
 import ru.prolib.caelum.service.aggregator.kafka.utils.IRecoverableStreamsService;
 import ru.prolib.caelum.service.itemdb.kafka.utils.KafkaUtils;

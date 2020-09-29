@@ -10,6 +10,8 @@ import static org.hamcrest.Matchers.*;
 import org.junit.Before;
 import org.junit.Test;
 
+import ru.prolib.caelum.service.ICategoryExtractor;
+
 public class CommonCategoryExtractorTest {
 	CommonCategoryExtractor service;
 

@@ -20,8 +20,8 @@ import com.apple.foundationdb.subspace.Subspace;
 import com.apple.foundationdb.tuple.Tuple;
 
 import ru.prolib.caelum.lib.Events;
+import ru.prolib.caelum.service.ICategoryExtractor;
 import ru.prolib.caelum.service.symboldb.CommonCategoryExtractor;
-import ru.prolib.caelum.service.symboldb.ICategoryExtractor;
 
 public class FDBTransactionRegisterEventsTest {
 	static Subspace space = new Subspace(Tuple.from("bar"));

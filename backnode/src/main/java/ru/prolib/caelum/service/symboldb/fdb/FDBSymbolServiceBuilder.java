@@ -6,7 +6,7 @@ import com.apple.foundationdb.subspace.Subspace;
 import com.apple.foundationdb.tuple.Tuple;
 
 import ru.prolib.caelum.lib.CompositeService;
-import ru.prolib.caelum.service.symboldb.ICategoryExtractor;
+import ru.prolib.caelum.service.ICategoryExtractor;
 import ru.prolib.caelum.service.symboldb.ISymbolService;
 import ru.prolib.caelum.service.symboldb.ISymbolServiceBuilder;
 

@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import ru.prolib.caelum.lib.IService;
 import ru.prolib.caelum.lib.ServiceException;
-import ru.prolib.caelum.service.aggregator.AggregatorState;
+import ru.prolib.caelum.service.AggregatorState;
 
 public class RecoverableStreamsServiceStarter implements IService {
 	private static final Logger logger = LoggerFactory.getLogger(RecoverableStreamsServiceStarter.class);

@@ -22,7 +22,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import ru.prolib.caelum.service.aggregator.AggregatorState;
+import ru.prolib.caelum.service.AggregatorState;
 import ru.prolib.caelum.service.aggregator.kafka.utils.RecoverableStreamsService.StateTracker;
 
 public class RecoverableStreamsServiceTest {

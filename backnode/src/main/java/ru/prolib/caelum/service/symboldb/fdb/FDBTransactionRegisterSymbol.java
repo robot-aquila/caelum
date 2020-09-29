@@ -12,7 +12,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import com.apple.foundationdb.Transaction;
 
-import ru.prolib.caelum.service.symboldb.ICategoryExtractor;
+import ru.prolib.caelum.service.ICategoryExtractor;
 
 public class FDBTransactionRegisterSymbol extends FDBTransaction<Void> {
 	protected final ICategoryExtractor catExt;

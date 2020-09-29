@@ -3,8 +3,8 @@ package ru.prolib.caelum.service;
 import static org.junit.Assert.*;
 import static org.easymock.EasyMock.*;
 import static ru.prolib.caelum.lib.Interval.*;
-import static ru.prolib.caelum.service.aggregator.AggregatorState.*;
-import static ru.prolib.caelum.service.aggregator.AggregatorType.*;
+import static ru.prolib.caelum.service.AggregatorState.*;
+import static ru.prolib.caelum.service.AggregatorType.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -19,17 +19,9 @@ import ru.prolib.caelum.lib.ICloseableIterator;
 import ru.prolib.caelum.lib.IItem;
 import ru.prolib.caelum.lib.Interval;
 import ru.prolib.caelum.lib.Item;
-import ru.prolib.caelum.service.aggregator.AggregatedDataRequest;
-import ru.prolib.caelum.service.aggregator.AggregatedDataResponse;
-import ru.prolib.caelum.service.aggregator.AggregatorStatus;
 import ru.prolib.caelum.service.aggregator.kafka.KafkaAggregatorService;
 import ru.prolib.caelum.service.itemdb.IItemDatabaseService;
-import ru.prolib.caelum.service.itemdb.IItemIterator;
-import ru.prolib.caelum.service.itemdb.ItemDataRequest;
-import ru.prolib.caelum.service.itemdb.ItemDataRequestContinue;
-import ru.prolib.caelum.service.symboldb.EventListRequest;
 import ru.prolib.caelum.service.symboldb.ISymbolService;
-import ru.prolib.caelum.service.symboldb.SymbolListRequest;
 
 @SuppressWarnings("unchecked")
 public class CaelumTest {

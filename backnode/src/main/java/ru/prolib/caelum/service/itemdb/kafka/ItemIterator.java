@@ -11,8 +11,8 @@ import org.slf4j.LoggerFactory;
 
 import ru.prolib.caelum.lib.IItem;
 import ru.prolib.caelum.lib.kafka.KafkaItem;
-import ru.prolib.caelum.service.itemdb.IItemIterator;
-import ru.prolib.caelum.service.itemdb.ItemDataResponse;
+import ru.prolib.caelum.service.IItemIterator;
+import ru.prolib.caelum.service.ItemDataResponse;
 
 public class ItemIterator implements IItemIterator {
 	static final Logger logger = LoggerFactory.getLogger(ItemIterator.class);

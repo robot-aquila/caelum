@@ -16,8 +16,8 @@ import com.fasterxml.jackson.core.JsonFactory;
 
 import ru.prolib.caelum.backnode.ValueFormatter;
 import ru.prolib.caelum.lib.Item;
-import ru.prolib.caelum.service.itemdb.ItemDataRequest;
-import ru.prolib.caelum.service.itemdb.ItemDataResponse;
+import ru.prolib.caelum.service.ItemDataRequest;
+import ru.prolib.caelum.service.ItemDataResponse;
 import ru.prolib.caelum.service.itemdb.ItemIteratorStub;
 
 public class StreamItemsToJsonTest {

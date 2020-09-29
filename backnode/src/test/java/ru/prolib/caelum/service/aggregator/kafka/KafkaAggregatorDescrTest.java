@@ -7,7 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import ru.prolib.caelum.lib.Interval;
-import ru.prolib.caelum.service.aggregator.AggregatorType;
+import ru.prolib.caelum.service.AggregatorType;
 
 public class KafkaAggregatorDescrTest {
 	KafkaAggregatorDescr service;

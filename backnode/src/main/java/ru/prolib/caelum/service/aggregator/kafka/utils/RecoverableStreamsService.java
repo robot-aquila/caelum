@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ru.prolib.caelum.lib.ServiceException;
-import ru.prolib.caelum.service.aggregator.AggregatorState;
+import ru.prolib.caelum.service.AggregatorState;
 
 public class RecoverableStreamsService implements IRecoverableStreamsService,
 	IRecoverableStreamsHandlerListener, Runnable

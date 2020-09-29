@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 import static org.easymock.EasyMock.*;
 import static org.hamcrest.Matchers.*;
 import static ru.prolib.caelum.lib.Interval.*;
-import static ru.prolib.caelum.service.aggregator.AggregatorType.*;
+import static ru.prolib.caelum.service.AggregatorType.*;
 import static org.easymock.EasyMock.isA;
 
 import java.util.Arrays;

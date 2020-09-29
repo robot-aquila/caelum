@@ -1,9 +1,9 @@
-package ru.prolib.caelum.service.aggregator;
+package ru.prolib.caelum.service;
 
 import static org.junit.Assert.*;
 import static ru.prolib.caelum.lib.Interval.*;
-import static ru.prolib.caelum.service.aggregator.AggregatorState.*;
-import static ru.prolib.caelum.service.aggregator.AggregatorType.*;
+import static ru.prolib.caelum.service.AggregatorState.*;
+import static ru.prolib.caelum.service.AggregatorType.*;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.junit.Before;

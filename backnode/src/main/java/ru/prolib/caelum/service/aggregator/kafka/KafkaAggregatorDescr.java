@@ -6,7 +6,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import ru.prolib.caelum.lib.Interval;
-import ru.prolib.caelum.service.aggregator.AggregatorType;
+import ru.prolib.caelum.service.AggregatorType;
 
 public class KafkaAggregatorDescr {
 	protected final AggregatorType type;

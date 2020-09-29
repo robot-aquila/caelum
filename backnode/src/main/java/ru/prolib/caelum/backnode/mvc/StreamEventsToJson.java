@@ -12,7 +12,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 
 import ru.prolib.caelum.lib.Events;
 import ru.prolib.caelum.lib.ICloseableIterator;
-import ru.prolib.caelum.service.symboldb.EventListRequest;
+import ru.prolib.caelum.service.EventListRequest;
 
 public class StreamEventsToJson implements StreamingOutput {
 	private final JsonFactory jsonFactory;

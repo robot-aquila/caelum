@@ -18,7 +18,7 @@ import ru.prolib.caelum.lib.CompositeService;
 import ru.prolib.caelum.lib.IService;
 import ru.prolib.caelum.lib.Interval;
 import ru.prolib.caelum.lib.Intervals;
-import ru.prolib.caelum.service.aggregator.AggregatorType;
+import ru.prolib.caelum.service.AggregatorType;
 import ru.prolib.caelum.service.aggregator.IAggregator;
 import ru.prolib.caelum.service.aggregator.kafka.KafkaAggregatorBuilder.Objects;
 import ru.prolib.caelum.service.aggregator.kafka.utils.IRecoverableStreamsService;

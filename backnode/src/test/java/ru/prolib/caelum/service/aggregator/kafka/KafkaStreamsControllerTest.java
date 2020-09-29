@@ -18,7 +18,7 @@ import org.junit.Test;
 
 import ru.prolib.caelum.lib.Interval;
 import ru.prolib.caelum.lib.Intervals;
-import ru.prolib.caelum.service.aggregator.AggregatorType;
+import ru.prolib.caelum.service.AggregatorType;
 import ru.prolib.caelum.service.aggregator.kafka.utils.IRecoverableStreamsHandler;
 import ru.prolib.caelum.service.aggregator.kafka.utils.IRecoverableStreamsHandlerListener;
 import ru.prolib.caelum.service.aggregator.kafka.utils.RecoverableStreamsHandler;

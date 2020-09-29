@@ -1,4 +1,4 @@
-package ru.prolib.caelum.service.itemdb;
+package ru.prolib.caelum.service;
 
 import java.time.Instant;
 
@@ -7,45 +7,46 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-public class ItemDataRequestContinue implements IItemDataRequest {
+public class EventListRequest {
 	private final String symbol;
-	private final long offset;
-	private final String magic;
-	private final Long to;
+	private final Long from, to;
 	private final Integer limit;
 	
-	public ItemDataRequestContinue(String symbol, long offset, String magic, Long to, Integer limit) {
+	public EventListRequest(String symbol, Long from, Long to, Integer limit) {
 		this.symbol = symbol;
-		this.offset = offset;
-		this.magic = magic;
+		this.from = from;
 		this.to = to;
 		this.limit = limit;
 	}
 	
-	@Override
+	public EventListRequest(String symbol) {
+		this(symbol, null, null, null);
+	}
+	
+	public boolean isValid() {
+		return symbol != null && symbol.length() > 0;
+	}
+	
 	public String getSymbol() {
 		return symbol;
 	}
 	
-	public long getOffset() {
-		return offset;
+	public Long getFrom() {
+		return from;
 	}
 	
-	public String getMagic() {
-		return magic;
-	}
-	
-	@Override
 	public Long getTo() {
 		return to;
 	}
 	
-	@Override
 	public Integer getLimit() {
 		return limit;
 	}
 	
-	@Override
+	public Instant getTimeFrom() {
+		return from == null ? null : Instant.ofEpochMilli(from);
+	}
+	
 	public Instant getTimeTo() {
 		return to == null ? null : Instant.ofEpochMilli(to);
 	}
@@ -54,8 +55,7 @@ public class ItemDataRequestContinue implements IItemDataRequest {
 	public String toString() {
 		return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
 				.append("symbol", symbol)
-				.append("offset", offset)
-				.append("magic", magic)
+				.append("from", from)
 				.append("to", to)
 				.append("limit", limit)
 				.build();
@@ -63,10 +63,9 @@ public class ItemDataRequestContinue implements IItemDataRequest {
 	
 	@Override
 	public int hashCode() {
-		return new HashCodeBuilder(10009827, 15)
+		return new HashCodeBuilder(5370241, 47)
 				.append(symbol)
-				.append(offset)
-				.append(magic)
+				.append(from)
 				.append(to)
 				.append(limit)
 				.build();
@@ -77,17 +76,16 @@ public class ItemDataRequestContinue implements IItemDataRequest {
 		if ( other == this ) {
 			return true;
 		}
-		if ( other == null || other.getClass() != ItemDataRequestContinue.class ) {
+		if ( other == null || other.getClass() != EventListRequest.class ) {
 			return false;
 		}
-		ItemDataRequestContinue o = (ItemDataRequestContinue) other;
+		EventListRequest o = (EventListRequest) other;
 		return new EqualsBuilder()
 				.append(o.symbol, symbol)
-				.append(o.offset, offset)
-				.append(o.magic, magic)
+				.append(o.from, from)
 				.append(o.to, to)
 				.append(o.limit, limit)
 				.build();
 	}
-	
+
 }

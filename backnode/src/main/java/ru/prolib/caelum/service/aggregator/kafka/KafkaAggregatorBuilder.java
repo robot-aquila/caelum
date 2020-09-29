@@ -3,7 +3,7 @@ package ru.prolib.caelum.service.aggregator.kafka;
 import java.util.concurrent.locks.Lock;
 
 import ru.prolib.caelum.lib.CompositeService;
-import ru.prolib.caelum.service.aggregator.AggregatorType;
+import ru.prolib.caelum.service.AggregatorType;
 import ru.prolib.caelum.service.aggregator.IAggregator;
 import ru.prolib.caelum.service.aggregator.kafka.utils.IRecoverableStreamsService;
 import ru.prolib.caelum.service.aggregator.kafka.utils.RecoverableStreamsService;

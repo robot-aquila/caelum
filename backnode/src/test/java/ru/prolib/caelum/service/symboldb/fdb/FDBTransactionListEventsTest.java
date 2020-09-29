@@ -22,7 +22,7 @@ import ru.prolib.caelum.lib.Events;
 import ru.prolib.caelum.lib.EventsBuilder;
 import ru.prolib.caelum.lib.ICloseableIterator;
 import ru.prolib.caelum.lib.IteratorStub;
-import ru.prolib.caelum.service.symboldb.EventListRequest;
+import ru.prolib.caelum.service.EventListRequest;
 
 @SuppressWarnings("unchecked")
 public class FDBTransactionListEventsTest {

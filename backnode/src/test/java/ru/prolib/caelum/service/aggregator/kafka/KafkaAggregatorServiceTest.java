@@ -2,8 +2,8 @@ package ru.prolib.caelum.service.aggregator.kafka;
 
 import static org.junit.Assert.*;
 import static ru.prolib.caelum.lib.Interval.*;
-import static ru.prolib.caelum.service.aggregator.AggregatorState.*;
-import static ru.prolib.caelum.service.aggregator.AggregatorType.*;
+import static ru.prolib.caelum.service.AggregatorState.*;
+import static ru.prolib.caelum.service.AggregatorType.*;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -24,9 +24,9 @@ import org.junit.Test;
 import ru.prolib.caelum.lib.HostInfo;
 import ru.prolib.caelum.lib.Intervals;
 import ru.prolib.caelum.lib.kafka.KafkaTuple;
-import ru.prolib.caelum.service.aggregator.AggregatedDataRequest;
-import ru.prolib.caelum.service.aggregator.AggregatedDataResponse;
-import ru.prolib.caelum.service.aggregator.AggregatorStatus;
+import ru.prolib.caelum.service.AggregatedDataRequest;
+import ru.prolib.caelum.service.AggregatedDataResponse;
+import ru.prolib.caelum.service.AggregatorStatus;
 import ru.prolib.caelum.service.aggregator.IAggregator;
 import ru.prolib.caelum.service.aggregator.kafka.utils.WindowStoreIteratorLimited;
 import ru.prolib.caelum.service.aggregator.kafka.utils.WindowStoreIteratorStub;

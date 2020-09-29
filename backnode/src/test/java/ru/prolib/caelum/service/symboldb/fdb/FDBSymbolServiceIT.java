@@ -25,9 +25,9 @@ import com.apple.foundationdb.tuple.Tuple;
 import ru.prolib.caelum.lib.Events;
 import ru.prolib.caelum.lib.EventsBuilder;
 import ru.prolib.caelum.lib.ICloseableIterator;
+import ru.prolib.caelum.service.EventListRequest;
+import ru.prolib.caelum.service.SymbolListRequest;
 import ru.prolib.caelum.service.symboldb.CommonCategoryExtractor;
-import ru.prolib.caelum.service.symboldb.EventListRequest;
-import ru.prolib.caelum.service.symboldb.SymbolListRequest;
 
 public class FDBSymbolServiceIT {
 	static FDBTestHelper helper;

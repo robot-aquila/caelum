@@ -1,4 +1,4 @@
-package ru.prolib.caelum.service.itemdb;
+package ru.prolib.caelum.service;
 
 import java.time.Instant;
 

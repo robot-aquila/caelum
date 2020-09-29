@@ -7,10 +7,10 @@ import com.apple.foundationdb.Database;
 
 import ru.prolib.caelum.lib.Events;
 import ru.prolib.caelum.lib.ICloseableIterator;
-import ru.prolib.caelum.service.symboldb.EventListRequest;
-import ru.prolib.caelum.service.symboldb.ICategoryExtractor;
+import ru.prolib.caelum.service.EventListRequest;
+import ru.prolib.caelum.service.ICategoryExtractor;
+import ru.prolib.caelum.service.SymbolListRequest;
 import ru.prolib.caelum.service.symboldb.ISymbolService;
-import ru.prolib.caelum.service.symboldb.SymbolListRequest;
 
 public class FDBSymbolService implements ISymbolService {
 	private volatile Database db;

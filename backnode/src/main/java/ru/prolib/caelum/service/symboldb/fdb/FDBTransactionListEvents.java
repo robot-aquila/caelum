@@ -16,8 +16,8 @@ import ru.prolib.caelum.lib.Events;
 import ru.prolib.caelum.lib.EventsBuilder;
 import ru.prolib.caelum.lib.ICloseableIterator;
 import ru.prolib.caelum.lib.IteratorStub;
+import ru.prolib.caelum.service.EventListRequest;
 import ru.prolib.caelum.service.symboldb.EventKey;
-import ru.prolib.caelum.service.symboldb.EventListRequest;
 
 public class FDBTransactionListEvents extends FDBTransaction<ICloseableIterator<Events>> {
 	protected final EventListRequest request;

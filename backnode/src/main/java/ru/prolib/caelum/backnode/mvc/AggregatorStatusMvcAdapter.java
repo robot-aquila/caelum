@@ -1,8 +1,8 @@
 package ru.prolib.caelum.backnode.mvc;
 
-import ru.prolib.caelum.service.aggregator.AggregatorState;
-import ru.prolib.caelum.service.aggregator.AggregatorStatus;
-import ru.prolib.caelum.service.aggregator.AggregatorType;
+import ru.prolib.caelum.service.AggregatorState;
+import ru.prolib.caelum.service.AggregatorStatus;
+import ru.prolib.caelum.service.AggregatorType;
 
 public class AggregatorStatusMvcAdapter {
 	private final AggregatorStatus source;

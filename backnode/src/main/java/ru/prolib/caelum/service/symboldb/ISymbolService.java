@@ -4,6 +4,8 @@ import java.util.Collection;
 
 import ru.prolib.caelum.lib.Events;
 import ru.prolib.caelum.lib.ICloseableIterator;
+import ru.prolib.caelum.service.EventListRequest;
+import ru.prolib.caelum.service.SymbolListRequest;
 
 public interface ISymbolService {
 	void registerSymbol(String symbol);

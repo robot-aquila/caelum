@@ -20,9 +20,9 @@ import org.junit.Test;
 
 import ru.prolib.caelum.lib.ItemType;
 import ru.prolib.caelum.lib.kafka.KafkaItem;
-import ru.prolib.caelum.service.itemdb.IItemIterator;
-import ru.prolib.caelum.service.itemdb.ItemDataRequest;
-import ru.prolib.caelum.service.itemdb.ItemDataRequestContinue;
+import ru.prolib.caelum.service.IItemIterator;
+import ru.prolib.caelum.service.ItemDataRequest;
+import ru.prolib.caelum.service.ItemDataRequestContinue;
 import ru.prolib.caelum.service.itemdb.kafka.utils.KafkaUtils;
 
 @SuppressWarnings("unchecked")

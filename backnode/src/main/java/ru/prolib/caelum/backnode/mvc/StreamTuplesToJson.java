@@ -13,7 +13,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import ru.prolib.caelum.backnode.ValueFormatter;
 import ru.prolib.caelum.lib.ICloseableIterator;
 import ru.prolib.caelum.lib.ITuple;
-import ru.prolib.caelum.service.aggregator.AggregatedDataRequest;
+import ru.prolib.caelum.service.AggregatedDataRequest;
 
 public class StreamTuplesToJson implements StreamingOutput {
 	private final JsonFactory jsonFactory;

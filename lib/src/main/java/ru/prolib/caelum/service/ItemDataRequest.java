@@ -1,4 +1,4 @@
-package ru.prolib.caelum.service.symboldb;
+package ru.prolib.caelum.service;
 
 import java.time.Instant;
 
@@ -7,26 +7,19 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-public class EventListRequest {
+public class ItemDataRequest implements IItemDataRequest {
 	private final String symbol;
 	private final Long from, to;
 	private final Integer limit;
 	
-	public EventListRequest(String symbol, Long from, Long to, Integer limit) {
+	public ItemDataRequest(String symbol, Long from, Long to, Integer limit) {
 		this.symbol = symbol;
 		this.from = from;
 		this.to = to;
 		this.limit = limit;
 	}
 	
-	public EventListRequest(String symbol) {
-		this(symbol, null, null, null);
-	}
-	
-	public boolean isValid() {
-		return symbol != null && symbol.length() > 0;
-	}
-	
+	@Override
 	public String getSymbol() {
 		return symbol;
 	}
@@ -35,10 +28,12 @@ public class EventListRequest {
 		return from;
 	}
 	
+	@Override
 	public Long getTo() {
 		return to;
 	}
 	
+	@Override
 	public Integer getLimit() {
 		return limit;
 	}
@@ -47,6 +42,7 @@ public class EventListRequest {
 		return from == null ? null : Instant.ofEpochMilli(from);
 	}
 	
+	@Override
 	public Instant getTimeTo() {
 		return to == null ? null : Instant.ofEpochMilli(to);
 	}
@@ -63,7 +59,7 @@ public class EventListRequest {
 	
 	@Override
 	public int hashCode() {
-		return new HashCodeBuilder(5370241, 47)
+		return new HashCodeBuilder(99766117, 93)
 				.append(symbol)
 				.append(from)
 				.append(to)
@@ -76,10 +72,10 @@ public class EventListRequest {
 		if ( other == this ) {
 			return true;
 		}
-		if ( other == null || other.getClass() != EventListRequest.class ) {
+		if ( other == null || other.getClass() != ItemDataRequest.class ) {
 			return false;
 		}
-		EventListRequest o = (EventListRequest) other;
+		ItemDataRequest o = (ItemDataRequest) other;
 		return new EqualsBuilder()
 				.append(o.symbol, symbol)
 				.append(o.from, from)
@@ -87,5 +83,5 @@ public class EventListRequest {
 				.append(o.limit, limit)
 				.build();
 	}
-
+	
 }

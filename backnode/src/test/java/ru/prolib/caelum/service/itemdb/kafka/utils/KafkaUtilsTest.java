@@ -61,7 +61,7 @@ import ru.prolib.caelum.lib.IService;
 import ru.prolib.caelum.lib.IteratorStub;
 import ru.prolib.caelum.lib.kafka.KafkaItem;
 import ru.prolib.caelum.lib.kafka.KafkaItemSerdes;
-import ru.prolib.caelum.service.itemdb.IItemIterator;
+import ru.prolib.caelum.service.IItemIterator;
 import ru.prolib.caelum.service.itemdb.kafka.ItemIterator;
 import ru.prolib.caelum.service.itemdb.kafka.KafkaItemInfo;
 import ru.prolib.caelum.service.itemdb.kafka.SeamlessConsumerRecordIterator;

@@ -21,7 +21,7 @@ import com.apple.foundationdb.tuple.Tuple;
 
 import ru.prolib.caelum.lib.ICloseableIterator;
 import ru.prolib.caelum.lib.IteratorStub;
-import ru.prolib.caelum.service.symboldb.SymbolListRequest;
+import ru.prolib.caelum.service.SymbolListRequest;
 
 @SuppressWarnings("unchecked")
 public class FDBTransactionListSymbolsTest {

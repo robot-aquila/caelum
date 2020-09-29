@@ -4,6 +4,8 @@ import java.util.List;
 
 import ru.prolib.caelum.lib.IItem;
 import ru.prolib.caelum.lib.IteratorStub;
+import ru.prolib.caelum.service.IItemIterator;
+import ru.prolib.caelum.service.ItemDataResponse;
 
 public class ItemIteratorStub extends IteratorStub<IItem> implements IItemIterator {
 	protected final ItemDataResponse metaData;

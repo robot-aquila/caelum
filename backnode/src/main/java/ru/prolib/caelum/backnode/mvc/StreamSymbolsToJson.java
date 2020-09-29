@@ -11,7 +11,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 
 import ru.prolib.caelum.lib.ICloseableIterator;
-import ru.prolib.caelum.service.symboldb.SymbolListRequest;
+import ru.prolib.caelum.service.SymbolListRequest;
 
 public class StreamSymbolsToJson implements StreamingOutput {
 	private final JsonFactory jsonFactory;

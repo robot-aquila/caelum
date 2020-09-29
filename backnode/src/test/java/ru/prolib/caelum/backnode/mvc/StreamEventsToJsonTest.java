@@ -18,7 +18,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 
 import ru.prolib.caelum.lib.Events;
 import ru.prolib.caelum.lib.IteratorStub;
-import ru.prolib.caelum.service.symboldb.EventListRequest;
+import ru.prolib.caelum.service.EventListRequest;
 
 public class StreamEventsToJsonTest {
 	

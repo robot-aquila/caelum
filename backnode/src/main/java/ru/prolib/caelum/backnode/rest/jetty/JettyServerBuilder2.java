@@ -11,8 +11,8 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
-import ru.prolib.caelum.backnode.http.ServletMapping;
 import ru.prolib.caelum.lib.IService;
+import ru.prolib.caelum.service.ServletMapping;
 
 public class JettyServerBuilder2 {
 	private String host;

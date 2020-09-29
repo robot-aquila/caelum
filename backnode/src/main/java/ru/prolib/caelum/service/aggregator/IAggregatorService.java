@@ -3,6 +3,9 @@ package ru.prolib.caelum.service.aggregator;
 import java.util.List;
 
 import ru.prolib.caelum.lib.Interval;
+import ru.prolib.caelum.service.AggregatedDataRequest;
+import ru.prolib.caelum.service.AggregatedDataResponse;
+import ru.prolib.caelum.service.AggregatorStatus;
 
 public interface IAggregatorService {
     

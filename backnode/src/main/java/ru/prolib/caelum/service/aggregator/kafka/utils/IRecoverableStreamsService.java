@@ -1,7 +1,7 @@
 package ru.prolib.caelum.service.aggregator.kafka.utils;
 
 import ru.prolib.caelum.lib.IService;
-import ru.prolib.caelum.service.aggregator.AggregatorState;
+import ru.prolib.caelum.service.AggregatorState;
 
 public interface IRecoverableStreamsService extends IService {
 	AggregatorState getState();

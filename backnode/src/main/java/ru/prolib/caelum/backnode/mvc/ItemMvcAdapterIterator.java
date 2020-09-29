@@ -4,8 +4,8 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.Iterator;
 
-import ru.prolib.caelum.service.itemdb.IItemIterator;
-import ru.prolib.caelum.service.itemdb.ItemDataResponse;
+import ru.prolib.caelum.service.IItemIterator;
+import ru.prolib.caelum.service.ItemDataResponse;
 
 public class ItemMvcAdapterIterator implements Iterator<ItemMvcAdapter>, Closeable {
 	private final IItemIterator iterator;
