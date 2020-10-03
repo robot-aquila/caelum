@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 import static org.easymock.EasyMock.*;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.CreateTopicsResult;
@@ -61,6 +62,7 @@ import ru.prolib.caelum.lib.IService;
 import ru.prolib.caelum.lib.IteratorStub;
 import ru.prolib.caelum.lib.kafka.KafkaItem;
 import ru.prolib.caelum.lib.kafka.KafkaItemSerdes;
+import ru.prolib.caelum.service.GeneralConfig;
 import ru.prolib.caelum.service.IItemIterator;
 import ru.prolib.caelum.service.itemdb.kafka.ItemIterator;
 import ru.prolib.caelum.service.itemdb.kafka.KafkaItemInfo;
@@ -345,7 +347,7 @@ public class KafkaUtilsTest {
 	}
 	
 	@Test
-	public void testCreateAdmin() {
+	public void testCreateAdmin_UsingProperties() {
 		Properties conf = new Properties();
 		conf.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:8082");
 		
@@ -353,6 +355,25 @@ public class KafkaUtilsTest {
 		
 		assertNotNull(actual);
 		assertThat(actual, is(instanceOf(KafkaAdminClient.class)));
+	}
+	
+	@Test
+	public void testCreateAdmin_UsingGeneralConfig() {
+		service = partialMockBuilder(KafkaUtils.class)
+				.withConstructor()
+				.addMockedMethod("createAdmin", Properties.class)
+				.createMock(control);
+		GeneralConfig configMock = control.createMock(GeneralConfig.class);
+		expect(configMock.getKafkaBootstrapServers()).andStubReturn("zuzamba:5190");
+		Properties props = new Properties();
+		props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, "zuzamba:5190");
+		expect(service.createAdmin(props)).andStubReturn(adminMock);
+		control.replay();
+		
+		AdminClient actual = service.createAdmin(configMock);
+		
+		control.verify();
+		assertSame(adminMock, actual);
 	}
 	
 	@Test
@@ -499,6 +520,11 @@ public class KafkaUtilsTest {
 		service.createTopic(adminMock, new NewTopic("boss", 15, (short)2).configs(toMap("retention.ms", "265")), 5200L);
 		
 		control.verify();
+	}
+	
+	@Test
+	public void testIsOsUnix() {
+		assertEquals(SystemUtils.IS_OS_UNIX, service.isOsUnix());
 	}
 	
 }

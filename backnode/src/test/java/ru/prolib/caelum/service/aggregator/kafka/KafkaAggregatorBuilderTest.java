@@ -16,8 +16,8 @@ import org.junit.Test;
 
 import ru.prolib.caelum.lib.IService;
 import ru.prolib.caelum.lib.Interval;
-import ru.prolib.caelum.lib.Intervals;
 import ru.prolib.caelum.service.AggregatorType;
+import ru.prolib.caelum.service.GeneralConfig;
 import ru.prolib.caelum.service.IBuildingContext;
 import ru.prolib.caelum.service.aggregator.IAggregator;
 import ru.prolib.caelum.service.aggregator.kafka.KafkaAggregatorBuilder.Objects;
@@ -30,6 +30,7 @@ public class KafkaAggregatorBuilderTest {
 	IMocksControl control;
 	KafkaUtils utils;
 	KafkaAggregatorTopologyBuilder topologyBuilderMock;
+	GeneralConfig gconfMock;
 	KafkaAggregatorConfig config;
 	KafkaStreamsRegistry registryMock;
 	IBuildingContext contextMock;
@@ -39,14 +40,14 @@ public class KafkaAggregatorBuilderTest {
 	Lock mutexMock;
 	Objects objects;
 	KafkaAggregatorBuilder service, mockedService;
-	KafkaAggregatorDescr descr;
 
 	@Before
 	public void setUp() throws Exception {
 		control = createStrictControl();
 		utils = new KafkaUtils();
 		topologyBuilderMock = control.createMock(KafkaAggregatorTopologyBuilder.class);
-		config = new KafkaAggregatorConfig(new Intervals());
+		gconfMock = control.createMock(GeneralConfig.class);
+		config = new KafkaAggregatorConfig(Interval.M5, gconfMock);
 		registryMock = control.createMock(KafkaStreamsRegistry.class);
 		contextMock = control.createMock(IBuildingContext.class);
 		streamsServiceMock = control.createMock(RecoverableStreamsService.class);
@@ -54,14 +55,13 @@ public class KafkaAggregatorBuilderTest {
 		mutexMock = control.createMock(Lock.class);
 		objects = new Objects();
 		service = new KafkaAggregatorBuilder(objects);
-		descr = new KafkaAggregatorDescr(AggregatorType.ITEM, Interval.M6, "source", "taerget", "store");
 		mockedService = partialMockBuilder(KafkaAggregatorBuilder.class)
 				.withConstructor(Objects.class)
 				.withArgs(objects)
 				.addMockedMethod("createStreamsService", KafkaAggregatorDescr.class)
 				.addMockedMethod("createThread", String.class, Runnable.class)
 				.addMockedMethod("createAggregator", KafkaAggregatorDescr.class, IRecoverableStreamsService.class)
-				.createMock();
+				.createMock(control);
 	}
 	
 	@Test
@@ -202,19 +202,23 @@ public class KafkaAggregatorBuilderTest {
 	
 	@Test
 	public void testCreateStreamsService() {
+		expect(gconfMock.getMaxErrors()).andReturn(1000);
 		objects.setTopologyBuilder(topologyBuilderMock)
 			.setConfig(config)
 			.setStreamsRegistry(registryMock)
 			.setCleanUpMutex(mutexMock)
 			.setUtils(utils);
-		config.getProperties().put("caelum.aggregator.kafka.max.errors", "1000");
+		control.replay();
+		KafkaAggregatorDescr d = new KafkaAggregatorDescr(AggregatorType.ITEM, Interval.M5, "source", "target", "store");
+
 		
-		RecoverableStreamsService actual = service.createStreamsService(descr);
+		RecoverableStreamsService actual = service.createStreamsService(d);
 		
+		control.verify();
 		assertNotNull(actual);
 		assertEquals(1000L, actual.getMaxErrors());
 		KafkaStreamsController ctrl = (KafkaStreamsController) actual.getController();
-		assertEquals(descr, ctrl.getDescriptor());
+		assertEquals(d, ctrl.getDescriptor());
 		assertSame(topologyBuilderMock, ctrl.getTopologyBuilder());
 		assertSame(config, ctrl.getConfig());
 		assertSame(registryMock, ctrl.getStreamsRegistry());
@@ -228,13 +232,16 @@ public class KafkaAggregatorBuilderTest {
 		objects.setConfig(config)
 			.setUtils(utils)
 			.setStreamsRegistry(registryMock);
+		control.replay();
+		KafkaAggregatorDescr d = new KafkaAggregatorDescr(AggregatorType.ITEM, Interval.M5, "source", "target", "store");
 		
-		IAggregator actual = service.createAggregator(descr, streamsServiceMock);
+		IAggregator actual = service.createAggregator(d, streamsServiceMock);
 		
+		control.verify();
 		assertNotNull(actual);
 		assertThat(actual, is(instanceOf(KafkaAggregator.class)));
 		KafkaAggregator x = (KafkaAggregator) actual;
-		assertEquals(descr, x.getDescriptor());
+		assertEquals(d, x.getDescriptor());
 		assertSame(config, x.getConfig());
 		assertSame(streamsServiceMock, x.getStreamsService());
 		assertSame(utils,x.getUtils());
@@ -242,26 +249,23 @@ public class KafkaAggregatorBuilderTest {
 
 	@Test
 	public void testBuild() {
-		config.getProperties().put("caelum.aggregator.interval", "M5");
-		config.getProperties().put("caelum.aggregator.kafka.source.topic", "source-data");
-		config.getProperties().put("caelum.aggregator.kafka.pfx.application.id", "MyApp-");
-		config.getProperties().put("caelum.aggregator.kafka.pfx.target.topic", "target-");
-		config.getProperties().put("caelum.aggregator.kafka.pfx.aggregation.store", "store-");
-		config.getProperties().put("caelum.aggregator.kafka.default.timeout", "25000");
+		expect(gconfMock.getItemsTopicName()).andStubReturn("source-data");
+		expect(gconfMock.getAggregatorKafkaApplicationIdPrefix()).andStubReturn("MyApp-");
+		expect(gconfMock.getAggregatorKafkaTargetTopicPrefix()).andStubReturn("target-");
+		expect(gconfMock.getAggregatorKafkaStorePrefix()).andStubReturn("store-");
+		expect(gconfMock.getDefaultTimeout()).andStubReturn(25000L);
 		objects.setConfig(config).setBuildingContext(contextMock);
-		KafkaAggregatorDescr expected_descr =
+		KafkaAggregatorDescr d =
 				new KafkaAggregatorDescr(AggregatorType.ITEM, Interval.M5, "source-data", "target-m5", "store-m5");
 		Capture<IService> cap = newCapture();
-		expect(mockedService.createStreamsService(expected_descr)).andReturn(streamsServiceMock);
+		expect(mockedService.createStreamsService(d)).andReturn(streamsServiceMock);
 		expect(mockedService.createThread("MyApp-m5-thread", streamsServiceMock)).andReturn(threadMock);
 		expect(contextMock.registerService(capture(cap))).andReturn(contextMock);
-		expect(mockedService.createAggregator(expected_descr, streamsServiceMock)).andReturn(aggregatorMock);
+		expect(mockedService.createAggregator(d, streamsServiceMock)).andReturn(aggregatorMock);
 		control.replay();
-		replay(mockedService);
 		
 		assertSame(aggregatorMock, mockedService.build());
 		
-		verify(mockedService);
 		control.verify();
 		assertThat(cap.getValue(), is(instanceOf(RecoverableStreamsServiceStarter.class)));
 		RecoverableStreamsServiceStarter x = (RecoverableStreamsServiceStarter) cap.getValue();

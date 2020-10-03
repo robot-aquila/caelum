@@ -12,7 +12,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.DescribeTopicsResult;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.admin.OffsetSpec;
@@ -33,6 +35,7 @@ import ru.prolib.caelum.lib.IService;
 import ru.prolib.caelum.lib.IteratorStub;
 import ru.prolib.caelum.lib.kafka.KafkaItem;
 import ru.prolib.caelum.lib.kafka.KafkaItemSerdes;
+import ru.prolib.caelum.service.GeneralConfig;
 import ru.prolib.caelum.service.IItemIterator;
 import ru.prolib.caelum.service.itemdb.kafka.ItemIterator;
 import ru.prolib.caelum.service.itemdb.kafka.KafkaItemInfo;
@@ -112,6 +115,12 @@ public class KafkaUtils {
 		return AdminClient.create(props);
 	}
 	
+	public AdminClient createAdmin(GeneralConfig config) {
+		Properties props = new Properties();
+		props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, config.getKafkaBootstrapServers());
+		return createAdmin(props);
+	}
+	
 	public KafkaStreams createStreams(Topology topology, Properties props) {
 		return new KafkaStreams(topology, props);
 	}
@@ -167,6 +176,10 @@ public class KafkaUtils {
 		if ( ! topicExists(admin, new_topic.name(), timeout) ) {
 			admin.createTopics(Arrays.asList(new_topic)).all().get(timeout, TimeUnit.MILLISECONDS);
 		}
+	}
+	
+	public boolean isOsUnix() {
+		return SystemUtils.IS_OS_UNIX;
 	}
 
 }

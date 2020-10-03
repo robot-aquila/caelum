@@ -99,7 +99,7 @@ public class ItesymTest {
 	
 	@Test
 	public void testGetters() {
-		assertEquals("bob", service.getId());
+		assertEquals("bob", service.getGroupId());
 		assertSame(consumerMock, service.getConsumer());
 		assertEquals("rob", service.getSourceTopic());
 		assertSame(caelumMock, service.getCaelum());
@@ -110,7 +110,7 @@ public class ItesymTest {
 	
 	@Test
 	public void testGetStatus() {
-		assertEquals(new ExtensionStatus("bob", ExtensionState.CREATED, null), service.getStatus());
+		assertEquals(new ExtensionStatus(ExtensionState.CREATED, null), service.getStatus());
 	}
 	
 	@Test

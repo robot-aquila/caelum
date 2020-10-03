@@ -22,7 +22,7 @@ public class HostInfoTest {
 	
 	@Test
 	public void testToString() {
-		String expected = "HostInfo[host=foobar,port=2345]";
+		String expected = "foobar:2345";
 		
 		assertEquals(expected, service.toString());
 	}

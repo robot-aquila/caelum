@@ -2,10 +2,13 @@ package ru.prolib.caelum.service.itemdb.kafka;
 
 import java.io.IOException;
 import java.time.Clock;
+import java.util.Properties;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 
 import ru.prolib.caelum.lib.kafka.KafkaItem;
+import ru.prolib.caelum.service.GeneralConfig;
 import ru.prolib.caelum.service.IBuildingContext;
 import ru.prolib.caelum.service.itemdb.IItemDatabaseService;
 import ru.prolib.caelum.service.itemdb.IItemDatabaseServiceBuilder;
@@ -33,23 +36,22 @@ public class KafkaItemDatabaseServiceBuilder implements IItemDatabaseServiceBuil
 		return clock;
 	}
 	
-	protected KafkaItemDatabaseConfig createConfig() {
-		return new KafkaItemDatabaseConfig();
+	protected KafkaProducer<String, KafkaItem> createProducer(GeneralConfig config) {
+		Properties props = new Properties();
+		props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, config.getKafkaBootstrapServers());
+		props.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, config.getItemServiceKafkaTransactionalId());
+		return utils.createProducer(props);
 	}
 	
-	protected KafkaItemDatabaseService createService(KafkaItemDatabaseConfig config,
-			KafkaProducer<String, KafkaItem> producer)
-	{
+	protected KafkaItemDatabaseService createService(GeneralConfig config, KafkaProducer<String, KafkaItem> producer) {
 		return new KafkaItemDatabaseService(config, producer, utils, clock);
 	}
 
 	@Override
 	public IItemDatabaseService build(IBuildingContext context) throws IOException {
-		KafkaItemDatabaseConfig config = createConfig();
-		config.load(context.getDefaultConfigFileName(), context.getConfigFileName());
-		KafkaProducer<String, KafkaItem> producer = utils.createProducer(config.getProducerKafkaProperties());
+		KafkaProducer<String, KafkaItem> producer = createProducer(context.getConfig());
 		context.registerService(new KafkaProducerService(producer));
-		return createService(config, producer);
+		return createService(context.getConfig(), producer);
 	}
 	
 	@Override

@@ -17,16 +17,18 @@ import org.junit.Test;
 import ru.prolib.caelum.service.ExtensionState;
 import ru.prolib.caelum.service.ExtensionStatus;
 import ru.prolib.caelum.service.ExtensionStub;
+import ru.prolib.caelum.service.GeneralConfigImpl;
 import ru.prolib.caelum.service.IBuildingContext;
 import ru.prolib.caelum.service.ICaelum;
 import ru.prolib.caelum.service.IExtension;
+import ru.prolib.caelum.service.Mode;
 
 public class RestServiceBuilderTest {
 	IMocksControl control;
 	IBuildingContext contextMock;
 	Servlet servletMock1, servletMock2;
 	ICaelum caelumMock;
-	BacknodeConfig mockedConfig;
+	GeneralConfigImpl config;
 	RestServiceBuilder service, mockedService;
 
 	@Before
@@ -36,27 +38,17 @@ public class RestServiceBuilderTest {
 		servletMock1 = control.createMock(Servlet.class);
 		servletMock2 = control.createMock(Servlet.class);
 		caelumMock = control.createMock(ICaelum.class);
-		mockedConfig = partialMockBuilder(BacknodeConfig.class)
-				.withConstructor()
-				.addMockedMethod("load", String.class, String.class)
-				.createMock();
+		config = new GeneralConfigImpl();
 		service = new RestServiceBuilder();
-		mockedService = partialMockBuilder(RestServiceBuilder.class)
-				.withConstructor()
-				.addMockedMethod("createConfig")
-				.addMockedMethod("createConsoleStaticFilesServlet")
-				.addMockedMethod("createRestServiceComponent", ICaelum.class, boolean.class)
-				.addMockedMethod("createServletContainer", ResourceConfig.class)
-				.addMockedMethod("createRestServiceServlet", ICaelum.class, boolean.class)
-				.createMock();
+		mockedService = null;
+//		mockedService = partialMockBuilder(RestServiceBuilder.class)
+//				.withConstructor()
+//				.addMockedMethod("createConsoleStaticFilesServlet")
+//				.addMockedMethod("createRestServiceComponent", ICaelum.class, boolean.class)
+//				.addMockedMethod("createServletContainer", ResourceConfig.class)
+//				.addMockedMethod("createRestServiceServlet", ICaelum.class, boolean.class)
+//				.createMock();
 				
-	}
-	
-	@Test
-	public void testCreateConfig() {
-		BacknodeConfig actual = service.createConfig();
-		
-		assertNotNull(actual);
 	}
 	
 	@Test
@@ -113,15 +105,13 @@ public class RestServiceBuilderTest {
 				.withConstructor()
 				.addMockedMethod("createRestServiceComponent", ICaelum.class, boolean.class)
 				.addMockedMethod("createServletContainer", ResourceConfig.class)
-				.createMock();
+				.createMock(control);
 		expect(mockedService.createRestServiceComponent(caelumMock, false)).andReturn(restService);
 		expect(mockedService.createServletContainer(capture(rcap))).andReturn(servletMock1);
 		control.replay();
-		replay(mockedService);
 		
 		Servlet actual = mockedService.createRestServiceServlet(caelumMock, false);
 		
-		verify(mockedService);
 		control.verify();
 		assertNotNull(actual);
 		assertSame(servletMock1, actual);
@@ -134,26 +124,24 @@ public class RestServiceBuilderTest {
 
 	@Test
 	public void testBuild() throws Exception {
-		expect(contextMock.getDefaultConfigFileName()).andStubReturn("foo.props");
-		expect(contextMock.getConfigFileName()).andStubReturn("bar.props");
+		config.setMode(Mode.PROD);
+		expect(contextMock.getConfig()).andReturn(config);
 		expect(contextMock.getCaelum()).andStubReturn(caelumMock);
-		mockedConfig.getProperties().setProperty("caelum.backnode.mode", "prod");
-		expect(mockedService.createConfig()).andReturn(mockedConfig);
-		mockedConfig.load("foo.props", "bar.props");
+		mockedService = partialMockBuilder(RestServiceBuilder.class)
+				.withConstructor()
+				.addMockedMethod("createConsoleStaticFilesServlet")
+				.addMockedMethod("createRestServiceServlet")
+				.createMock(control);
 		expect(mockedService.createConsoleStaticFilesServlet()).andReturn(servletMock1);
 		expect(contextMock.registerServlet(servletMock1, "/console/*")).andReturn(contextMock);
 		expect(mockedService.createRestServiceServlet(caelumMock, false)).andReturn(servletMock2);
 		expect(contextMock.registerServlet(servletMock2, "/*")).andReturn(contextMock);
 		control.replay();
-		replay(mockedConfig);
-		replay(mockedService);
 		
 		IExtension actual = mockedService.build(contextMock);
 		
-		verify(mockedService);
-		verify(mockedConfig);
 		control.verify();
-		assertEquals(new ExtensionStub(new ExtensionStatus("REST", ExtensionState.RUNNING, null)), actual);
+		assertEquals(new ExtensionStub(new ExtensionStatus(ExtensionState.RUNNING, null)), actual);
 	}
 
 }

@@ -5,10 +5,6 @@ import java.io.IOException;
 import ru.prolib.caelum.service.IBuildingContext;
 
 public class AggregatorServiceBuilder implements IAggregatorServiceBuilder {
-
-	protected AggregatorConfig createConfig() {
-		return new AggregatorConfig();
-	}
 	
 	protected IAggregatorServiceBuilder createBuilder(String class_name) throws IOException {
 		try {
@@ -20,9 +16,7 @@ public class AggregatorServiceBuilder implements IAggregatorServiceBuilder {
 	
 	@Override
 	public IAggregatorService build(IBuildingContext context) throws IOException {
-		AggregatorConfig config = createConfig();
-		config.load(context.getDefaultConfigFileName(), context.getConfigFileName());
-		return createBuilder(config.getString(AggregatorConfig.BUILDER)).build(context);
+		return createBuilder(context.getConfig().getAggregatorServiceBuilder()).build(context);
 	}
 	
 	@Override

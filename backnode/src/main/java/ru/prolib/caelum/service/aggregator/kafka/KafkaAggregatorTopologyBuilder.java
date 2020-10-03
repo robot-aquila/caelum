@@ -28,7 +28,7 @@ public class KafkaAggregatorTopologyBuilder {
 		final StreamsBuilder builder = new StreamsBuilder();
 		KStream<String, KafkaItem> items = builder.stream(config.getSourceTopic());
 		KTable<Windowed<String>, KafkaTuple> table = items.groupByKey()
-			.windowedBy(TimeWindows.of(config.getAggregationIntervalDuration()))
+			.windowedBy(TimeWindows.of(config.getInterval().getDuration()))
 			.aggregate(KafkaTuple::new, new KafkaItemAggregator(),
 				Materialized.<String, KafkaTuple, WindowStore<Bytes, byte[]>>as(config.getStoreName())
 					.withRetention(Duration.ofMillis(config.getStoreRetentionTime()))
@@ -38,12 +38,28 @@ public class KafkaAggregatorTopologyBuilder {
 			table.toStream().to(target_topic, Produced.<Windowed<String>, KafkaTuple>with(
 					WindowedSerdes.timeWindowedSerdeFrom(String.class), KafkaTupleSerdes.tupleSerde()));
 			logger.debug("Data aggregated by {} will be stored in topic: {}",
-					config.getAggregationIntervalCode(), target_topic);
+					config.getAggregationInterval(), target_topic);
 		}
 		Topology topology = builder.build();
 		logger.debug("Created topology of item aggregator by {}: {}",
 				config.getAggregationInterval(), topology.describe());
 		return topology;
+	}
+	
+	@Override
+	public int hashCode() {
+		return 668915632;
+	}
+	
+	@Override
+	public boolean equals(Object other) {
+		if ( other == this ) {
+			return true;
+		}
+		if ( other == null || other.getClass() != KafkaAggregatorTopologyBuilder.class ) {
+			return false;
+		}
+		return true;
 	}
 
 }

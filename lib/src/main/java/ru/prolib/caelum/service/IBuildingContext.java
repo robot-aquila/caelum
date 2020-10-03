@@ -30,7 +30,7 @@ public interface IBuildingContext {
 	 * <p>
 	 * @return config or null if no config loaded
 	 */
-	AbstractConfig getConfig();
+	GeneralConfig getConfig();
 
 	/**
 	 * Get config file name that used to load default values.

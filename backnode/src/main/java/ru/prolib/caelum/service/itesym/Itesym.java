@@ -25,7 +25,7 @@ import ru.prolib.caelum.service.IExtension;
 
 public class Itesym implements IExtension, IService, Runnable {
 	private static final Logger logger = LoggerFactory.getLogger(Itesym.class);
-	private final String id, sourceTopic;
+	private final String groupId, sourceTopic;
 	private final KafkaConsumer<String, byte[]> consumer;
 	private final ICaelum caelum;
 	private final long pollTimeout, shutdownTimeout;
@@ -33,7 +33,7 @@ public class Itesym implements IExtension, IService, Runnable {
 	private final AtomicBoolean close, clear, started, stopped;
 	private volatile ExtensionState state = ExtensionState.CREATED;
 	
-	Itesym(String id,
+	Itesym(String groupId,
 			KafkaConsumer<String, byte[]> consumer,
 			String sourceTopic,
 			ICaelum caelum,
@@ -45,7 +45,7 @@ public class Itesym implements IExtension, IService, Runnable {
 			AtomicBoolean started,
 			AtomicBoolean stopped)
 	{
-		this.id = id;
+		this.groupId = groupId;
 		this.consumer = consumer;
 		this.sourceTopic = sourceTopic;
 		this.caelum = caelum;
@@ -58,7 +58,7 @@ public class Itesym implements IExtension, IService, Runnable {
 		this.stopped = stopped;
 	}
 	
-	public Itesym(String id,
+	public Itesym(String groupId,
 			KafkaConsumer<String, byte[]> consumer,
 			String sourceTopic,
 			ICaelum caelum,
@@ -66,12 +66,12 @@ public class Itesym implements IExtension, IService, Runnable {
 			long shutdownTimeout,
 			AtomicReference<Thread> thread)
 	{
-		this(id, consumer, sourceTopic, caelum, pollTimeout, shutdownTimeout, thread,
+		this(groupId, consumer, sourceTopic, caelum, pollTimeout, shutdownTimeout, thread,
 				new AtomicBoolean(), new AtomicBoolean(), new AtomicBoolean(), new AtomicBoolean());
 	}
 	
-	public String getId() {
-		return id;
+	public String getGroupId() {
+		return groupId;
 	}
 	
 	public KafkaConsumer<String, byte[]> getConsumer() {
@@ -100,7 +100,7 @@ public class Itesym implements IExtension, IService, Runnable {
 	
 	@Override
 	public ExtensionStatus getStatus() {
-		return new ExtensionStatus(id, state, null);
+		return new ExtensionStatus(state, null);
 	}
 
 	@Override
@@ -125,10 +125,10 @@ public class Itesym implements IExtension, IService, Runnable {
 			try {
 				thread.get().join(shutdownTimeout);
 			} catch ( InterruptedException e ) {
-				logger.warn("[{}] Unexpected interruption: ", id, e);
+				logger.warn("[{}] Unexpected interruption: ", groupId, e);
 			}
 			if ( thread.get().isAlive() ) {
-				logger.warn("[{}] Worker thread did not ternimated", id);
+				logger.warn("[{}] Worker thread did not ternimated", groupId);
 			}
 		}
 	}
@@ -155,7 +155,7 @@ public class Itesym implements IExtension, IService, Runnable {
 						try {
 							caelum.registerSymbol(batch);
 						} catch ( Exception e ) {
-							logger.error("[{}] Unexpected exception: ", id, e);
+							logger.error("[{}] Unexpected exception: ", groupId, e);
 						} finally {
 							batch.clear();
 						}
@@ -168,7 +168,7 @@ public class Itesym implements IExtension, IService, Runnable {
 				}
 			}
 		} catch ( Throwable t ) {
-			logger.error("[{}] Unexpected exception: ", id, t);
+			logger.error("[{}] Unexpected exception: ", groupId, t);
 		} finally {
 			clear.set(true);
 			close.set(true);

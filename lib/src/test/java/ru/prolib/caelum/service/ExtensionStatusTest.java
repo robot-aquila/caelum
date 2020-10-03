@@ -15,19 +15,18 @@ public class ExtensionStatusTest {
 	public void setUp() throws Exception {
 		statusInfo1 = new String("zulu");
 		statusInfo2 = new String("charlie");
-		service = new ExtensionStatus("foobar", PENDING, statusInfo1);
+		service = new ExtensionStatus(PENDING, statusInfo1);
 	}
 	
 	@Test
 	public void testGetters() {
-		assertEquals("foobar", service.getId());
 		assertEquals(PENDING, service.getState());
 		assertEquals(statusInfo1, service.getStatusInfo());
 	}
 	
 	@Test
 	public void testToString() {
-		String expected = "ExtensionStatus[id=foobar,state=PENDING,statusInfo=zulu]";
+		String expected = "ExtensionStatus[state=PENDING,statusInfo=zulu]";
 		
 		assertEquals(expected, service.toString());
 	}
@@ -35,7 +34,6 @@ public class ExtensionStatusTest {
 	@Test
 	public void testHashCode() {
 		int expected = new HashCodeBuilder(414219, 901)
-				.append("foobar")
 				.append(PENDING)
 				.append(statusInfo1)
 				.build();
@@ -47,13 +45,12 @@ public class ExtensionStatusTest {
 	@Test
 	public void testEquals() {
 		assertTrue(service.equals(service));
-		assertTrue(service.equals(new ExtensionStatus("foobar", PENDING, statusInfo1)));
+		assertTrue(service.equals(new ExtensionStatus(PENDING, statusInfo1)));
 		assertFalse(service.equals(this));
 		assertFalse(service.equals(null));
-		assertFalse(service.equals(new ExtensionStatus("barbar", PENDING, statusInfo1)));
-		assertFalse(service.equals(new ExtensionStatus("foobar", CREATED, statusInfo1)));
-		assertFalse(service.equals(new ExtensionStatus("foobar", PENDING, statusInfo2)));
-		assertFalse(service.equals(new ExtensionStatus("barbar", CREATED, statusInfo2)));
+		assertFalse(service.equals(new ExtensionStatus(CREATED, statusInfo1)));
+		assertFalse(service.equals(new ExtensionStatus(PENDING, statusInfo2)));
+		assertFalse(service.equals(new ExtensionStatus(CREATED, statusInfo2)));
 	}
 
 }

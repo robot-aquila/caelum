@@ -5,6 +5,7 @@ import java.io.IOException;
 import ru.prolib.caelum.lib.IService;
 import ru.prolib.caelum.service.BuildingContext;
 import ru.prolib.caelum.service.CaelumBuilder;
+import ru.prolib.caelum.service.GeneralConfigImpl;
 import ru.prolib.caelum.service.ServiceRegistry;
 import ru.prolib.caelum.service.ServletRegistry;
 
@@ -24,7 +25,7 @@ public class BacknodeBuilder {
 	
 	public IService build(String configFileName) throws IOException {
 		ServiceRegistry services = createServiceRegistry();
-		createCaelumBuilder().build(new BuildingContext(null, BacknodeConfig.DEFAULT_CONFIG_FILE,
+		createCaelumBuilder().build(new BuildingContext(null, GeneralConfigImpl.DEFAULT_CONFIG_FILE,
 				configFileName, null, services, createServletRegistry()));
 		return services.getServices();
 	}

@@ -6,18 +6,12 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 public class ExtensionStatus {
-	private final String id;
 	private final ExtensionState state;
 	private final Object statusInfo;
 	
-	public ExtensionStatus(String id, ExtensionState state, Object statusInfo) {
-		this.id = id;
+	public ExtensionStatus(ExtensionState state, Object statusInfo) {
 		this.state = state;
 		this.statusInfo = statusInfo;
-	}
-	
-	public String getId() {
-		return id;
 	}
 	
 	public ExtensionState getState() {
@@ -31,7 +25,6 @@ public class ExtensionStatus {
 	@Override
 	public int hashCode() {
 		return new HashCodeBuilder(414219, 901)
-				.append(id)
 				.append(state)
 				.append(statusInfo)
 				.build();
@@ -40,7 +33,6 @@ public class ExtensionStatus {
 	@Override
 	public String toString() {
 		return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
-				.append("id", id)
 				.append("state", state)
 				.append("statusInfo", statusInfo)
 				.build();
@@ -56,7 +48,6 @@ public class ExtensionStatus {
 		}
 		ExtensionStatus o = (ExtensionStatus) other;
 		return new EqualsBuilder()
-				.append(o.id, id)
 				.append(o.state, state)
 				.append(o.statusInfo, statusInfo)
 				.build();

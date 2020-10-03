@@ -2,8 +2,6 @@ package ru.prolib.caelum.lib;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 
 public class HostInfo {
 	private final String host;
@@ -32,10 +30,7 @@ public class HostInfo {
 	
 	@Override
 	public String toString() {
-		return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
-				.append("host", host)
-				.append("port", port)
-				.build();
+		return host + ":" + port;
 	}
 	
 	@Override

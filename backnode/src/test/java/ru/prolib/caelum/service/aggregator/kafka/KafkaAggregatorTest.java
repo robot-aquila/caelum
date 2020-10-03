@@ -18,6 +18,7 @@ import org.junit.Test;
 import ru.prolib.caelum.lib.Interval;
 import ru.prolib.caelum.lib.Intervals;
 import ru.prolib.caelum.service.AggregatorStatus;
+import ru.prolib.caelum.service.GeneralConfigImpl;
 import ru.prolib.caelum.service.aggregator.kafka.utils.IRecoverableStreamsService;
 import ru.prolib.caelum.service.itemdb.kafka.utils.KafkaUtils;
 
@@ -29,6 +30,7 @@ public class KafkaAggregatorTest {
 	}
 	
 	IMocksControl control;
+	GeneralConfigImpl gconf;
 	KafkaAggregatorDescr descr;
 	KafkaAggregatorConfig config;
 	IRecoverableStreamsService streamsServiceMock;
@@ -43,17 +45,13 @@ public class KafkaAggregatorTest {
 	public void setUp() throws Exception {
 		control = createStrictControl();
 		streamsServiceMock = control.createMock(IRecoverableStreamsService.class);
+		gconf = new GeneralConfigImpl();
 		utilsMock = control.createMock(KafkaUtils.class);
 		adminMock = control.createMock(AdminClient.class);
 		registryMock = control.createMock(KafkaStreamsRegistry.class);
 		entryMock = control.createMock(KafkaAggregatorEntry.class);
 		descr = new KafkaAggregatorDescr(ITEM, Interval.M1, "d-source", "d-target", "d-store");
-		config = new KafkaAggregatorConfig(intervals = new Intervals());
-		config.getProperties().put(KafkaAggregatorConfig.INTERVAL, "M1");
-		config.getProperties().put(KafkaAggregatorConfig.APPLICATION_ID_PREFIX, "myApp-");
-		config.getProperties().put(KafkaAggregatorConfig.AGGREGATION_STORE_PREFIX, "myStore-");
-		config.getProperties().put(KafkaAggregatorConfig.TARGET_TOPIC_PREFIX, "myTarget-");
-		config.getProperties().put(KafkaAggregatorConfig.DEFAULT_TIMEOUT, "35193");
+		config = new KafkaAggregatorConfig(Interval.M1, gconf);
 		service = new KafkaAggregator(descr, config, streamsServiceMock, utilsMock, registryMock);
 	}
 	
@@ -84,12 +82,17 @@ public class KafkaAggregatorTest {
 	
 	@Test
 	public void testClear_Global_ShouldAlsoClearTargetTopicIfDefined() {
-		expect(streamsServiceMock.stopAndWaitConfirm(35193L)).andReturn(true);
-		expect(utilsMock.createAdmin(config.getAdminClientProperties())).andReturn(adminMock);
-		utilsMock.deleteRecords(adminMock, "myApp-m1-myStore-m1-changelog", 35193L);
-		utilsMock.deleteRecords(adminMock, "myTarget-m1", 35193L);
+		gconf.setKafkaBootstrapServers("kukaracha:2298")
+			.setDefaultTimeout(180215L)
+			.setAggregatorKafkaApplicationIdPrefix("myApp-")
+			.setAggregatorKafkaStorePrefix("myStore-")
+			.setAggregatorKafkaTargetTopicPrefix("myTarget-");
+		expect(streamsServiceMock.stopAndWaitConfirm(180215L)).andReturn(true);
+		expect(utilsMock.createAdmin(gconf)).andReturn(adminMock);
+		utilsMock.deleteRecords(adminMock, "myApp-m1-myStore-m1-changelog", 180215L);
+		utilsMock.deleteRecords(adminMock, "myTarget-m1", 180215L);
 		adminMock.close();
-		expect(streamsServiceMock.startAndWaitConfirm(35193L)).andReturn(true);
+		expect(streamsServiceMock.startAndWaitConfirm(180215L)).andReturn(true);
 		control.replay();
 		
 		service.clear(true);
@@ -99,9 +102,13 @@ public class KafkaAggregatorTest {
 
 	@Test
 	public void testClear_Global_ShouldSkipClearingTargetTopicIfNotDefined() {
-		config.getProperties().put(KafkaAggregatorConfig.TARGET_TOPIC_PREFIX, "");
+		gconf.setKafkaBootstrapServers("localhost:6257")
+			.setDefaultTimeout(35193L)
+			.setAggregatorKafkaApplicationIdPrefix("myApp-")
+			.setAggregatorKafkaStorePrefix("myStore-")
+			.setAggregatorKafkaTargetTopicPrefix("");
 		expect(streamsServiceMock.stopAndWaitConfirm(35193L)).andReturn(true);
-		expect(utilsMock.createAdmin(config.getAdminClientProperties())).andReturn(adminMock);
+		expect(utilsMock.createAdmin(gconf)).andReturn(adminMock);
 		utilsMock.deleteRecords(adminMock, "myApp-m1-myStore-m1-changelog", 35193L);
 		adminMock.close();
 		expect(streamsServiceMock.startAndWaitConfirm(35193L)).andReturn(true);
@@ -114,6 +121,7 @@ public class KafkaAggregatorTest {
 	
 	@Test
 	public void testClear_Global_ThrowsIfFailedToStopService() {
+		gconf.setDefaultTimeout(35193L);
 		expect(streamsServiceMock.stopAndWaitConfirm(35193L)).andReturn(false);
 		control.replay();
 		
@@ -123,8 +131,9 @@ public class KafkaAggregatorTest {
 	
 	@Test
 	public void testClear_Local_ShouldJustRestart() {
-		expect(streamsServiceMock.stopAndWaitConfirm(35193L)).andReturn(true);
-		expect(streamsServiceMock.startAndWaitConfirm(35193L)).andReturn(true);
+		gconf.setDefaultTimeout(117L);
+		expect(streamsServiceMock.stopAndWaitConfirm(117L)).andReturn(true);
+		expect(streamsServiceMock.startAndWaitConfirm(117L)).andReturn(true);
 		control.replay();
 		
 		service.clear(false);

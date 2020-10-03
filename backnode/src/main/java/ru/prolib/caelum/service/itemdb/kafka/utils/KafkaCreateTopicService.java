@@ -1,6 +1,5 @@
 package ru.prolib.caelum.service.itemdb.kafka.utils;
 
-import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -15,17 +14,18 @@ import org.slf4j.LoggerFactory;
 
 import ru.prolib.caelum.lib.IService;
 import ru.prolib.caelum.lib.ServiceException;
+import ru.prolib.caelum.service.GeneralConfig;
 
 public class KafkaCreateTopicService implements IService {
 	private static final Logger logger = LoggerFactory.getLogger(KafkaCreateTopicService.class);
 	private final KafkaUtils utils;
-	private final Properties adminClientProps;
+	private final GeneralConfig config;
 	private final NewTopic topicDescr;
 	private final long timeout;
 	
-	public KafkaCreateTopicService(KafkaUtils utils, Properties adminClientProps, NewTopic topicDescr, long timeout) {
+	public KafkaCreateTopicService(KafkaUtils utils, GeneralConfig config, NewTopic topicDescr, long timeout) {
 		this.utils = utils;
-		this.adminClientProps = adminClientProps;
+		this.config = config;
 		this.topicDescr = topicDescr;
 		this.timeout = timeout;
 	}
@@ -34,8 +34,8 @@ public class KafkaCreateTopicService implements IService {
 		return utils;
 	}
 	
-	public Properties getAdminClientProperties() {
-		return adminClientProps;
+	public GeneralConfig getConfig() {
+		return config;
 	}
 	
 	public NewTopic getTopicDescriptor() {
@@ -48,7 +48,7 @@ public class KafkaCreateTopicService implements IService {
 	
 	@Override
 	public void start() throws ServiceException {
-		try ( AdminClient admin = utils.createAdmin(adminClientProps) ) {
+		try ( AdminClient admin = utils.createAdmin(config) ) {
 			utils.createTopic(admin, topicDescr, timeout);
 		} catch ( InterruptedException|TimeoutException e ) {
 			throw new ServiceException("Unexpected exception: ", e);
@@ -66,7 +66,7 @@ public class KafkaCreateTopicService implements IService {
 	public int hashCode() {
 		return new HashCodeBuilder(115237, 29)
 				.append(utils)
-				.append(adminClientProps)
+				.append(config)
 				.append(topicDescr)
 				.append(timeout)
 				.build();
@@ -83,7 +83,7 @@ public class KafkaCreateTopicService implements IService {
 		KafkaCreateTopicService o = (KafkaCreateTopicService) other;
 		return new EqualsBuilder()
 				.append(o.utils, utils)
-				.append(o.adminClientProps, adminClientProps)
+				.append(o.config, config)
 				.append(o.topicDescr, topicDescr)
 				.append(o.timeout, timeout)
 				.build();
@@ -93,7 +93,7 @@ public class KafkaCreateTopicService implements IService {
 	public String toString() {
 		return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
 				.append("utils", utils)
-				.append("adminClientProps", adminClientProps)
+				.append("config", config)
 				.append("topicDescr", topicDescr)
 				.append("timeout", timeout)
 				.build();

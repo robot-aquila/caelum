@@ -9,11 +9,13 @@ public class ExtensionConf {
 	private final String id;
 	private final String builderClass;
 	private final boolean enabled;
+	private final StartupOrder order;
 	
-	public ExtensionConf(String id, String builderClass, boolean enabled) {
+	public ExtensionConf(String id, String builderClass, boolean enabled, StartupOrder order) {
 		this.id = id;
 		this.builderClass = builderClass;
 		this.enabled = enabled;
+		this.order = order;
 	}
 	
 	public String getId() {
@@ -28,22 +30,37 @@ public class ExtensionConf {
 		return enabled;
 	}
 	
+	public StartupOrder getStartupOrder() {
+		return order;
+	}
+	
 	@Override
 	public int hashCode() {
 		return new HashCodeBuilder(115297, 93)
 				.append(id)
 				.append(builderClass)
 				.append(enabled)
+				.append(order)
 				.build();
 	}
 	
 	@Override
 	public String toString() {
-		return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+		ToStringBuilder b = new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
 				.append("id", id)
 				.append("builder", builderClass)
-				.append("enabled", enabled)
-				.build();
+				.append("enabled", enabled);
+		switch ( order.getPriority() ) {
+		case FIRST: b.append("order", "first"); break;
+		case LAST: b.append("order", "last"); break;
+		case NORMAL:
+			if ( order.getOrder() == null ) {
+				b.append("order", "normal");
+			} else {
+				b.append("order", order.getOrder());
+			}
+		}
+		return b.build();
 	}
 	
 	@Override
@@ -59,6 +76,7 @@ public class ExtensionConf {
 				.append(o.id, id)
 				.append(o.builderClass, builderClass)
 				.append(o.enabled, enabled)
+				.append(o.order, order)
 				.build();
 	}
 	

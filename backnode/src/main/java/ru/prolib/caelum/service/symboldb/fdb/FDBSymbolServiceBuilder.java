@@ -5,16 +5,13 @@ import java.io.IOException;
 import com.apple.foundationdb.subspace.Subspace;
 import com.apple.foundationdb.tuple.Tuple;
 
+import ru.prolib.caelum.service.GeneralConfig;
 import ru.prolib.caelum.service.IBuildingContext;
 import ru.prolib.caelum.service.ICategoryExtractor;
 import ru.prolib.caelum.service.symboldb.ISymbolService;
 import ru.prolib.caelum.service.symboldb.ISymbolServiceBuilder;
 
 public class FDBSymbolServiceBuilder implements ISymbolServiceBuilder {
-
-	protected FDBSymbolServiceConfig createConfig() {
-		return new FDBSymbolServiceConfig();
-	}
 	
 	protected FDBSchema createSchema(String subspace) {
 		return new FDBSchema(new Subspace(Tuple.from(subspace)));
@@ -30,14 +27,11 @@ public class FDBSymbolServiceBuilder implements ISymbolServiceBuilder {
 
 	@Override
 	public ISymbolService build(IBuildingContext context) throws IOException {
-		FDBSymbolServiceConfig config = createConfig();
-		config.load(context.getDefaultConfigFileName(), context.getConfigFileName());
+		GeneralConfig config = context.getConfig();
 		FDBSymbolService service = new FDBSymbolService(
-				createCategoryExtractor(config.getString(FDBSymbolServiceConfig.CATEGORY_EXTRACTOR)),
-				createSchema(config.getString(FDBSymbolServiceConfig.SUBSPACE)),
-				config.getInt(FDBSymbolServiceConfig.LIST_SYMBOLS_LIMIT),
-				config.getInt(FDBSymbolServiceConfig.LIST_EVENTS_LIMIT));
-		context.registerService(new FDBDatabaseService(service, config.getString(FDBSymbolServiceConfig.FDB_CLUSTER)));
+				createCategoryExtractor(config.getSymbolServiceCategoryExtractor()),
+				createSchema(config.getFdbSubspace()), config.getMaxSymbolsLimit(), config.getMaxEventsLimit());
+		context.registerService(new FDBDatabaseService(service, config.getFdbCluster()));
 		return service;
 	}
 	

@@ -5,7 +5,6 @@ import static ru.prolib.caelum.service.aggregator.kafka.KafkaAggregatorServiceBu
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.Arrays;
-import java.util.Properties;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -21,8 +20,12 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import ru.prolib.caelum.lib.HostInfo;
+import ru.prolib.caelum.lib.IService;
+import ru.prolib.caelum.lib.Interval;
 import ru.prolib.caelum.lib.Intervals;
 import ru.prolib.caelum.service.BuildingContext;
+import ru.prolib.caelum.service.GeneralConfig;
+import ru.prolib.caelum.service.GeneralConfigImpl;
 import ru.prolib.caelum.service.IBuildingContext;
 import ru.prolib.caelum.service.ServiceRegistry;
 import ru.prolib.caelum.service.ServletRegistry;
@@ -44,9 +47,10 @@ public class KafkaAggregatorServiceBuilderTest {
 	Intervals intervals;
 	KafkaAggregatorBuilder builderMock;
 	IBuildingContext contextMock;
-	KafkaAggregatorConfig mockedConfig, config1, config2, config3;
+	IService iserviceMock;
+	GeneralConfigImpl gconf;
 	IAggregator aggregatorMock1, aggregatorMock2, aggregatorMock3;
-	KafkaStreamsRegistry streamsRegistryMock;
+	KafkaStreamsRegistry sregistryMock;
 	KafkaAggregatorTopologyBuilder topologyBuilderMock;
 	KafkaUtils utilsMock;
 	Lock mutexMock;
@@ -56,64 +60,39 @@ public class KafkaAggregatorServiceBuilderTest {
 	public void setUp() throws Exception {
 		hostInfo = new HostInfo("tutumbr", 2519);
 		intervals = new Intervals();
+		gconf = new GeneralConfigImpl(intervals);
 		control = createStrictControl();
 		builderMock = control.createMock(KafkaAggregatorBuilder.class);
 		contextMock = control.createMock(IBuildingContext.class);
-		mockedConfig = partialMockBuilder(KafkaAggregatorConfig.class)
-				.withConstructor(Intervals.class)
-				.withArgs(intervals)
-				.addMockedMethod("load", String.class, String.class)
-				.createMock();
-		config1 = new KafkaAggregatorConfig(intervals);
-		config2 = new KafkaAggregatorConfig(intervals);
-		config3 = new KafkaAggregatorConfig(intervals);
 		aggregatorMock1 = control.createMock(IAggregator.class);
 		aggregatorMock2 = control.createMock(IAggregator.class);
 		aggregatorMock3 = control.createMock(IAggregator.class);
-		streamsRegistryMock = control.createMock(KafkaStreamsRegistry.class);
+		sregistryMock = control.createMock(KafkaStreamsRegistry.class);
 		topologyBuilderMock = control.createMock(KafkaAggregatorTopologyBuilder.class);
 		utilsMock = control.createMock(KafkaUtils.class);
 		mutexMock = control.createMock(Lock.class);
-		service = new KafkaAggregatorServiceBuilder(builderMock);
+		iserviceMock = control.createMock(IService.class);
+		service = new KafkaAggregatorServiceBuilder(builderMock, utilsMock);
 		mockedService = partialMockBuilder(KafkaAggregatorServiceBuilder.class)
-				.withConstructor(KafkaAggregatorBuilder.class)
-				.addMockedMethod("createIntervals")
-				.addMockedMethod("createUtils")
-				.addMockedMethod("createConfig", Intervals.class)
+				.withConstructor(KafkaAggregatorBuilder.class, KafkaUtils.class)
+				.withArgs(builderMock, utilsMock)
 				.addMockedMethod("createStreamsRegistry", HostInfo.class, Intervals.class)
-				.addMockedMethod("createTopologyBuilder")
 				.addMockedMethod("createLock")
-				.withArgs(builderMock)
-				.createMock();
+				.addMockedMethod("createInitService", GeneralConfig.class)
+				.createMock(control);
 	}
 	
 	@Test
-	public void testCreateIntervals() {
-		Intervals actual = service.createIntervals();
-		
-		assertNotNull(actual);
+	public void testCtor2() {
+		assertSame(builderMock, service.getKafkaAggregatorBuilder());
+		assertSame(utilsMock, service.getKafkaUtils());
 	}
 	
 	@Test
-	public void testCreateUtils() {
-		KafkaUtils actual = service.createUtils();
-		
-		assertSame(KafkaUtils.getInstance(), actual);
-	}
-	
-	@Test
-	public void testCreateConfig() {
-		KafkaAggregatorConfig actual = service.createConfig(intervals);
-		
-		assertNotNull(actual);
-		assertSame(intervals, actual.getIntervals());
-	}
-	
-	@Test
-	public void testCreateTopologyBuilder() {
-		KafkaAggregatorTopologyBuilder actual = service.createTopologyBuilder();
-		
-		assertNotNull(actual);
+	public void testCtor0() {
+		service = new KafkaAggregatorServiceBuilder();
+		assertNotNull(service.getKafkaAggregatorBuilder());
+		assertSame(KafkaUtils.getInstance(), service.getKafkaUtils());
 	}
 	
 	@Test
@@ -134,95 +113,81 @@ public class KafkaAggregatorServiceBuilderTest {
 	}
 	
 	@Test
+	public void testCreateInitService() {
+		gconf.setItemsTopicName("tora-tora")
+			.setItemsTopicNumPartitions(24)
+			.setItemsTopicReplicationFactor((short)2)
+			.setItemsTopicRetentionTime(2226781)
+			.setDefaultTimeout(2345);
+		
+		IService actual = service.createInitService(gconf);
+		
+		assertNotNull(actual);
+		assertThat(actual, is(instanceOf(KafkaCreateTopicService.class)));
+		IService expected = new KafkaCreateTopicService(utilsMock, gconf,
+				new NewTopic("tora-tora", 24, (short)2).configs(toMap("retention.ms", "2226781")), 2345L);
+		assertEquals(expected, actual);
+	}
+	
+	@Test
 	public void testBuild() throws Exception {
-		expect(contextMock.getDefaultConfigFileName()).andStubReturn("kappa.props");
-		expect(contextMock.getConfigFileName()).andStubReturn("beta.props");
-		mockedConfig.load("kappa.props", "beta.props");
-		// duplicates should be ignored
-		Properties props = mockedConfig.getProperties();
-		props.put("caelum.aggregator.interval", " M1, M5, H1, M1, H1, M5, M5");
-		props.put("caelum.aggregator.list.tuples.limit", "400");
-		props.put("caelum.aggregator.kafka.force.parallel.clear", "1");
-		props.put("caelum.aggregator.kafka.default.timeout", "2345");
-		props.put("caelum.aggregator.kafka.application.server", "gap:1345");
-		props.put("caelum.aggregator.kafka.source.topic", "tora-tora");
-		props.put("caelum.aggregator.kafka.source.topic.num.partitions", "24");
-		props.put("caelum.aggregator.kafka.source.topic.replication.factor", "2");
-		props.put("caelum.aggregator.kafka.source.topic.retention.time", "2226781");
-		expect(mockedService.createIntervals()).andReturn(intervals);
-		expect(mockedService.createConfig(intervals)).andReturn(mockedConfig);
-		expect(mockedService.createStreamsRegistry(new HostInfo("gap", 1345), intervals)).andReturn(streamsRegistryMock);
-		expect(mockedService.createTopologyBuilder()).andReturn(topologyBuilderMock);
-		expect(mockedService.createLock()).andReturn(mutexMock);
-		expect(mockedService.createUtils()).andReturn(utilsMock);
-		expect(contextMock.registerService(new KafkaCreateTopicService(utilsMock,
-				mockedConfig.getAdminClientProperties(),
-				new NewTopic("tora-tora", 24, (short)2).configs(toMap("retention.ms", "2226781")),
-				2345L))).andReturn(contextMock);
+		// duplicates & whitespaces should be ignored
+		gconf.setAggregatorInterval(" M1, M5, H1, M1, H1, M5, M5")
+			.setMaxTuplesLimit(400)
+			.setAggregatorKafkaForceParallelClear(null)
+			.setHttpInfo("gap", 1345)
+			.setDefaultTimeout(2345L);
+		expect(utilsMock.isOsUnix()).andStubReturn(true);
+		expect(contextMock.getConfig()).andStubReturn(gconf);
+		expect(mockedService.createInitService(gconf)).andStubReturn(iserviceMock);
+		expect(mockedService.createStreamsRegistry(new HostInfo("gap", 1345), intervals)).andStubReturn(sregistryMock);
+		expect(mockedService.createLock()).andStubReturn(mutexMock);
+		expect(contextMock.registerService(iserviceMock)).andReturn(contextMock);
 		expect(builderMock.withBuildingContext(contextMock)).andReturn(builderMock);
-		expect(builderMock.withStreamsRegistry(streamsRegistryMock)).andReturn(builderMock);
-		expect(builderMock.withTopologyBuilder(topologyBuilderMock)).andReturn(builderMock);
+		expect(builderMock.withStreamsRegistry(sregistryMock)).andReturn(builderMock);
+		expect(builderMock.withTopologyBuilder(new KafkaAggregatorTopologyBuilder())).andReturn(builderMock);
 		expect(builderMock.withCleanUpMutex(mutexMock)).andReturn(builderMock);
 		expect(builderMock.withUtils(utilsMock)).andReturn(builderMock);
-		// create M1 aggregator
-		expect(mockedService.createConfig(intervals)).andReturn(config1);
-		expect(builderMock.withConfig(config1)).andReturn(builderMock);
+		expect(builderMock.withConfig(new KafkaAggregatorConfig(Interval.M1, gconf))).andReturn(builderMock);
 		expect(builderMock.build()).andReturn(aggregatorMock1);
-		// create M5 aggregator
-		expect(mockedService.createConfig(intervals)).andReturn(config2);
-		expect(builderMock.withConfig(config2)).andReturn(builderMock);
+		expect(builderMock.withConfig(new KafkaAggregatorConfig(Interval.M5, gconf))).andReturn(builderMock);
 		expect(builderMock.build()).andReturn(aggregatorMock2);
-		// create H1 aggregator
-		expect(mockedService.createConfig(intervals)).andReturn(config3);
-		expect(builderMock.withConfig(config3)).andReturn(builderMock);
+		expect(builderMock.withConfig(new KafkaAggregatorConfig(Interval.H1, gconf))).andReturn(builderMock);
 		expect(builderMock.build()).andReturn(aggregatorMock3);
 		control.replay();
-		replay(mockedService);
-		replay(mockedConfig);
 		
 		IAggregatorService actual = mockedService.build(contextMock);
 		
-		verify(mockedConfig);
-		verify(mockedService);
 		control.verify();
 		assertThat(actual, is(instanceOf(KafkaAggregatorService.class)));
 		KafkaAggregatorService x = (KafkaAggregatorService) actual;
-		assertEquals(Arrays.asList(aggregatorMock1, aggregatorMock2, aggregatorMock3), x.getAggregatorList());
-		assertEquals(400, x.getMaxLimit()); // caelum.aggregator.list.tuples.limit
-		assertEquals(2345L, x.getTimeout()); // caelum.aggregator.kafka.default.timeout
+		assertEquals(400, x.getMaxLimit());
+		assertEquals(2345L, x.getTimeout());
 		assertTrue(x.isClearAggregatorsInParallel());
-		Properties expected_props = new Properties();
-		expected_props.putAll(mockedConfig.getProperties());
-		expected_props.put("caelum.aggregator.interval", "M1");
-		assertEquals(expected_props, config1.getProperties());
-		expected_props.put("caelum.aggregator.interval", "M5");
-		assertEquals(expected_props, config2.getProperties());
-		expected_props.put("caelum.aggregator.interval", "H1");
-		assertEquals(expected_props, config3.getProperties());
+		assertEquals(Arrays.asList(aggregatorMock1, aggregatorMock2, aggregatorMock3), x.getAggregatorList());
 	}
 	
 	@Test
 	public void testBuild_ShouldUseForceParallelClearFromConfig() throws Exception {
-		mockedService = partialMockBuilder(KafkaAggregatorServiceBuilder.class)
-				.withConstructor(KafkaAggregatorBuilder.class)
-				.addMockedMethod("createConfig", Intervals.class)
-				.withArgs(new KafkaAggregatorBuilder())
-				.createMock();
-		expect(mockedService.createConfig(anyObject())).andReturn(mockedConfig);
-		expect(contextMock.getDefaultConfigFileName()).andStubReturn("bubba.hut");
-		expect(contextMock.getConfigFileName()).andStubReturn("jubba.hut");
-		expect(contextMock.registerService(anyObject())).andReturn(contextMock);
-		mockedConfig.load("bubba.hut", "jubba.hut");
-		mockedConfig.getProperties().put("caelum.aggregator.interval", "");
-		mockedConfig.getProperties().put("caelum.aggregator.kafka.force.parallel.clear", "0");
+		gconf.setAggregatorInterval("M1")
+			.setAggregatorKafkaForceParallelClear(false)
+			.setHttpInfo("bak", 1345);
+		expect(contextMock.getConfig()).andStubReturn(gconf);
+		expect(mockedService.createInitService(gconf)).andStubReturn(iserviceMock);
+		expect(mockedService.createStreamsRegistry(new HostInfo("bak", 1345), intervals)).andStubReturn(sregistryMock);
+		expect(mockedService.createLock()).andStubReturn(mutexMock);
+		expect(contextMock.registerService(iserviceMock)).andReturn(contextMock);
+		expect(builderMock.withBuildingContext(contextMock)).andReturn(builderMock);
+		expect(builderMock.withStreamsRegistry(sregistryMock)).andReturn(builderMock);
+		expect(builderMock.withTopologyBuilder(new KafkaAggregatorTopologyBuilder())).andReturn(builderMock);
+		expect(builderMock.withCleanUpMutex(mutexMock)).andReturn(builderMock);
+		expect(builderMock.withUtils(utilsMock)).andReturn(builderMock);
+		expect(builderMock.withConfig(new KafkaAggregatorConfig(Interval.M1, gconf))).andReturn(builderMock);
+		expect(builderMock.build()).andReturn(aggregatorMock1);
 		control.replay();
-		replay(mockedService);
-		replay(mockedConfig);
 		
 		IAggregatorService actual = mockedService.build(contextMock);
 		
-		verify(mockedConfig);
-		verify(mockedService);
 		control.verify();
 		assertNotNull(actual);
 		assertThat(actual, is(instanceOf(KafkaAggregatorService.class)));
@@ -233,12 +198,9 @@ public class KafkaAggregatorServiceBuilderTest {
 	@Test
 	public void testBuild_SmallIntegrationTest() throws Exception {
 		service = new KafkaAggregatorServiceBuilder();
-		BuildingContext context = new BuildingContext(mockedConfig, KafkaAggregatorConfig.DEFAULT_CONFIG_FILE,
-				null, null, new ServiceRegistry(), new ServletRegistry());
 		
-		IAggregatorService actual = service.build(context);
-		
-		assertNotNull(actual);
+		assertNotNull(service.build(new BuildingContext(gconf, "foo", null, null,
+				new ServiceRegistry(), new ServletRegistry())));
 	}
 	
 	@Test
@@ -254,10 +216,10 @@ public class KafkaAggregatorServiceBuilderTest {
 	@Test
 	public void testEquals() {
 		assertTrue(service.equals(service));
-		assertTrue(service.equals(new KafkaAggregatorServiceBuilder(builderMock)));
+		assertTrue(service.equals(new KafkaAggregatorServiceBuilder(builderMock, utilsMock)));
 		assertFalse(service.equals(null));
 		assertFalse(service.equals(this));
-		assertFalse(service.equals(new KafkaAggregatorServiceBuilder(new KafkaAggregatorBuilder())));
+		assertFalse(service.equals(new KafkaAggregatorServiceBuilder(new KafkaAggregatorBuilder(), utilsMock)));
 	}
 
 }

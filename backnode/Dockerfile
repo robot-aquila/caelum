@@ -15,7 +15,7 @@ ENV APP_VERSION="${APP_VERSION}" \
     APP_AGGR_INTERVAL="M1,H1" \
     JAVA_OPTS="-Xms512m -Xmx1024m"
 ENV APP_CONF_SCRIPT="${APP_HOME}/caelum-configure.sh" \
-    APP_CONF="${APP_HOME}/app.backnode.properties"
+    APP_CONF="${APP_HOME}/app.caelum-backnode.properties"
 
 WORKDIR $APP_HOME
 

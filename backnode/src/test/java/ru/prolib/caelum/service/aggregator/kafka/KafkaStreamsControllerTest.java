@@ -3,6 +3,7 @@ package ru.prolib.caelum.service.aggregator.kafka;
 import static org.junit.Assert.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import java.util.Properties;
 import java.util.concurrent.locks.Lock;
 
 import static org.hamcrest.Matchers.*;
@@ -16,9 +17,12 @@ import static org.easymock.EasyMock.*;
 import org.junit.Before;
 import org.junit.Test;
 
+import ru.prolib.caelum.lib.HostInfo;
 import ru.prolib.caelum.lib.Interval;
 import ru.prolib.caelum.lib.Intervals;
+import ru.prolib.caelum.lib.kafka.KafkaItemSerdes;
 import ru.prolib.caelum.service.AggregatorType;
+import ru.prolib.caelum.service.GeneralConfig;
 import ru.prolib.caelum.service.aggregator.kafka.utils.IRecoverableStreamsHandler;
 import ru.prolib.caelum.service.aggregator.kafka.utils.IRecoverableStreamsHandlerListener;
 import ru.prolib.caelum.service.aggregator.kafka.utils.RecoverableStreamsHandler;
@@ -34,6 +38,7 @@ public class KafkaStreamsControllerTest {
 	RecoverableStreamsHandler handlerMock;
 	KafkaStreams streamsMock;
 	Lock mutexMock;
+	GeneralConfig gconfMock;
 	KafkaAggregatorConfig config;
 	KafkaAggregatorDescr descr;
 	Intervals intervals;
@@ -50,9 +55,8 @@ public class KafkaStreamsControllerTest {
 		handlerMock = control.createMock(RecoverableStreamsHandler.class);
 		streamsMock = control.createMock(KafkaStreams.class);
 		mutexMock = control.createMock(Lock.class);
-		config = new KafkaAggregatorConfig(intervals = new Intervals());
-		config.getProperties().put("caelum.aggregator.interval", "M15");
-		config.getProperties().put("caelum.aggregator.kafka.default.timeout", "30000");
+		gconfMock = control.createMock(GeneralConfig.class);
+		config = new KafkaAggregatorConfig(Interval.M15, gconfMock);
 		descr = new KafkaAggregatorDescr(AggregatorType.ITEM, Interval.M15, "foo", "bar", "foo-store");
 		service = new KafkaStreamsController(descr, builderMock, config, registryMock, mutexMock, utilsMock);
 	}
@@ -69,8 +73,25 @@ public class KafkaStreamsControllerTest {
 	
 	@Test
 	public void testBuild() {
-		expect(builderMock.buildTopology(config)).andReturn(topologyMock);
-		expect(utilsMock.createStreams(topologyMock, config.getKafkaProperties())).andReturn(streamsMock);
+		expect(gconfMock.getAggregatorKafkaApplicationIdPrefix()).andStubReturn("aggregator-");
+		expect(gconfMock.getKafkaBootstrapServers()).andStubReturn("localhost:4238");
+		expect(gconfMock.getKafkaStateDir()).andStubReturn("/foo/bar");
+		expect(builderMock.buildTopology(config)).andStubReturn(topologyMock);
+		expect(gconfMock.getAggregatorKafkaNumStreamThreads()).andStubReturn(3);
+		expect(gconfMock.getHttpInfo()).andStubReturn(new HostInfo("127.15.19.8", 4529));
+		expect(gconfMock.getAggregatorKafkaLingerMs()).andStubReturn(40L);
+		expect(gconfMock.getDefaultTimeout()).andStubReturn(30000L);
+		Properties props = new Properties();
+		props.put("application.id", "aggregator-m15");
+		props.put("bootstrap.servers", "localhost:4238");
+		props.put("default.key.serde", KafkaItemSerdes.keySerde().getClass());
+		props.put("default.value.serde", KafkaItemSerdes.itemSerde().getClass());
+		props.put("state.dir", "/foo/bar");
+		props.put("num.stream.threads", "3");
+		props.put("application.server", "127.15.19.8:4529");
+		props.put("linger.ms", "40");
+		props.put("processing.guarantee", "exactly_once");
+		expect(utilsMock.createStreams(topologyMock, props)).andReturn(streamsMock);
 		control.replay();
 		
 		IRecoverableStreamsHandler actual = service.build(listenerMock);

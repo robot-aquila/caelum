@@ -1,13 +1,10 @@
 package ru.prolib.caelum.service.aggregator.kafka;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -20,7 +17,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ru.prolib.caelum.lib.HostInfo;
+import ru.prolib.caelum.lib.IService;
 import ru.prolib.caelum.lib.Intervals;
+import ru.prolib.caelum.service.GeneralConfig;
 import ru.prolib.caelum.service.IBuildingContext;
 import ru.prolib.caelum.service.aggregator.IAggregator;
 import ru.prolib.caelum.service.aggregator.IAggregatorService;
@@ -42,29 +41,23 @@ public class KafkaAggregatorServiceBuilder implements IAggregatorServiceBuilder 
 	}
 	
 	private final KafkaAggregatorBuilder builder;
+	private final KafkaUtils utils;
 	
-	public KafkaAggregatorServiceBuilder(KafkaAggregatorBuilder builder) {
+	public KafkaAggregatorServiceBuilder(KafkaAggregatorBuilder builder, KafkaUtils utils) {
 		this.builder = builder;
+		this.utils = utils;
 	}
 	
 	public KafkaAggregatorServiceBuilder() {
-		this(new KafkaAggregatorBuilder());
+		this(new KafkaAggregatorBuilder(), KafkaUtils.getInstance());
 	}
 	
-	protected Intervals createIntervals() {
-		return new Intervals();
+	public KafkaAggregatorBuilder getKafkaAggregatorBuilder() {
+		return builder;
 	}
 	
-	protected KafkaUtils createUtils() {
-		return KafkaUtils.getInstance();
-	}
-
-	protected KafkaAggregatorConfig createConfig(Intervals intervals) {
-		return new KafkaAggregatorConfig(intervals);
-	}
-	
-	protected KafkaAggregatorTopologyBuilder createTopologyBuilder() {
-		return new KafkaAggregatorTopologyBuilder();
+	public KafkaUtils getKafkaUtils() {
+		return utils;
 	}
 	
 	protected KafkaStreamsRegistry createStreamsRegistry(HostInfo hostInfo, Intervals intervals) {
@@ -74,49 +67,54 @@ public class KafkaAggregatorServiceBuilder implements IAggregatorServiceBuilder 
 	protected Lock createLock() {
 		return new ReentrantLock();
 	}
+	
+	/**
+	 * Create initialization service.
+	 * <p>
+	 * @param config - configuration
+	 * @return 
+	 */
+	protected IService createInitService(GeneralConfig config) {
+		return new KafkaCreateTopicService(utils,
+				config,
+				new NewTopic(config.getItemsTopicName(),
+						config.getItemsTopicNumPartitions(),
+						config.getItemsTopicReplicationFactor()
+					).configs(toMap("retention.ms", Long.toString(config.getItemsTopicRetentionTime()))),
+				config.getDefaultTimeout());
+	}
+	
+	private boolean isParallelClear(GeneralConfig config) {
+		Boolean force = config.getAggregatorKafkaForceParallelClear();
+		if ( force != null ) return force;
+		return utils.isOsUnix();
+	}
 
 	@Override
 	public IAggregatorService build(IBuildingContext context) throws IOException {
-		final Intervals intervals = createIntervals();
-		KafkaAggregatorConfig config = createConfig(intervals);
-		final KafkaUtils utils = createUtils();
-		config.load(context.getDefaultConfigFileName(), context.getConfigFileName());
-		context.registerService(new KafkaCreateTopicService(utils,
-				config.getAdminClientProperties(),
-				new NewTopic(config.getSourceTopic(),
-						config.getSourceTopicNumPartitions(),
-						config.getSourceTopicReplicationFactor()
-					).configs(toMap("retention.ms", Long.toString(config.getSourceTopicRetentionTime()))),
-				config.getDefaultTimeout()));
-		boolean is_parallel_clear = config.isParallelClear();
-		logger.debug("isParallelClear: {}", is_parallel_clear);
+		GeneralConfig config = context.getConfig();
+		context.registerService(createInitService(config));
+		boolean isParallelClear = isParallelClear(config);
+		logger.debug("isParallelClear: {}", isParallelClear);
+		Intervals intervals = config.getIntervals();
 		
-		KafkaStreamsRegistry streams_registry = createStreamsRegistry(config.getApplicationServer(), intervals);
-		Set<String> aggregation_interval_list = new LinkedHashSet<>(Arrays.asList(StringUtils.splitByWholeSeparator(
-				config.getString(KafkaAggregatorConfig.INTERVAL), ","))
-			.stream()
-			.map(String::trim)
-			.collect(Collectors.toList()));
+		KafkaStreamsRegistry streamsRegistry = createStreamsRegistry(config.getHttpInfo(), intervals);
 		builder.withBuildingContext(context)
-			.withStreamsRegistry(streams_registry)
-			.withTopologyBuilder(createTopologyBuilder())
+			.withStreamsRegistry(streamsRegistry)
+			.withTopologyBuilder(new KafkaAggregatorTopologyBuilder())
 			.withCleanUpMutex(createLock())
 			.withUtils(utils);
-		List<IAggregator> aggregator_list = new ArrayList<>();
-		for ( String aggregation_interval : aggregation_interval_list ) {
-			KafkaAggregatorConfig aggregator_config = createConfig(intervals);
-			aggregator_config.getProperties().putAll(config.getProperties());
-			aggregator_config.getProperties().put(KafkaAggregatorConfig.INTERVAL, aggregation_interval);
-			aggregator_list.add(builder.withConfig(aggregator_config).build());
-		}
-		KafkaAggregatorService service = new KafkaAggregatorService(
-				intervals,
-				streams_registry,
-				aggregator_list,
-				config.getListTuplesLimit(),
-				is_parallel_clear,
-				config.getDefaultTimeout());
-		return service;
+		
+		 List<IAggregator> aggrList =
+			Arrays.asList(StringUtils.splitByWholeSeparator(config.getAggregatorInterval(), ","))
+			.stream()
+			.map(String::trim) // remove possible spaces
+			.collect(Collectors.toSet()) // remove possible duplicates
+			.stream()
+			.map((c) -> builder.withConfig(new KafkaAggregatorConfig(intervals.getIntervalByCode(c), config)).build())
+			.collect(Collectors.toList());
+		return new KafkaAggregatorService(intervals, streamsRegistry, aggrList, config.getMaxTuplesLimit(),
+				isParallelClear, config.getDefaultTimeout());
 	}
 	
 	@Override

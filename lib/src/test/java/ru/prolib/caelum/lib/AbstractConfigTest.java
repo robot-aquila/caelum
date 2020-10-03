@@ -55,6 +55,16 @@ public class AbstractConfigTest {
 	}
 	
 	@Test
+	public void loadFromResources0() throws Exception {
+		assertTrue(service.loadFromResources());
+		
+		System.out.println(service.getProperties());
+		
+		assertEquals("Hello, World!", service.getString("testconfig.property1"));
+		assertEquals("true", service.getString("testconfig.property3"));
+	}
+	
+	@Test
 	public void testLoad2_OverrideFromFileInResources() throws Exception {
 		service.load("testconfig1.properties", null);
 		

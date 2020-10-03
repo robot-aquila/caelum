@@ -5,10 +5,6 @@ import java.io.IOException;
 import ru.prolib.caelum.service.IBuildingContext;
 
 public class ItemDatabaseServiceBuilder implements IItemDatabaseServiceBuilder {
-
-	protected ItemDatabaseConfig createConfig() {
-		return new ItemDatabaseConfig();
-	}
 	
 	protected IItemDatabaseServiceBuilder createBuilder(String class_name) throws IOException {
 		try {
@@ -20,10 +16,7 @@ public class ItemDatabaseServiceBuilder implements IItemDatabaseServiceBuilder {
 	
 	@Override
 	public IItemDatabaseService build(IBuildingContext context) throws IOException {
-		ItemDatabaseConfig config = createConfig();
-		config.load(context.getDefaultConfigFileName(), context.getConfigFileName());
-		IItemDatabaseServiceBuilder builder = createBuilder(config.getString(ItemDatabaseConfig.BUILDER));
-		return builder.build(context);
+		return createBuilder(context.getConfig().getItemServiceBuilder()).build(context);
 	}
 	
 	@Override

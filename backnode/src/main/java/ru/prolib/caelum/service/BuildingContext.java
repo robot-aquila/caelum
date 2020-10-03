@@ -4,17 +4,16 @@ import javax.servlet.Servlet;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 
-import ru.prolib.caelum.lib.AbstractConfig;
 import ru.prolib.caelum.lib.IService;
 
 public class BuildingContext implements IBuildingContext {
 	private final IServiceRegistry services;
 	private final IServletRegistry servlets;
 	private final String defaultConfigFileName, configFileName;
-	private final AbstractConfig config;
+	private final GeneralConfig config;
 	private final ICaelum caelum;
 	
-	public BuildingContext(AbstractConfig config,
+	public BuildingContext(GeneralConfig config,
 			String defaultConfigFileName,
 			String configFileName,
 			ICaelum caelum,
@@ -36,6 +35,10 @@ public class BuildingContext implements IBuildingContext {
 		return new BuildingContext(config, defaultConfigFileName, configFileName, caelum, services, servlets);
 	}
 	
+	public BuildingContext withConfig(GeneralConfig config) {
+		return new BuildingContext(config, defaultConfigFileName, configFileName, caelum, services, servlets);
+	}
+	
 	public IServiceRegistry getServices() {
 		return services;
 	}
@@ -53,7 +56,7 @@ public class BuildingContext implements IBuildingContext {
 	}
 	
 	@Override
-	public AbstractConfig getConfig() {
+	public GeneralConfig getConfig() {
 		return config;
 	}
 	

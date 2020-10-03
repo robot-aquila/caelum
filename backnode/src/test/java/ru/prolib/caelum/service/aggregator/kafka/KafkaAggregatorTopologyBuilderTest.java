@@ -1,9 +1,9 @@
 package ru.prolib.caelum.service.aggregator.kafka;
 
 import static org.junit.Assert.*;
+import static org.easymock.EasyMock.*;
 
 import java.time.Instant;
-import java.util.Properties;
 
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
@@ -14,18 +14,21 @@ import org.apache.kafka.streams.kstream.internals.TimeWindow;
 import org.apache.kafka.streams.state.ReadOnlyWindowStore;
 import org.apache.kafka.streams.test.TestRecord;
 import org.apache.log4j.BasicConfigurator;
+import org.easymock.IMocksControl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import ru.prolib.caelum.lib.Intervals;
+import ru.prolib.caelum.lib.HostInfo;
+import ru.prolib.caelum.lib.Interval;
 import ru.prolib.caelum.lib.ItemType;
 import ru.prolib.caelum.lib.TupleType;
 import ru.prolib.caelum.lib.kafka.KafkaItem;
 import ru.prolib.caelum.lib.kafka.KafkaItemSerdes;
 import ru.prolib.caelum.lib.kafka.KafkaTuple;
 import ru.prolib.caelum.lib.kafka.KafkaTupleSerdes;
+import ru.prolib.caelum.service.GeneralConfig;
 
 public class KafkaAggregatorTopologyBuilderTest {
 	private static final byte DEFAULT_DECIMALS = 2;
@@ -62,7 +65,9 @@ public class KafkaAggregatorTopologyBuilderTest {
 		BasicConfigurator.configure();
 	}
 	
-	Intervals intervals;
+	IMocksControl control;
+	GeneralConfig gconfMock;
+	Interval interval;
 	KafkaAggregatorConfig config;
 	KafkaAggregatorTopologyBuilder service;
 	TopologyTestDriver testDriver;
@@ -72,6 +77,9 @@ public class KafkaAggregatorTopologyBuilderTest {
 
 	@Before
 	public void setUp() throws Exception {
+		control = createStrictControl();
+		gconfMock = control.createMock(GeneralConfig.class);
+		config = new KafkaAggregatorConfig(interval = Interval.M5, gconfMock);
 		service = new KafkaAggregatorTopologyBuilder();
 	}
 	
@@ -88,15 +96,19 @@ public class KafkaAggregatorTopologyBuilderTest {
 
 	@Test
 	public void testBuildTopology_TopologyShouldBeOk() {
-		config = new KafkaAggregatorConfig(intervals = new Intervals());
-		Properties props = config.getProperties();
-		props.put(KafkaAggregatorConfig.APPLICATION_ID_PREFIX, "test-app-");
-		props.put(KafkaAggregatorConfig.BOOTSTRAP_SERVERS, "dummy:123");
-		props.put(KafkaAggregatorConfig.AGGREGATION_STORE_PREFIX, "test-store-");
-		props.put(KafkaAggregatorConfig.SOURCE_TOPIC, "test-items");
-		props.put(KafkaAggregatorConfig.TARGET_TOPIC_PREFIX, "test-tuples-");
-		props.put(KafkaAggregatorConfig.INTERVAL, "M5");
-		testDriver = new TopologyTestDriver(service.buildTopology(config), config.getKafkaProperties());
+		expect(gconfMock.getAggregatorKafkaApplicationIdPrefix()).andStubReturn("test-app-");
+		expect(gconfMock.getKafkaBootstrapServers()).andStubReturn("dummy:123");
+		expect(gconfMock.getAggregatorKafkaStorePrefix()).andStubReturn("test-store-");
+		expect(gconfMock.getItemsTopicName()).andStubReturn("test-items");
+		expect(gconfMock.getAggregatorKafkaTargetTopicPrefix()).andStubReturn("test-tuples-");
+		expect(gconfMock.getAggregatorKafkaStoreRetentionTime()).andStubReturn(561826883L);
+		expect(gconfMock.getKafkaStateDir()).andStubReturn("/any/dir");
+		expect(gconfMock.getAggregatorKafkaNumStreamThreads()).andStubReturn(2);
+		expect(gconfMock.getHttpInfo()).andStubReturn(new HostInfo("bambr", 1256));
+		expect(gconfMock.getAggregatorKafkaLingerMs()).andStubReturn(5L);
+		control.replay();
+		
+		testDriver = new TopologyTestDriver(service.buildTopology(config), config.getKafkaStreamsProperties());
 		items = testDriver.createInputTopic("test-items",
 				KafkaItemSerdes.keySerde().serializer(),
 				KafkaItemSerdes.itemSerde().serializer());
@@ -138,6 +150,19 @@ public class KafkaAggregatorTopologyBuilderTest {
 		items.pipeInput(key, KI(220, 1000), rec_time);
 		assertEquals(TR(key, tup_time, rec_time, tuple = KT(239, 239, 220, 220, 2000)), tuples.readRecord());
 		assertEquals(tuple, store.fetch(key, tup_time));
+	}
+	
+	@Test
+	public void testHashCode() {
+		assertEquals(668915632, service.hashCode());
+	}
+	
+	@Test
+	public void testEquals() {
+		assertTrue(service.equals(service));
+		assertTrue(service.equals(new KafkaAggregatorTopologyBuilder()));
+		assertFalse(service.equals(null));
+		assertFalse(service.equals(this));
 	}
 
 }

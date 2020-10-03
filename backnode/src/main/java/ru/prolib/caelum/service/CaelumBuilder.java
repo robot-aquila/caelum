@@ -7,6 +7,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ru.prolib.caelum.lib.Intervals;
 import ru.prolib.caelum.service.aggregator.AggregatorServiceBuilder;
 import ru.prolib.caelum.service.aggregator.IAggregatorServiceBuilder;
 import ru.prolib.caelum.service.itemdb.IItemDatabaseServiceBuilder;
@@ -17,8 +18,8 @@ import ru.prolib.caelum.service.symboldb.SymbolServiceBuilder;
 public class CaelumBuilder {
 	private static final Logger logger = LoggerFactory.getLogger(CaelumBuilder.class);
 	
-	protected CaelumConfig createConfig() {
-		return new CaelumConfig();
+	protected GeneralConfigImpl createConfig() {
+		return new GeneralConfigImpl(new Intervals());
 	}
 	
 	protected IItemDatabaseServiceBuilder createItemDatabaseServiceBuilder() {
@@ -42,10 +43,11 @@ public class CaelumBuilder {
 	}
 	
 	public ICaelum build(BuildingContext context) throws IOException {
-		CaelumConfig config = createConfig();
-		config.load(context.getDefaultConfigFileName(), context.getConfigFileName());
+		GeneralConfigImpl config = createConfig();
+		config.load(context.getConfigFileName());
 		logger.debug("Configuration loaded: ");
 		config.print(logger);
+		context = context.withConfig(config);
 		ICaelum caelum;
 		List<IExtension> extensions = new ArrayList<>();
 		context = context.withCaelum(caelum = new Caelum(

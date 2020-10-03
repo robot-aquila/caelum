@@ -16,6 +16,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import ru.prolib.caelum.lib.IService;
+import ru.prolib.caelum.service.GeneralConfigImpl;
 import ru.prolib.caelum.service.IBuildingContext;
 import ru.prolib.caelum.service.ICaelum;
 import ru.prolib.caelum.service.IExtension;
@@ -23,7 +24,7 @@ import ru.prolib.caelum.service.IExtension;
 public class ItesymBuilderTest {
 	IMocksControl control;
 	KafkaConsumer<String, byte[]> consumerMock;
-	ItesymConfig mockedConfig;
+	GeneralConfigImpl config;
 	ItesymBuilder mockedService, service;
 	IBuildingContext contextMock;
 	ICaelum caelumMock;
@@ -32,29 +33,18 @@ public class ItesymBuilderTest {
 	@SuppressWarnings("unchecked")
 	@Before
 	public void setUp() throws Exception {
+		config = new GeneralConfigImpl();
 		control = createStrictControl();
 		consumerMock = control.createMock(KafkaConsumer.class);
-		mockedConfig = partialMockBuilder(ItesymConfig.class)
-				.withConstructor()
-				.addMockedMethod("load", String.class, String.class)
-				.createMock();
 		service = new ItesymBuilder();
 		mockedService = partialMockBuilder(ItesymBuilder.class)
 				.withConstructor()
-				.addMockedMethod("createConfig")
 				.addMockedMethod("createConsumer", Properties.class)
 				.addMockedMethod("createThread", String.class, Runnable.class)
-				.createMock();
+				.createMock(control);
 		contextMock = control.createMock(IBuildingContext.class);
 		caelumMock = control.createMock(ICaelum.class);
 		threadMock = control.createMock(Thread.class);
-	}
-	
-	@Test
-	public void testCreateConfig() {
-		ItesymConfig actual = service.createConfig();
-		
-		assertNotNull(actual);
 	}
 	
 	@Test
@@ -83,44 +73,37 @@ public class ItesymBuilderTest {
 		assertFalse(actual.isAlive());
 		control.verify();
 	}
-
+	
 	@Test
 	public void testBuild() throws Exception {
-		expect(contextMock.getDefaultConfigFileName()).andStubReturn("foo.props");
-		expect(contextMock.getConfigFileName()).andStubReturn("bar.props");
+		expect(contextMock.getConfig()).andStubReturn(config);
 		expect(contextMock.getCaelum()).andStubReturn(caelumMock);
-		mockedConfig.getProperties().put("caelum.itesym.bootstrap.servers", "172.94.13.37:8082");
-		mockedConfig.getProperties().put("caelum.itesym.group.id", "tutumbr");
-		mockedConfig.getProperties().put("caelum.itesym.source.topic", "bambr");
-		mockedConfig.getProperties().put("caelum.itesym.poll.timeout", "5000");
-		mockedConfig.getProperties().put("caelum.itesym.shutdown.timeout", "10000");
-		expect(mockedService.createConfig()).andReturn(mockedConfig);
-		mockedConfig.load("foo.props", "bar.props");
-		Properties expected_ak_props = new Properties();
-		expected_ak_props.put("bootstrap.servers", "172.94.13.37:8082");
-		expected_ak_props.put("group.id", "tutumbr");
-		expected_ak_props.put("enable.auto.commit", "false");
-		expected_ak_props.put("isolation.level", "read_committed");
-		expect(mockedService.createConsumer(eq(expected_ak_props))).andReturn(consumerMock);
+		config.setKafkaBootstrapServers("172.94.13.37:8082")
+			.setItesymKafkaGroupId("tutumbr")
+			.setKafkaPollTimeout(5000L)
+			.setShutdownTimeout(10000L)
+			.setItemsTopicName("bambr");
+		Properties props = new Properties();
+		props.put("bootstrap.servers", "172.94.13.37:8082");
+		props.put("group.id", "tutumbr");
+		props.put("enable.auto.commit", "false");
+		props.put("isolation.level", "read_committed");
+		expect(mockedService.createConsumer(eq(props))).andReturn(consumerMock);
 		Capture<Runnable> cap1 = newCapture();
 		expect(mockedService.createThread(eq("tutumbr"), capture(cap1))).andReturn(threadMock);
 		Capture<IService> cap2 = newCapture();
 		expect(contextMock.registerService(capture(cap2))).andReturn(contextMock);
 		control.replay();
-		replay(mockedConfig);
-		replay(mockedService);
 		
 		IExtension actual = mockedService.build(contextMock);
 		
-		verify(mockedService);
-		verify(mockedConfig);
 		control.verify();
 		assertNotNull(actual);
 		assertThat(actual, is(instanceOf(Itesym.class)));
 		assertSame(cap1.getValue(), actual);
 		assertSame(cap2.getValue(), actual);
 		Itesym o = (Itesym) actual;
-		assertEquals("tutumbr", o.getId());
+		assertEquals("tutumbr", o.getGroupId());
 		assertSame(consumerMock, o.getConsumer());
 		assertEquals("bambr", o.getSourceTopic());
 		assertSame(caelumMock, o.getCaelum());

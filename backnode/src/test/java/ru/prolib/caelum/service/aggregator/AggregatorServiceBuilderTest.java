@@ -6,9 +6,6 @@ import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.List;
-import java.util.Properties;
-
-import org.easymock.Capture;
 import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,6 +14,7 @@ import ru.prolib.caelum.lib.Interval;
 import ru.prolib.caelum.service.AggregatedDataRequest;
 import ru.prolib.caelum.service.AggregatedDataResponse;
 import ru.prolib.caelum.service.AggregatorStatus;
+import ru.prolib.caelum.service.GeneralConfig;
 import ru.prolib.caelum.service.IBuildingContext;
 
 public class AggregatorServiceBuilderTest {
@@ -60,26 +58,16 @@ public class AggregatorServiceBuilderTest {
 	}
 	
 	IMocksControl control;
-	AggregatorConfig configStub;
+	GeneralConfig configMock;
 	IBuildingContext contextMock;
-	AggregatorServiceBuilder service, mockedService;
+	AggregatorServiceBuilder service;
 
 	@Before
 	public void setUp() throws Exception {
 		control = createStrictControl();
-		configStub = new AggregatorConfig();
+		configMock = control.createMock(GeneralConfig.class);
 		contextMock = control.createMock(IBuildingContext.class);
 		service = new AggregatorServiceBuilder();
-		mockedService = partialMockBuilder(AggregatorServiceBuilder.class)
-				.addMockedMethod("createConfig")
-				.createMock();
-	}
-	
-	@Test
-	public void testCreateConfig() {
-		AggregatorConfig actual = service.createConfig();
-		
-		assertNotNull(actual);
 	}
 	
 	@Test
@@ -92,32 +80,17 @@ public class AggregatorServiceBuilderTest {
 
 	@Test
 	public void testBuild() throws Exception {
-		final Capture<String> cap1 = newCapture(), cap2 = newCapture();
-		configStub = new AggregatorConfig() {
-			@Override
-			public void load(String default_config_file, String config_file) {
-				cap1.setValue(default_config_file);
-				cap2.setValue(config_file);
-			}
-		};
-		Properties props = configStub.getProperties();
-		props.put("caelum.aggregator.builder", TestBuilder.class.getName());
-		expect(mockedService.createConfig()).andReturn(configStub);
-		expect(contextMock.getDefaultConfigFileName()).andReturn("/foo/bar.props");
-		expect(contextMock.getConfigFileName()).andReturn("/foo/gap.props");
+		expect(contextMock.getConfig()).andReturn(configMock);
+		expect(configMock.getAggregatorServiceBuilder()).andReturn(TestBuilder.class.getName());
 		control.replay();
-		replay(mockedService);
 		
-		IAggregatorService actual = mockedService.build(contextMock);
+		IAggregatorService actual = service.build(contextMock);
 		
-		verify(mockedService);
 		control.verify();
 		assertNotNull(actual);
 		assertThat(actual, is(instanceOf(TestService.class)));
 		TestService x = (TestService) actual;
 		assertSame(contextMock, x.context);
-		assertEquals("/foo/bar.props", cap1.getValue());
-		assertEquals("/foo/gap.props", cap2.getValue());
 	}
 	
 	@Test

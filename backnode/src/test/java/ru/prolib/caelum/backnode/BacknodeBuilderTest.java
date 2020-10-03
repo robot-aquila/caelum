@@ -67,7 +67,7 @@ public class BacknodeBuilderTest {
 		expect(mockedService.createServiceRegistry()).andReturn(serviceRegistryStub);
 		expect(mockedService.createCaelumBuilder()).andReturn(caelumBuilderMock);
 		expect(mockedService.createServletRegistry()).andStubReturn(servletRegistryMock);
-		expect(caelumBuilderMock.build(new BuildingContext(null, "app.backnode.properties", "bar.props",
+		expect(caelumBuilderMock.build(new BuildingContext(null, "app.caelum-backnode.properties", "bar.props",
 				null, serviceRegistryStub, servletRegistryMock))).andReturn(caelumMock);
 		control.replay();
 		replay(mockedService);

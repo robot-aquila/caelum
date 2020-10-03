@@ -6,10 +6,6 @@ import ru.prolib.caelum.service.IBuildingContext;
 
 public class SymbolServiceBuilder implements ISymbolServiceBuilder {
 	
-	protected SymbolServiceConfig createConfig() {
-		return new SymbolServiceConfig();
-	}
-	
 	protected ISymbolServiceBuilder createBuilder(String class_name) throws IOException {
 		try {
 			return (ISymbolServiceBuilder) Class.forName(class_name).newInstance();
@@ -20,10 +16,7 @@ public class SymbolServiceBuilder implements ISymbolServiceBuilder {
 
 	@Override
 	public ISymbolService build(IBuildingContext context) throws IOException {
-		SymbolServiceConfig config = createConfig();
-		config.load(context.getDefaultConfigFileName(), context.getConfigFileName());
-		ISymbolServiceBuilder builder = createBuilder(config.getString(SymbolServiceConfig.BUILDER));
-		return builder.build(context);
+		return createBuilder(context.getConfig().getSymbolServiceBuilder()).build(context);
 	}
 	
 	@Override

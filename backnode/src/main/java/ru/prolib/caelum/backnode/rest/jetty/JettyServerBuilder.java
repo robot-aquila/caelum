@@ -9,7 +9,7 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
-import ru.prolib.caelum.backnode.BacknodeConfig;
+import ru.prolib.caelum.lib.HostInfo;
 import ru.prolib.caelum.lib.IService;
 import ru.prolib.caelum.service.BuildingContext;
 import ru.prolib.caelum.service.ExtensionState;
@@ -21,10 +21,6 @@ import ru.prolib.caelum.service.IExtensionBuilder;
 import ru.prolib.caelum.service.ServletRegistry;
 
 public class JettyServerBuilder implements IExtensionBuilder {
-	
-	protected BacknodeConfig createConfig() {
-		return new BacknodeConfig();
-	}
 	
 	protected ServletContextHandler createContextHandler() {
 		return new ServletContextHandler(ServletContextHandler.SESSIONS);
@@ -50,11 +46,10 @@ public class JettyServerBuilder implements IExtensionBuilder {
 	
 	@Override
 	public IExtension build(IBuildingContext context) throws IOException {
-		BacknodeConfig config = createConfig();
-		config.load(context.getDefaultConfigFileName(), context.getConfigFileName());
 		ServletRegistry servlets = (ServletRegistry) ((BuildingContext) context).getServlets();
-		context.registerService(createServer(config.getRestHttpHost(), config.getRestHttpPort(), servlets));
-		return new ExtensionStub(new ExtensionStatus("HTTP", ExtensionState.RUNNING, null));
+		HostInfo info = context.getConfig().getHttpInfo();
+		context.registerService(createServer(info.getHost(), info.getPort(), servlets));
+		return new ExtensionStub(new ExtensionStatus(ExtensionState.RUNNING, null));
 	}
 	
 }

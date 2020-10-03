@@ -15,12 +15,12 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.junit.Before;
 import org.junit.Test;
 
-import ru.prolib.caelum.backnode.BacknodeConfig;
 import ru.prolib.caelum.lib.IService;
 import ru.prolib.caelum.service.BuildingContext;
 import ru.prolib.caelum.service.ExtensionState;
 import ru.prolib.caelum.service.ExtensionStatus;
 import ru.prolib.caelum.service.ExtensionStub;
+import ru.prolib.caelum.service.GeneralConfigImpl;
 import ru.prolib.caelum.service.IExtension;
 import ru.prolib.caelum.service.ServletRegistry;
 
@@ -29,7 +29,7 @@ public class JettyServerBuilderTest {
 	IService serviceMock;
 	Server jserverMock;
 	ServletContextHandler ctxhMock;
-	BacknodeConfig mockedConfig;
+	GeneralConfigImpl config;
 	BuildingContext contextMock;
 	Servlet servletMock1, servletMock2, servletMock3;
 	ServletRegistry servlets;
@@ -49,27 +49,10 @@ public class JettyServerBuilderTest {
 		sholderMock1 = control.createMock(ServletHolder.class);
 		sholderMock2 = control.createMock(ServletHolder.class);
 		sholderMock3 = control.createMock(ServletHolder.class);
+		config = new GeneralConfigImpl();
 		servlets = new ServletRegistry();
 		service = new JettyServerBuilder();
-		mockedService = partialMockBuilder(JettyServerBuilder.class)
-				.withConstructor()
-				.addMockedMethod("createConfig")
-				.addMockedMethod("createContextHandler")
-				.addMockedMethod("createJettyServer", String.class, int.class)
-				.addMockedMethod("createServletHolder", Servlet.class)
-				.addMockedMethod("createServer", String.class, int.class, ServletRegistry.class)
-				.createMock(control);
-		mockedConfig = partialMockBuilder(BacknodeConfig.class)
-				.withConstructor()
-				.addMockedMethod("load", String.class, String.class)
-				.createMock(control);
-	}
-	
-	@Test
-	public void testCreateConfig() {
-		BacknodeConfig actual = service.createConfig();
-		
-		assertNotNull(actual);
+		mockedService = null;
 	}
 	
 	@Test
@@ -126,21 +109,21 @@ public class JettyServerBuilderTest {
 
 	@Test
 	public void testBuild() throws Exception {
-		expect(contextMock.getDefaultConfigFileName()).andStubReturn("foo.props");
-		expect(contextMock.getConfigFileName()).andStubReturn("bar.props");
-		expect(mockedService.createConfig()).andReturn(mockedConfig);
-		mockedConfig.load("foo.props", "bar.props");
-		expect(contextMock.getServlets()).andReturn(servlets);
+		config.setHttpInfo("bambr1", 7281);
+		mockedService = partialMockBuilder(JettyServerBuilder.class)
+				.withConstructor()
+				.addMockedMethod("createServer")
+				.createMock(control);
+		expect(contextMock.getConfig()).andStubReturn(config);
+		expect(contextMock.getServlets()).andStubReturn(servlets);
 		expect(mockedService.createServer("bambr1", 7281, servlets)).andReturn(serviceMock);
 		expect(contextMock.registerService(serviceMock)).andReturn(contextMock);
 		control.replay();
-		mockedConfig.getProperties().put("caelum.backnode.rest.http.host", "bambr1");
-		mockedConfig.getProperties().put("caelum.backnode.rest.http.port", "7281");
 		
 		IExtension actual = mockedService.build(contextMock);
 
 		control.verify();
-		assertEquals(new ExtensionStub(new ExtensionStatus("HTTP", ExtensionState.RUNNING, null)), actual);
+		assertEquals(new ExtensionStub(new ExtensionStatus(ExtensionState.RUNNING, null)), actual);
 	}
 
 }

@@ -41,8 +41,25 @@ public abstract class AbstractConfig {
 		return true;
 	}
 	
+	/**
+	 * Load properties from resources.
+	 * <p>
+	 * @param path - path to file of resources
+	 * @return true if properties were loaded, false if config file was not found among resources
+	 * @throws IOException - an error occurred
+	 */
 	public boolean loadFromResources(String path) throws IOException {
 		return loadFromResources(path, props);
+	}
+	
+	/**
+	 * Load properties from default config file of resources.
+	 * <p>
+	 * @return true if properties were loaded, false if default config file was not found among resources
+	 * @throws IOException - an error occurred
+	 */
+	public boolean loadFromResources() throws IOException {
+		return loadFromResources(getDefaultConfigFile(), props);
 	}
 	
 	public boolean loadFromFile(String path) throws IOException {
@@ -76,7 +93,6 @@ public abstract class AbstractConfig {
 	 * Load configuration from all available sources.
 	 * <p>
 	 * Loading priority:
-	 * <li>Define default properties in constructor</li>
 	 * <li>From properties file {@code default_config_file} in resources if exists</li>
 	 * <li>From properties file {@code default_config_file} in current directory
 	 * if {@code config_file} is not specified</li>
@@ -84,6 +100,8 @@ public abstract class AbstractConfig {
 	 * <li>From system properties. That allows to override property using -Dproperty.name command line
 	 * option while running java</li>
 	 * <li>From environment variables</li>
+	 * <p>
+	 * Keep in mind that default properties are initially defined in constructor.
 	 * <p>
 	 * @param default_config_file - default configuration file.
 	 * @param config_file - specific configuration properties file to load from (i.g. obtained from args).

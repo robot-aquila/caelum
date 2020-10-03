@@ -11,8 +11,8 @@ public class ExtensionStubTest {
 
 	@Before
 	public void setUp() throws Exception {
-		status1 = new ExtensionStatus("foo", ExtensionState.PENDING, null);
-		status2 = new ExtensionStatus("bar", ExtensionState.DEAD, null);
+		status1 = new ExtensionStatus(ExtensionState.PENDING, null);
+		status2 = new ExtensionStatus(ExtensionState.DEAD, null);
 		service = new ExtensionStub(status1);
 	}
 	

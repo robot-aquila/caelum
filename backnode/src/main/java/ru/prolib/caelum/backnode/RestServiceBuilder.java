@@ -13,16 +13,14 @@ import ru.prolib.caelum.lib.Intervals;
 import ru.prolib.caelum.service.ExtensionState;
 import ru.prolib.caelum.service.ExtensionStatus;
 import ru.prolib.caelum.service.ExtensionStub;
+import ru.prolib.caelum.service.GeneralConfig;
 import ru.prolib.caelum.service.IBuildingContext;
 import ru.prolib.caelum.service.ICaelum;
 import ru.prolib.caelum.service.IExtension;
 import ru.prolib.caelum.service.IExtensionBuilder;
+import ru.prolib.caelum.service.Mode;
 
 public class RestServiceBuilder implements IExtensionBuilder {
-	
-	protected BacknodeConfig createConfig() {
-		return new BacknodeConfig();
-	}
 	
 	protected Servlet createConsoleStaticFilesServlet() {
 		return new StaticResourceServlet();
@@ -44,13 +42,12 @@ public class RestServiceBuilder implements IExtensionBuilder {
 	
 	@Override
 	public IExtension build(IBuildingContext context) throws IOException {
-		BacknodeConfig config = createConfig();
-		config.load(context.getDefaultConfigFileName(), context.getConfigFileName());
+		GeneralConfig config = context.getConfig();
 		context.registerServlet(createConsoleStaticFilesServlet(), "/console/*");
 		// TODO: Remove WS to its own extension
 		//context.registerServlet(new WebSocketServletImpl(new TestCreator()), "/ws");
-		context.registerServlet(createRestServiceServlet(context.getCaelum(), config.isTestMode()), "/*");
-		return new ExtensionStub(new ExtensionStatus("REST", ExtensionState.RUNNING, null));
+		context.registerServlet(createRestServiceServlet(context.getCaelum(), config.getMode() == Mode.TEST), "/*");
+		return new ExtensionStub(new ExtensionStatus(ExtensionState.RUNNING, null));
 	}
 
 }

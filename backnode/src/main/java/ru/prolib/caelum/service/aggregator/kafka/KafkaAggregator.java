@@ -76,7 +76,7 @@ public class KafkaAggregator implements IAggregator {
 			throw new IllegalStateException("Failed to stop streams service: " + descr.getInterval());
 		}
 		if ( global ) {
-			try ( AdminClient admin = utils.createAdmin(config.getAdminClientProperties()) ) {
+			try ( AdminClient admin = utils.createAdmin(config.getConfig()) ) {
 				utils.deleteRecords(admin, getChangelogTopic(), timeout);
 				if ( config.getTargetTopic() != null ) {
 					utils.deleteRecords(admin,  config.getTargetTopic(), timeout);

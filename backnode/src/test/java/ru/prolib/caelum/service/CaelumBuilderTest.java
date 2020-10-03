@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Properties;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -17,6 +18,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import ru.prolib.caelum.lib.Intervals;
 import ru.prolib.caelum.service.aggregator.AggregatorServiceBuilder;
 import ru.prolib.caelum.service.aggregator.IAggregatorServiceBuilder;
 import ru.prolib.caelum.service.aggregator.kafka.KafkaAggregatorService;
@@ -46,14 +48,14 @@ public class CaelumBuilderTest {
 	KafkaAggregatorService aggrSvcMock;
 	IItemDatabaseService itemDbSvcMock;
 	ISymbolService symbolSvcMock;
-	BuildingContext contextMock;
+	BuildingContext contextMock1, contextMock2, contextMock3;
 	IItemDatabaseServiceBuilder itemDbSvcBuilderMock;
 	IAggregatorServiceBuilder aggrSvcBuilderMock;
 	ISymbolServiceBuilder symbolSvcBuilderMock;
 	IExtensionBuilder extBldrMock1, extBldrMock2, extBldrMock3;
 	IExtension extMock1, extMock2, extMock3;
 	CaelumBuilder service, mockedService;
-	CaelumConfig mockedConfig;
+	GeneralConfigImpl mockedConfig;
 
 	@Before
 	public void setUp() throws Exception {
@@ -61,7 +63,9 @@ public class CaelumBuilderTest {
 		aggrSvcMock = control.createMock(KafkaAggregatorService.class);
 		itemDbSvcMock = control.createMock(IItemDatabaseService.class);
 		symbolSvcMock = control.createMock(ISymbolService.class);
-		contextMock = control.createMock(BuildingContext.class);
+		contextMock1 = control.createMock(BuildingContext.class);
+		contextMock2 = control.createMock(BuildingContext.class);
+		contextMock3 = control.createMock(BuildingContext.class);
 		itemDbSvcBuilderMock = control.createMock(IItemDatabaseServiceBuilder.class);
 		aggrSvcBuilderMock = control.createMock(IAggregatorServiceBuilder.class);
 		symbolSvcBuilderMock = control.createMock(ISymbolServiceBuilder.class);
@@ -79,17 +83,19 @@ public class CaelumBuilderTest {
 				.addMockedMethod("createSymbolServiceBuilder")
 				.addMockedMethod("createExtensionBuilder", String.class)
 				.createMock();
-		mockedConfig = partialMockBuilder(CaelumConfig.class)
-				.withConstructor()
-				.addMockedMethod("load", String.class, String.class)
+		mockedConfig = partialMockBuilder(GeneralConfigImpl.class)
+				.withConstructor(Intervals.class)
+				.withArgs(new Intervals())
+				.addMockedMethod("load", String.class)
 				.createMock();
 	}
 	
 	@Test
 	public void testCreateConfig() {
-		CaelumConfig actual = service.createConfig();
+		GeneralConfigImpl actual = service.createConfig();
 		
 		assertNotNull(actual);
+		assertNotNull(actual.getIntervals());
 	}
 	
 	@Test
@@ -126,33 +132,35 @@ public class CaelumBuilderTest {
 		
 	@Test
 	public void testBuild3() throws Exception {
-		expect(contextMock.getDefaultConfigFileName()).andStubReturn("foo.props");
-		expect(contextMock.getConfigFileName()).andStubReturn("bar.props");
-		mockedConfig.getProperties().put("caelum.extension.builder.001", "Foo");
-		mockedConfig.getProperties().put("caelum.extension.enabled.001", "true");
-		mockedConfig.getProperties().put("caelum.extension.builder.002", "Bar");
-		mockedConfig.getProperties().put("caelum.extension.enabled.002", "false");
-		mockedConfig.getProperties().put("caelum.extension.builder.003", "Gap");
-		mockedConfig.getProperties().put("caelum.extension.enabled.003", "true");
+		expect(contextMock1.getConfigFileName()).andStubReturn("bar.props");
+		Properties props = mockedConfig.getProperties();
+		props.remove("caelum.extension.builder.Itesym"); // remove builtin extensions
+		props.remove("caelum.extension.builder.REST");
+		props.remove("caelum.extension.builder.HTTP");
+		props.put("caelum.extension.builder.BobExt", "on:1:Bob");
+		props.put("caelum.extension.builder.BarExt", "off:2:Bar");
+		props.put("caelum.extension.builder.GapExt", "on:3:Gap");
 		expect(mockedService.createConfig()).andReturn(mockedConfig);
-		mockedConfig.load("foo.props", "bar.props");
+		mockedConfig.load("bar.props");
+		expect(contextMock1.withConfig(mockedConfig)).andReturn(contextMock2);
 		expect(mockedService.createAggregatorServiceBuilder()).andReturn(aggrSvcBuilderMock);
-		expect(aggrSvcBuilderMock.build(contextMock)).andReturn(aggrSvcMock);
+		expect(aggrSvcBuilderMock.build(contextMock2)).andReturn(aggrSvcMock);
 		expect(mockedService.createItemDatabaseServiceBuilder()).andReturn(itemDbSvcBuilderMock);
-		expect(itemDbSvcBuilderMock.build(contextMock)).andReturn(itemDbSvcMock);
+		expect(itemDbSvcBuilderMock.build(contextMock2)).andReturn(itemDbSvcMock);
 		expect(mockedService.createSymbolServiceBuilder()).andReturn(symbolSvcBuilderMock);
-		expect(symbolSvcBuilderMock.build(contextMock)).andReturn(symbolSvcMock);
+		expect(symbolSvcBuilderMock.build(contextMock2)).andReturn(symbolSvcMock);
 		Capture<ICaelum> cap1 = newCapture();
-		expect(contextMock.withCaelum(capture(cap1))).andReturn(contextMock);
-		expect(mockedService.createExtensionBuilder("Foo")).andReturn(extBldrMock1);
-		expect(extBldrMock1.build(contextMock)).andReturn(extMock1);
+		expect(contextMock2.withCaelum(capture(cap1))).andReturn(contextMock3);
+		expect(mockedService.createExtensionBuilder("Bob")).andReturn(extBldrMock1);
+		expect(extBldrMock1.build(contextMock3)).andReturn(extMock1);
+		// extension BarExt should be skipped because disabled
 		expect(mockedService.createExtensionBuilder("Gap")).andReturn(extBldrMock3);
-		expect(extBldrMock3.build(contextMock)).andReturn(extMock3);
+		expect(extBldrMock3.build(contextMock3)).andReturn(extMock3);
 		control.replay();
 		replay(mockedService);
 		replay(mockedConfig);
 		
-		ICaelum actual = mockedService.build(contextMock);
+		ICaelum actual = mockedService.build(contextMock1);
 		
 		verify(mockedConfig);
 		verify(mockedService);

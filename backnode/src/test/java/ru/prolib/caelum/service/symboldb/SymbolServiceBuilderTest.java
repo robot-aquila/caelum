@@ -16,6 +16,7 @@ import org.junit.Test;
 import ru.prolib.caelum.lib.Events;
 import ru.prolib.caelum.lib.ICloseableIterator;
 import ru.prolib.caelum.service.EventListRequest;
+import ru.prolib.caelum.service.GeneralConfig;
 import ru.prolib.caelum.service.IBuildingContext;
 import ru.prolib.caelum.service.SymbolListRequest;
 
@@ -89,26 +90,16 @@ public class SymbolServiceBuilderTest {
 	}
 	
 	IMocksControl control;
-	SymbolServiceConfig configMock;
+	GeneralConfig configMock;
 	IBuildingContext contextMock;
-	SymbolServiceBuilder service, mockedService;
+	SymbolServiceBuilder service;
 
 	@Before
 	public void setUp() throws Exception {
 		control = createStrictControl();
-		configMock = control.createMock(SymbolServiceConfig.class);
+		configMock = control.createMock(GeneralConfig.class);
 		contextMock = control.createMock(IBuildingContext.class);
 		service = new SymbolServiceBuilder();
-		mockedService = partialMockBuilder(SymbolServiceBuilder.class)
-				.addMockedMethod("createConfig")
-				.createMock();
-	}
-	
-	@Test
-	public void testCreateConfig() {
-		SymbolServiceConfig actual = service.createConfig();
-		
-		assertNotNull(actual);
 	}
 	
 	@Test
@@ -121,17 +112,12 @@ public class SymbolServiceBuilderTest {
 
 	@Test
 	public void testBuild() throws Exception {
-		expect(contextMock.getDefaultConfigFileName()).andStubReturn("/bar/bums.defaults");
-		expect(contextMock.getConfigFileName()).andStubReturn("/bar/bums.props");
-		configMock.load("/bar/bums.defaults", "/bar/bums.props");
-		expect(configMock.getString("caelum.symboldb.builder")).andReturn(TestBuilder.class.getName());
-		expect(mockedService.createConfig()).andReturn(configMock);
+		expect(configMock.getSymbolServiceBuilder()).andStubReturn(TestBuilder.class.getName());
+		expect(contextMock.getConfig()).andReturn(configMock);
 		control.replay();
-		replay(mockedService);
 		
-		ISymbolService actual = mockedService.build(contextMock);
+		ISymbolService actual = service.build(contextMock);
 		
-		verify(mockedService);
 		control.verify();
 		assertNotNull(actual);
 		assertThat(actual, is(instanceOf(TestService.class)));

@@ -10,11 +10,13 @@ import static org.easymock.EasyMock.*;
 import static org.hamcrest.Matchers.*;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 
 import ru.prolib.caelum.lib.kafka.KafkaItem;
+import ru.prolib.caelum.service.GeneralConfig;
 import ru.prolib.caelum.service.IBuildingContext;
 import ru.prolib.caelum.service.itemdb.IItemDatabaseService;
 import ru.prolib.caelum.service.itemdb.kafka.utils.KafkaProducerService;
@@ -23,7 +25,7 @@ import ru.prolib.caelum.service.itemdb.kafka.utils.KafkaUtils;
 @SuppressWarnings("unchecked")
 public class KafkaItemDatabaseServiceBuilderTest {
 	IMocksControl control;
-	KafkaItemDatabaseConfig configMock;
+	GeneralConfig configMock;
 	KafkaItemDatabaseService serviceMock;
 	KafkaUtils utilsMock;
 	KafkaProducer<String, KafkaItem> producerMock;
@@ -34,7 +36,7 @@ public class KafkaItemDatabaseServiceBuilderTest {
 	@Before
 	public void setUp() throws Exception {
 		control = createStrictControl();
-		configMock = control.createMock(KafkaItemDatabaseConfig.class);
+		configMock = control.createMock(GeneralConfig.class);
 		serviceMock = control.createMock(KafkaItemDatabaseService.class);
 		utilsMock = control.createMock(KafkaUtils.class);
 		producerMock = control.createMock(KafkaProducer.class);
@@ -43,9 +45,9 @@ public class KafkaItemDatabaseServiceBuilderTest {
 		mockedService = partialMockBuilder(KafkaItemDatabaseServiceBuilder.class)
 				.withConstructor(KafkaUtils.class, Clock.class)
 				.withArgs(utilsMock, clockMock)
-				.addMockedMethod("createConfig")
-				.addMockedMethod("createService")
-				.createMock();
+				.addMockedMethod("createProducer", GeneralConfig.class)
+				.addMockedMethod("createService", GeneralConfig.class, KafkaProducer.class)
+				.createMock(control);
 		service = new KafkaItemDatabaseServiceBuilder(utilsMock, clockMock);
 	}
 	
@@ -64,9 +66,18 @@ public class KafkaItemDatabaseServiceBuilderTest {
 	}
 	
 	@Test
-	public void testCreateConfig() {
-		KafkaItemDatabaseConfig actual = service.createConfig();
+	public void testCreateProducer() {
+		expect(configMock.getKafkaBootstrapServers()).andStubReturn("kukumbara:9051");
+		expect(configMock.getItemServiceKafkaTransactionalId()).andStubReturn("xxx-yyy");
+		Properties props = new Properties();
+		props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kukumbara:9051");
+		props.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, "xxx-yyy");
+		expect(utilsMock.createProducer(props)).andReturn(producerMock);
+		control.replay();
+
+		KafkaProducer<String, KafkaItem> actual = service.createProducer(configMock);
 		
+		control.verify();
 		assertNotNull(actual);
 	}
 	
@@ -86,22 +97,15 @@ public class KafkaItemDatabaseServiceBuilderTest {
 	
 	@Test
 	public void testBuild() throws Exception {
-		Properties propsMock = control.createMock(Properties.class);
-		expect(mockedService.createConfig()).andReturn(configMock);
-		expect(contextMock.getDefaultConfigFileName()).andStubReturn("bururum.props");
-		expect(contextMock.getConfigFileName()).andStubReturn("tutumbr.props");
-		configMock.load("bururum.props", "tutumbr.props");
-		expect(configMock.getProducerKafkaProperties()).andReturn(propsMock);
-		expect(utilsMock.createProducer(propsMock)).andReturn(producerMock);
+		expect(contextMock.getConfig()).andStubReturn(configMock);
+		expect(mockedService.createProducer(configMock)).andReturn(producerMock);
 		expect(contextMock.registerService(new KafkaProducerService(producerMock))).andReturn(contextMock);
 		expect(mockedService.createService(configMock, producerMock)).andReturn(serviceMock);
-		replay(mockedService);
 		control.replay();
 		
 		IItemDatabaseService actual = mockedService.build(contextMock);
 		
 		control.verify();
-		verify(mockedService);
 		assertNotNull(actual);
 		assertThat(actual, is(instanceOf(KafkaItemDatabaseService.class)));
 	}

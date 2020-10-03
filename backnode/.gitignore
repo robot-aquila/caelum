@@ -5,5 +5,6 @@
 /logs/
 /contrib/
 /*.properties
+*.bak
 version.built
 fdb.cluster
