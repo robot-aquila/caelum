@@ -32,6 +32,8 @@ public class GeneralConfigImplTest {
 		assertEquals("prod",				props.get("caelum.backnode.mode"));
 		assertEquals("localhost",			props.get("caelum.backnode.http.host"));
 		assertEquals("9698",				props.get("caelum.backnode.http.port"));
+		assertEquals("localhost",			props.get("caelum.backnode.adv.http.host"));
+		assertEquals("9698",				props.get("caelum.backnode.adv.http.port"));
 		assertEquals("99",					props.get("caelum.max.errors"));
 		assertEquals("60000",				props.get("caelum.default.timeout"));
 		assertEquals("15000",				props.get("caelum.shutdown.timeout"));
@@ -153,6 +155,14 @@ public class GeneralConfigImplTest {
 		assertEquals("test", service.getHttpHost());
 		assertEquals(9998, service.getHttpPort());
 		assertEquals(new HostInfo("test", 9998), service.getHttpInfo());
+	}
+	
+	@Test
+	public void testGetAdvertisedHostParameters() {
+		service.getProperties().put("caelum.backnode.adv.http.host", "zulu24");
+		service.getProperties().put("caelum.backnode.adv.http.port", "9698");
+		
+		assertEquals(new HostInfo("zulu24", 9698), service.getAdvertisedHttpInfo());
 	}
 	
 	@Test
@@ -337,6 +347,12 @@ public class GeneralConfigImplTest {
 		assertEquals("babbata", service.getHttpHost());
 		assertEquals(22719, service.getHttpPort());
 		assertEquals("babbata:22719", service.getAggregatorKafkaApplicationServer());
+	}
+	
+	@Test
+	public void testSetAdvertisedHttpInfo() {
+		assertSame(service, service.setAdvertisedHttpInfo("gabbana", 5629));
+		assertEquals(new HostInfo("gabbana", 5629), service.getAdvertisedHttpInfo());
 	}
 	
 	@Test

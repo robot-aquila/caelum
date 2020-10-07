@@ -29,6 +29,8 @@ public class GeneralConfigImpl extends GeneralConfig {
 		MODE									= "caelum.backnode.mode",
 		HTTP_HOST								= "caelum.backnode.http.host",
 		HTTP_PORT								= "caelum.backnode.http.port",
+		ADVERTISED_HTTP_HOST					= "caelum.backnode.adv.http.host",
+		ADVERTISED_HTTP_PORT					= "caelum.backnode.adv.http.port",
 		MAX_ERRORS								= "caelum.max.errors",
 		DEFAULT_TIMEOUT							= "caelum.default.timeout",
 		SHUTDOWN_TIMEOUT						= "caelum.shutdown.timeout",
@@ -93,6 +95,8 @@ public class GeneralConfigImpl extends GeneralConfig {
 		props.put(MODE, "prod");
 		props.put(HTTP_HOST, "localhost");
 		props.put(HTTP_PORT, "9698");
+		props.put(ADVERTISED_HTTP_HOST, "localhost");
+		props.put(ADVERTISED_HTTP_PORT, "9698");
 		props.put(MAX_ERRORS, "99");
 		props.put(DEFAULT_TIMEOUT, "60000");
 		props.put(SHUTDOWN_TIMEOUT, "15000");
@@ -156,9 +160,20 @@ public class GeneralConfigImpl extends GeneralConfig {
 		return new HostInfo(getHttpHost(), getHttpPort());
 	}
 	
+	@Override
+	public HostInfo getAdvertisedHttpInfo() {
+		return new HostInfo(getString(ADVERTISED_HTTP_HOST), getInt(ADVERTISED_HTTP_PORT));
+	}
+	
 	public GeneralConfigImpl setHttpInfo(String host, int port) {
 		props.put(HTTP_HOST, host);
 		props.put(HTTP_PORT, Integer.toString(port));
+		return this;
+	}
+	
+	public GeneralConfigImpl setAdvertisedHttpInfo(String host, int port) {
+		props.put(ADVERTISED_HTTP_HOST, host);
+		props.put(ADVERTISED_HTTP_PORT, Integer.toString(port));
 		return this;
 	}
 	

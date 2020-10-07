@@ -10,6 +10,7 @@ public abstract class GeneralConfig extends AbstractConfig {
 	public abstract String getHttpHost();
 	public abstract int getHttpPort();
 	public abstract HostInfo getHttpInfo();
+	public abstract HostInfo getAdvertisedHttpInfo();
 	public abstract short getItemsTopicReplicationFactor();
 	public abstract int getItemsTopicNumPartitions();
 	public abstract long getItemsTopicRetentionTime();

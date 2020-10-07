@@ -11,5 +11,5 @@ for /f "tokens=1,2 delims==" %%a in (%ENV_FILE%) do (
 	set "%%a=%%b"
 )
 
-docker-compose -f docker-compose-twins.yml -p caelum up --scale kafka=2 --scale backnode=1 -d
+docker-compose -f docker-compose-twins.yml -p caelum up --scale kafka=2 --scale backnode=2 -d
 docker exec -t caelum_fdb_1 /usr/bin/fdbcli --exec "configure new single memory"

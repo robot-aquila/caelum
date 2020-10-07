@@ -102,7 +102,7 @@ public class KafkaAggregatorTopologyBuilderTest {
 		expect(gconfMock.getItemsTopicName()).andStubReturn("test-items");
 		expect(gconfMock.getAggregatorKafkaTargetTopicPrefix()).andStubReturn("test-tuples-");
 		expect(gconfMock.getAggregatorKafkaStoreRetentionTime()).andStubReturn(561826883L);
-		expect(gconfMock.getKafkaStateDir()).andStubReturn("/any/dir");
+		expect(gconfMock.getKafkaStateDir()).andStubReturn("/tmp/kafka-streams");
 		expect(gconfMock.getAggregatorKafkaNumStreamThreads()).andStubReturn(2);
 		expect(gconfMock.getHttpInfo()).andStubReturn(new HostInfo("bambr", 1256));
 		expect(gconfMock.getAggregatorKafkaLingerMs()).andStubReturn(5L);
