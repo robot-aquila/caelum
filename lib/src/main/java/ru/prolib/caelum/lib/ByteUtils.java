@@ -2,6 +2,8 @@ package ru.prolib.caelum.lib;
 
 import java.math.BigDecimal;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class ByteUtils {
 	private static final ByteUtils instance = new ByteUtils();
 	
@@ -60,7 +62,7 @@ public class ByteUtils {
 	}
 
 	/**
-	 * Extract long from big endian byte array.
+	 * Extract long from big-endian byte array.
 	 * <p>
 	 * @param bytes - source byte array
 	 * @param offset - first byte starting offset inside the source
@@ -82,4 +84,55 @@ public class ByteUtils {
 		return value.multiply(BigDecimal.TEN.pow(value.scale())).longValueExact();
 	}
 	
+	public static String byteArrToHexString(byte[] source, int offset, int length) {
+		String[] strings = new String[length];
+		for ( int i = 0; i < length; i ++ ) {
+			strings[i] = String.format("%02X", source[offset + i]);
+		}
+		return '{' + StringUtils.join(strings, ' ') + '}';
+	}
+	
+	public static String byteArrToHexString(byte[] source) {
+		return byteArrToHexString(source, 0, source.length);
+	}
+	
+	public static String bytesToHexString(Bytes source) {
+		return byteArrToHexString(source.getSource(), source.getOffset(), source.getLength());
+	}
+	
+	/**
+	 * Convert hexadecimal string to byte array.
+	 * <p>
+	 * @param hex - string of bytes in hex format. Allowed format examples:
+	 * <ul>
+	 * <li>{ FE AB 12 00 }</li>
+	 * <li>FE AB 12 00</li>
+	 * <li>FEAB1200</li>
+	 * <li>  F  E AB  1 20 0 - actually is wrong format but will be eaten and converted to FEAB1200</li>
+	 * </ul> 
+	 * @return array of bytes
+	 */
+	public static byte[] hexStringToByteArr(String hex) {
+		hex = StringUtils.remove(hex, ' ');
+		hex = StringUtils.removeStart(hex, "{");
+		hex = StringUtils.removeEnd(hex, "}");
+		int count = hex.length() / 2, corrector = 0;
+		if ( hex.length() % 2 > 0 ) {
+			count ++;
+			corrector = -1;
+		}
+		byte[] bytes = new byte[count];
+		for ( int i = 0; i < count; i ++ ) {
+			int offset = i * 2 + corrector;
+			char first = offset < 0 ? '0' : hex.charAt(offset), second = hex.charAt(offset + 1);
+			String x = String.valueOf(first) + second;
+			bytes[i] = (byte) Integer.parseInt(x, 16);
+		}
+		return bytes;
+	}
+	
+	public static Bytes hexStringToBytes(String hex) {
+		byte[] bytes = hexStringToByteArr(hex);
+		return new Bytes(bytes, 0, bytes.length);
+	}
 }

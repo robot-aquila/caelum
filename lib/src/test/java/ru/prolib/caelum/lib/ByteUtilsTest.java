@@ -177,5 +177,50 @@ public class ByteUtilsTest {
 		assertEquals( 200000L, service.centsToLong(new BigDecimal("20.0000")));
 		assertEquals(   4000L, service.centsToLong(new BigDecimal("4000")));
 	}
+	
+	@Test
+	public void testByteArrToHexString3() {
+		byte[] source = { (byte)0x05, (byte)0xFF, (byte)0xF0, (byte)0x98, (byte)0xDE };
+		
+		assertEquals("{FF F0 98}", ByteUtils.byteArrToHexString(source, 1, 3));
+	}
+	
+	@Test
+	public void testByteArrToHexString1_ByteArray() {
+		byte[] source = { (byte)0x05, (byte)0xFF, (byte)0xF0, (byte)0x98, (byte)0xDE };
+		
+		assertEquals("{05 FF F0 98 DE}", ByteUtils.byteArrToHexString(source));
+	}
+	
+	@Test
+	public void testBytesToHexString_Bytes() {
+		byte[] source = { (byte)0x05, (byte)0xFF, (byte)0xF0, (byte)0x98, (byte)0xDE };
+		
+		assertEquals("{FF F0 98}", ByteUtils.bytesToHexString(new Bytes(source, 1, 3)));
+	}
+	
+	@Test
+	public void testHexStringToByteArr() {
+		byte[] expected = { (byte)0x05, (byte)0xFF, (byte)0xF0, (byte)0x98, (byte)0xDE };
+		
+		assertArrayEquals(expected, ByteUtils.hexStringToByteArr("{05 FF F0 98 DE}"));
+		assertArrayEquals(expected, ByteUtils.hexStringToByteArr("5 FF F0 98 DE"));
+		assertArrayEquals(expected, ByteUtils.hexStringToByteArr("  5  FF  F0  98  DE"));
+		assertArrayEquals(expected, ByteUtils.hexStringToByteArr("{05FFF098DE}"));
+		assertArrayEquals(expected, ByteUtils.hexStringToByteArr("5FFF098DE"));
+		assertArrayEquals(expected, ByteUtils.hexStringToByteArr(" {   5   F F  F  0 9 8  D E} "));
+	}
+	
+	@Test
+	public void testHexStringToBytes() {
+		Bytes expected = new Bytes(new byte[]{ (byte)0x05, (byte)0xFF, (byte)0xF0, (byte)0x98, (byte)0xDE }, 0, 5);
+		
+		assertEquals(expected, ByteUtils.hexStringToBytes("{05 FF F0 98 DE}"));
+		assertEquals(expected, ByteUtils.hexStringToBytes("5 FF F0 98 DE"));
+		assertEquals(expected, ByteUtils.hexStringToBytes("  5  FF  F0  98  DE"));
+		assertEquals(expected, ByteUtils.hexStringToBytes("{05FFF098DE}"));
+		assertEquals(expected, ByteUtils.hexStringToBytes("5FFF098DE"));
+		assertEquals(expected, ByteUtils.hexStringToBytes(" {   5   F F  F  0 9 8  D E} "));
+	}
 
 }

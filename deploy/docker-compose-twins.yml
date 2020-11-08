@@ -28,6 +28,6 @@ services:
       APP_KAFKA_SERVERS: caelum_kafka_1:9092
       APP_FDB_SERVERS: ${CAELUM_DOCKER_HOST}:4500
       APP_MODE: "test"
-      APP_ADVERTISED_HTTP_HOST: ${CAELUM_DOCKER_HOST}
+      APP_ADV_HTTP_HOST: ${CAELUM_DOCKER_HOST}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock

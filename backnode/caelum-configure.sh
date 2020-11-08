@@ -29,24 +29,23 @@ fi
 if [ -n "${APP_AGGR_INTERVAL}" ]; then
 	echo "caelum.aggregator.interval=${APP_AGGR_INTERVAL}" >> "${APP_CONF}"
 fi
-if [ -z "${APP_ADVERTISED_HTTP_HOST}" ]; then
-	APP_ADVERTISED_HTTP_HOST="$(hostname -i)"
+if [ -z "${APP_ADV_HTTP_HOST}" ]; then
+	APP_ADV_HTTP_HOST="$(hostname -i)"
 fi
-if [ -z "${APP_ADVERTISED_HTTP_PORT}" ]; then
+if [ -z "${APP_ADV_HTTP_PORT}" ]; then
 	if [ -n "${APP_HTTP_PORT}" ]; then
 		if [ -S /var/run/docker.sock ]; then
-			APP_ADVERTISED_HTTP_PORT=$(docker port "$(hostname)" ${APP_HTTP_PORT} | sed -r 's/.*:(.*)/\1/g')
+			APP_ADV_HTTP_PORT=$(docker port "$(hostname)" ${APP_HTTP_PORT} | sed -r 's/.*:(.*)/\1/g')
 		else
-			APP_ADVERTISED_HTTP_PORT="${APP_HTTP_PORT}"
+			APP_ADV_HTTP_PORT="${APP_HTTP_PORT}"
 		fi
 	else
-		APP_ADVERTISED_HTTP_PORT="9698"
+		APP_ADV_HTTP_PORT="9698"
 	fi
 fi
-#TODO: Store advertised HTTP info
+echo "caelum.backnode.adv.http.host=${APP_ADV_HTTP_HOST}" >> "${APP_CONF}"
+echo "caelum.backnode.adv.http.port=${APP_ADV_HTTP_PORT}" >> "${APP_CONF}"
 echo "Generated configuration properties:"
 echo "-----------------------------------"
 cat "${APP_CONF}"
 echo "-----------------------------------"
-
-#exit 5

@@ -135,7 +135,7 @@ public class KafkaAggregatorServiceBuilderTest {
 		gconf.setAggregatorInterval(" M1, M5, H1, M1, H1, M5, M5")
 			.setMaxTuplesLimit(400)
 			.setAggregatorKafkaForceParallelClear(null)
-			.setHttpInfo("gap", 1345)
+			.setAdvertisedHttpInfo("gap", 1345)
 			.setDefaultTimeout(2345L);
 		expect(utilsMock.isOsUnix()).andStubReturn(true);
 		expect(contextMock.getConfig()).andStubReturn(gconf);
@@ -171,7 +171,7 @@ public class KafkaAggregatorServiceBuilderTest {
 	public void testBuild_ShouldUseForceParallelClearFromConfig() throws Exception {
 		gconf.setAggregatorInterval("M1")
 			.setAggregatorKafkaForceParallelClear(false)
-			.setHttpInfo("bak", 1345);
+			.setAdvertisedHttpInfo("bak", 1345);
 		expect(contextMock.getConfig()).andStubReturn(gconf);
 		expect(mockedService.createInitService(gconf)).andStubReturn(iserviceMock);
 		expect(mockedService.createStreamsRegistry(new HostInfo("bak", 1345), intervals)).andStubReturn(sregistryMock);

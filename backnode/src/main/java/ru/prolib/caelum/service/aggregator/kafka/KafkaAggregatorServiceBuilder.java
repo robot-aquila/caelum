@@ -98,7 +98,7 @@ public class KafkaAggregatorServiceBuilder implements IAggregatorServiceBuilder 
 		logger.debug("isParallelClear: {}", isParallelClear);
 		Intervals intervals = config.getIntervals();
 		
-		KafkaStreamsRegistry streamsRegistry = createStreamsRegistry(config.getHttpInfo(), intervals);
+		KafkaStreamsRegistry streamsRegistry = createStreamsRegistry(config.getAdvertisedHttpInfo(), intervals);
 		builder.withBuildingContext(context)
 			.withStreamsRegistry(streamsRegistry)
 			.withTopologyBuilder(new KafkaAggregatorTopologyBuilder())
