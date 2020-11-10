@@ -23,11 +23,14 @@ public class ByteUtils {
 	}
 
 	/**
-	 * Convert long value to big endian byte array.
+	 * Convert long value to big-endian byte array.
 	 * <p>
 	 * @param value - long value to convert
-	 * @param result - byte array of 8 bytes to store the result
-	 * @return number of significant bytes (at least 1)
+	 * @param result - byte array of 8 bytes to store the result. Keep in mind that significant
+	 * data will be written to the end of array. So if there is N significant bytes where N is
+	 * less than than 8 then N last bytes of the array will store that data and the last byte
+	 * is less significant byte.
+	 * @return number of significant bytes (at least 1, at most 8)
 	 */
 	public int longToBytes(long value, byte result[]) {
 		int num = 0, empty = (0x8000000000000000L & value) == 0 ? 0 : 0xFF;
@@ -54,6 +57,46 @@ public class ByteUtils {
 			}
 		} else {
 			// compact negative value shouldn't contain higher bit off
+			if ( (result[high_byte_index] & 0x80) == 0 ) {
+				num ++;
+			}
+		}
+		return num;
+	}
+	
+	/**
+	 * Convert integer value to big-endian byte array.
+	 * <p>
+	 * @param value - integer value to convert
+	 * @param result - byte array of 4 bytes to store the result. Keep in mind that significant
+	 * data will be written to the end of array. So if there is N significant bytes where N is
+	 * less than than 4 then N last bytes of the array will store that data and the last byte
+	 * is less significant byte.
+	 * @return number of significant bytes (at least 1, at most 4)
+	 */
+	public int intToBytes(int value, byte result[]) {
+		int num = 0, empty = (0x80000000 & value) == 0 ? 0 : 0xFF;
+		byte next_byte;
+		for ( int i = 3; i >= 0; i -- ) {
+			next_byte = (byte) (0xFF & value);
+			result[i] = next_byte;
+			if ( (0xFF & next_byte) != empty ) {
+				num = 4 - i;
+			}
+			value >>= 8;
+		}
+		if ( num == 0 ) {
+			return 1;
+		}
+		if ( num == 4 ) {
+			return 4;
+		}
+		int high_byte_index = 4 - num;
+		if ( empty == 0 ) {
+			if ( (result[high_byte_index] & 0x80) != 0 ) {
+				num ++;
+			}
+		} else {
 			if ( (result[high_byte_index] & 0x80) == 0 ) {
 				num ++;
 			}

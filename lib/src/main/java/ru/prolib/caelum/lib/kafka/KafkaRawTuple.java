@@ -1,4 +1,4 @@
-package ru.prolib.caelum.service.aggregator.kafka;
+package ru.prolib.caelum.lib.kafka;
 
 import static ru.prolib.caelum.lib.ByteUtils.bytesToHexString;
 

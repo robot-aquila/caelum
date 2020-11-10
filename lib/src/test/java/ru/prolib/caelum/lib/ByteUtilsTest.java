@@ -142,6 +142,74 @@ public class ByteUtilsTest {
 	}
 	
 	@Test
+	public void testIntToBytes_PositiveValues() {
+		byte bytes[] = new byte[4];
+		
+		byte expected1[] = { (byte)0x00,(byte)0x00,(byte)0x00,(byte)0x00 };
+		assertEquals(1, service.intToBytes(0x00000000, bytes));
+		assertArrayEquals(expected1, bytes);
+		
+		byte expected2[] = { (byte)0x7F,(byte)0xFF,(byte)0xFF,(byte)0xFF };
+		assertEquals(4, service.intToBytes(0x7FFFFFFF, bytes));
+		assertArrayEquals(expected2, bytes);
+		
+		byte expected3[] = { (byte)0x00,(byte)0x00,(byte)0x7E,(byte)0x2A };
+		assertEquals(2, service.intToBytes(0x00007E2A, bytes));
+		assertArrayEquals(expected3, bytes);
+		
+		byte expected4[] = { (byte)0x00,(byte)0x00,(byte)0xF0,(byte)0x2A };
+		assertEquals(3, service.intToBytes(0x0000F02A, bytes));
+		assertArrayEquals(expected4, bytes);
+	}
+	
+	@Test
+	public void testIntToBytes_NegativeValues() {
+		byte bytes[] = new byte[4];
+		
+		byte expected1[] = { (byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0x8F };
+		assertEquals(1, service.intToBytes(0xFFFFFF8F, bytes)); // -113
+		assertArrayEquals(expected1, bytes);
+		
+		byte expected2[] = { (byte)0xFF,(byte)0xD4,(byte)0x1A,(byte)0xAC };
+		assertEquals(3, service.intToBytes(0xFFD41AAC, bytes)); // -2876756
+		assertArrayEquals(expected2, bytes);
+		
+		byte expected3[] = { (byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF };
+		assertEquals(1, service.intToBytes(0xFFFFFFFF, bytes)); // -1
+		assertArrayEquals(expected3, bytes);
+		
+		byte expected4[] = { (byte)0x80,(byte)0x00,(byte)0x00,(byte)0x00 };
+		assertEquals(4, service.intToBytes(0x80000000, bytes)); // -2147483648
+		assertArrayEquals(expected4, bytes);
+	}
+	
+	@Test
+	public void testIntToBytes_PositiveValues_WhenHighestBitIsBusy() {
+		byte bytes[] = new byte[4];
+		
+		byte expected1[] = { (byte)0x00,(byte)0x00,(byte)0xFF,(byte)0x8F };
+		assertEquals(3, service.intToBytes(0x0000FF8F, bytes));
+		assertArrayEquals(expected1, bytes);
+		
+		byte expected2[] = { (byte)0x00,(byte)0xE0,(byte)0x00,(byte)0x00 };
+		assertEquals(4, service.intToBytes(0x00E00000, bytes));
+		assertArrayEquals(expected2, bytes);
+	}
+	
+	@Test
+	public void testIntToBytes_NegativeValues_WhenHighestBitIsBusy() {
+		byte bytes[] = new byte[4];
+		
+		byte expected1[] = { (byte)0xFF,(byte)0xFF,(byte)0x00,(byte)0x70 };
+		assertEquals(3, service.intToBytes(0xFFFF0070, bytes));
+		assertArrayEquals(expected1, bytes);
+		
+		byte expected2[] = { (byte)0xFF,(byte)0x1F,(byte)0xFF,(byte)0xFF };
+		assertEquals(4, service.intToBytes(0xFF1FFFFF, bytes));
+		assertArrayEquals(expected2, bytes);
+	}
+	
+	@Test
 	public void testBytesToLong_PositiveValues() {
 		byte source1[] = { (byte)0x00,(byte)0x00,(byte)0x00,(byte)0x08,(byte)0x26,(byte)0x71,(byte)0xFB,(byte)0x8C };
 		assertEquals(0x000000082671FB8CL, service.bytesToLong(source1, 3, 5));
