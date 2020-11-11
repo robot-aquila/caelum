@@ -46,8 +46,8 @@ public class KafkaItemSerializer implements Serializer<KafkaItem> {
 		}
 		
 		byte value_bytes[] = new byte[8], volume_bytes[] = new byte[8];
-		int value_num_bytes = utils.longToBytes(value, value_bytes),
-			volume_num_bytes = utils.longToBytes(volume, volume_bytes);
+		int value_num_bytes = utils.longToByteArray(value, value_bytes),
+			volume_num_bytes = utils.longToByteArray(volume, volume_bytes);
 		byte buffer[] = new byte[value_num_bytes + volume_num_bytes + 2];
 		buffer[0] = (byte)(0x02 | (value_num_bytes - 1) << 2 | (volume_num_bytes - 1) << 5);
 		buffer[1] = (byte)(item.getDecimals() | (item.getVolumeDecimals() << 4));

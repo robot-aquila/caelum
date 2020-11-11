@@ -49,14 +49,14 @@ public class KafkaTupleSerializer implements Serializer<KafkaTuple> {
 		byte buffer[] = new byte[36 + volume_bytes.length], abs_bytes[] = new byte[8], rel_bytes[] = new byte[8];
 		buffer[1] = (byte)(tuple.getDecimals() | (tuple.getVolumeDecimals() << 4));
 		// 1) pack open "as is"
-		int abs_num_bytes = utils.longToBytes(open, abs_bytes), rel_num_bytes;
+		int abs_num_bytes = utils.longToByteArray(open, abs_bytes), rel_num_bytes;
 		byte byte2 = (byte)((abs_num_bytes - 1) << 1), byte3;
 		System.arraycopy(abs_bytes, 8 - abs_num_bytes, buffer, buffer_used_length, abs_num_bytes);
 		buffer_used_length += abs_num_bytes;
 		// 2) pack high by detecting best method
 		long relative = open - high;
-		abs_num_bytes = utils.longToBytes(high, abs_bytes);
-		rel_num_bytes = utils.longToBytes(relative, rel_bytes);
+		abs_num_bytes = utils.longToByteArray(high, abs_bytes);
+		rel_num_bytes = utils.longToByteArray(relative, rel_bytes);
 		if ( rel_num_bytes < abs_num_bytes ) {
 			System.arraycopy(rel_bytes, 8 - rel_num_bytes, buffer, buffer_used_length, rel_num_bytes);
 			buffer[2] = (byte)(byte2 | (rel_num_bytes - 1) << 5 | 0b00010000);
@@ -68,8 +68,8 @@ public class KafkaTupleSerializer implements Serializer<KafkaTuple> {
 		}
 		// 3) pack low by detecting best method
 		relative = open - low;
-		abs_num_bytes = utils.longToBytes(low, abs_bytes);
-		rel_num_bytes = utils.longToBytes(relative, rel_bytes);
+		abs_num_bytes = utils.longToByteArray(low, abs_bytes);
+		rel_num_bytes = utils.longToByteArray(relative, rel_bytes);
 		if ( rel_num_bytes < abs_num_bytes ) {
 			System.arraycopy(rel_bytes, 8 - rel_num_bytes, buffer, buffer_used_length, rel_num_bytes);
 			byte3 = (byte)(((rel_num_bytes - 1) << 1) | 0b00000001);
@@ -81,8 +81,8 @@ public class KafkaTupleSerializer implements Serializer<KafkaTuple> {
 		}
 		// 4) pack close detecting best method
 		relative = open - close;
-		abs_num_bytes = utils.longToBytes(close, abs_bytes);
-		rel_num_bytes = utils.longToBytes(relative, rel_bytes);
+		abs_num_bytes = utils.longToByteArray(close, abs_bytes);
+		rel_num_bytes = utils.longToByteArray(relative, rel_bytes);
 		if ( rel_num_bytes < abs_num_bytes ) {
 			System.arraycopy(rel_bytes, 8 - rel_num_bytes, buffer, buffer_used_length, rel_num_bytes);
 			buffer[3] = (byte)(byte3 | (rel_num_bytes - 1) << 5 | 0b00010000);
@@ -99,7 +99,7 @@ public class KafkaTupleSerializer implements Serializer<KafkaTuple> {
 			buffer[0] = (byte)(0b00011110);
 			buffer_used_length += volume_bytes.length;
 		} else {
-			abs_num_bytes = utils.longToBytes(volume, abs_bytes);
+			abs_num_bytes = utils.longToByteArray(volume, abs_bytes);
 			System.arraycopy(abs_bytes, 8 - abs_num_bytes, buffer, buffer_used_length, abs_num_bytes);
 			buffer[0] = (byte)(0x02 | (abs_num_bytes - 1) << 2);
 			buffer_used_length += abs_num_bytes;

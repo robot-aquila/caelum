@@ -32,7 +32,7 @@ public class ByteUtils {
 	 * is less significant byte.
 	 * @return number of significant bytes (at least 1, at most 8)
 	 */
-	public int longToBytes(long value, byte result[]) {
+	public int longToByteArray(long value, byte result[]) {
 		int num = 0, empty = (0x8000000000000000L & value) == 0 ? 0 : 0xFF;
 		byte next_byte;
 		for ( int i = 7; i >= 0; i -- ) {
@@ -64,6 +64,12 @@ public class ByteUtils {
 		return num;
 	}
 	
+	public Bytes longToBytes(long value) {
+		byte bytes[] = new byte[8];
+		int num = longToByteArray(value, bytes);
+		return new Bytes(bytes, 8 - num, num);
+	}
+	
 	/**
 	 * Convert integer value to big-endian byte array.
 	 * <p>
@@ -74,7 +80,7 @@ public class ByteUtils {
 	 * is less significant byte.
 	 * @return number of significant bytes (at least 1, at most 4)
 	 */
-	public int intToBytes(int value, byte result[]) {
+	public int intToByteArray(int value, byte result[]) {
 		int num = 0, empty = (0x80000000 & value) == 0 ? 0 : 0xFF;
 		byte next_byte;
 		for ( int i = 3; i >= 0; i -- ) {
@@ -102,6 +108,12 @@ public class ByteUtils {
 			}
 		}
 		return num;
+	}
+	
+	public Bytes intToBytes(int value) {
+		byte bytes[] = new byte[4];
+		int num = intToByteArray(value, bytes);
+		return new Bytes(bytes, 4 - num, num);
 	}
 
 	/**
