@@ -23,7 +23,6 @@ import ru.prolib.caelum.service.aggregator.kafka.KafkaAggregatorService;
 import ru.prolib.caelum.service.itemdb.IItemDatabaseService;
 import ru.prolib.caelum.service.symboldb.ISymbolService;
 
-@SuppressWarnings("unchecked")
 public class CaelumTest {
 	IMocksControl control;
 	KafkaAggregatorService aggrSvcMock;

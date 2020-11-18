@@ -19,7 +19,7 @@ public class FDBSymbolServiceBuilder implements ISymbolServiceBuilder {
 	
 	protected ICategoryExtractor createCategoryExtractor(String class_name) throws IOException {
 		try {
-			return (ICategoryExtractor) Class.forName(class_name).newInstance();
+			return (ICategoryExtractor) Class.forName(class_name).getDeclaredConstructor().newInstance();
 		} catch ( Exception e ) {
 			throw new IOException("Category extractor instantiation failed", e);
 		}

@@ -11,7 +11,6 @@ import org.junit.Test;
 
 import ru.prolib.caelum.lib.kafka.KafkaItem;
 
-@SuppressWarnings("unchecked")
 public class KafkaProducerServiceTest {
 	IMocksControl control;
 	KafkaProducer<String, KafkaItem> producerMock1, producerMock2;

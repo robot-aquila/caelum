@@ -8,7 +8,7 @@ public class SymbolServiceBuilder implements ISymbolServiceBuilder {
 	
 	protected ISymbolServiceBuilder createBuilder(String class_name) throws IOException {
 		try {
-			return (ISymbolServiceBuilder) Class.forName(class_name).newInstance();
+			return (ISymbolServiceBuilder) Class.forName(class_name).getDeclaredConstructor().newInstance();
 		} catch ( Exception e ) {
 			throw new IOException("Symbol service builder instantiation failed", e);
 		}

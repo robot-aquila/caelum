@@ -17,6 +17,10 @@ public class Bytes {
 		this.length = length;
 	}
 	
+	public Bytes(byte[] source) {
+	    this(source, 0, source.length);
+	}
+	
 	/**
 	 * Get bytes source.
 	 * <p>

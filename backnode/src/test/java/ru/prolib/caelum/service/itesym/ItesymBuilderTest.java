@@ -30,7 +30,6 @@ public class ItesymBuilderTest {
 	ICaelum caelumMock;
 	Thread threadMock;
 
-	@SuppressWarnings("unchecked")
 	@Before
 	public void setUp() throws Exception {
 		config = new GeneralConfigImpl();

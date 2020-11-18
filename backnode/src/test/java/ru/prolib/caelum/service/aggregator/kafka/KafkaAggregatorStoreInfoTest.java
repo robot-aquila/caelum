@@ -14,7 +14,6 @@ import org.junit.Test;
 import ru.prolib.caelum.lib.HostInfo;
 import ru.prolib.caelum.lib.kafka.KafkaTuple;
 
-@SuppressWarnings("unchecked")
 public class KafkaAggregatorStoreInfoTest {
 	IMocksControl control;
 	ReadOnlyWindowStore<String, KafkaTuple> storeMock1, storeMock2;

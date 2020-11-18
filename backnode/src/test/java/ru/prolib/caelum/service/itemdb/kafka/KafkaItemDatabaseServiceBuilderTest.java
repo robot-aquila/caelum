@@ -22,7 +22,6 @@ import ru.prolib.caelum.service.itemdb.IItemDatabaseService;
 import ru.prolib.caelum.service.itemdb.kafka.utils.KafkaProducerService;
 import ru.prolib.caelum.service.itemdb.kafka.utils.KafkaUtils;
 
-@SuppressWarnings("unchecked")
 public class KafkaItemDatabaseServiceBuilderTest {
 	IMocksControl control;
 	GeneralConfig configMock;

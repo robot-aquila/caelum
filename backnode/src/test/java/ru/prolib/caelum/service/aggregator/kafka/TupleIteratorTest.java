@@ -19,7 +19,6 @@ public class TupleIteratorTest {
 	WindowStoreIterator<KafkaTuple> itMock1, itMock2;
 	TupleIterator service;
 
-	@SuppressWarnings("unchecked")
 	@Before
 	public void setUp() throws Exception {
 		control = createStrictControl();

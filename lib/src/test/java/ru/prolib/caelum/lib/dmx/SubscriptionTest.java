@@ -11,7 +11,6 @@ import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 
-@SuppressWarnings("unchecked")
 public class SubscriptionTest {
 	IMocksControl control;
 	Message<Integer, String> lastMsg;

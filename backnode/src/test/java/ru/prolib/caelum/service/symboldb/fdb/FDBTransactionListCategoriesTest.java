@@ -20,7 +20,6 @@ import com.apple.foundationdb.tuple.Tuple;
 import ru.prolib.caelum.lib.ICloseableIterator;
 import ru.prolib.caelum.lib.IteratorStub;
 
-@SuppressWarnings("unchecked")
 public class FDBTransactionListCategoriesTest {
 	static Subspace space = new Subspace(Tuple.from("baa"));
 	

@@ -31,7 +31,6 @@ import ru.prolib.caelum.service.aggregator.IAggregator;
 import ru.prolib.caelum.service.aggregator.kafka.utils.WindowStoreIteratorLimited;
 import ru.prolib.caelum.service.aggregator.kafka.utils.WindowStoreIteratorStub;
 
-@SuppressWarnings("unchecked")
 public class KafkaAggregatorServiceTest {
 	
 	Instant T(long time) {

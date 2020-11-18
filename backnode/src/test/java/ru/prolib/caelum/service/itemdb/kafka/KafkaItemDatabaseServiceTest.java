@@ -29,7 +29,6 @@ import ru.prolib.caelum.service.ItemDataRequest;
 import ru.prolib.caelum.service.ItemDataRequestContinue;
 import ru.prolib.caelum.service.itemdb.kafka.utils.KafkaUtils;
 
-@SuppressWarnings("unchecked")
 public class KafkaItemDatabaseServiceTest {
 	IMocksControl control;
 	KafkaUtils utilsMock;

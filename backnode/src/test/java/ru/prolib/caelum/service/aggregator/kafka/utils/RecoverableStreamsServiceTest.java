@@ -1123,6 +1123,8 @@ public class RecoverableStreamsServiceTest {
 		expect(trackerMock.getMode()).andReturn(RUNNING);
 		trackerMock.changeState(AggregatorState.STARTING);
 		expect(ctrlMock.build(service)).andReturn(handlerMock1);
+		handlerMock1.start();
+		expectLastCall().andThrow(new RuntimeException("Test error"));
 		trackerMock.changeState(AggregatorState.ERROR);
 		handlerMock1.close();
 		// next pass should cause wait for changes

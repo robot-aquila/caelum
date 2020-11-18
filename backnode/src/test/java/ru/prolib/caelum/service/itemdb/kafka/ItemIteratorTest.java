@@ -26,7 +26,6 @@ import ru.prolib.caelum.lib.IteratorStub;
 import ru.prolib.caelum.lib.kafka.KafkaItem;
 import ru.prolib.caelum.service.ItemDataResponse;
 
-@SuppressWarnings("unchecked")
 public class ItemIteratorTest {
 	
 	static ConsumerRecord<String, KafkaItem> CR(String t, String s, int p, long off, long time, long value, long volume) {

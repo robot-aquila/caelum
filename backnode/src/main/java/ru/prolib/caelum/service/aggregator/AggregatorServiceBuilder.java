@@ -8,7 +8,7 @@ public class AggregatorServiceBuilder implements IAggregatorServiceBuilder {
 	
 	protected IAggregatorServiceBuilder createBuilder(String class_name) throws IOException {
 		try {
-			return (IAggregatorServiceBuilder) Class.forName(class_name).newInstance();
+			return (IAggregatorServiceBuilder) Class.forName(class_name).getDeclaredConstructor().newInstance();
 		} catch ( Exception e ) {
 			throw new IOException("Aggregator service builder instantiation failed", e);
 		}

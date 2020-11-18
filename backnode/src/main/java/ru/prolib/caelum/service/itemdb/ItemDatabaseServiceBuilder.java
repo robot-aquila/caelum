@@ -8,7 +8,7 @@ public class ItemDatabaseServiceBuilder implements IItemDatabaseServiceBuilder {
 	
 	protected IItemDatabaseServiceBuilder createBuilder(String class_name) throws IOException {
 		try {
-			return (IItemDatabaseServiceBuilder) Class.forName(class_name).newInstance();
+			return (IItemDatabaseServiceBuilder) Class.forName(class_name).getDeclaredConstructor().newInstance();
 		} catch ( Exception e ) {
 			throw new IOException("ItemDB service builder instantiation failed", e);
 		}

@@ -25,7 +25,6 @@ import ru.prolib.caelum.service.IItemDataRequest;
 import ru.prolib.caelum.service.IItemIterator;
 import ru.prolib.caelum.service.SymbolListRequest;
 
-@SuppressWarnings("unchecked")
 public class StreamFactoryTest {
 	IMocksControl control;
 	JsonFactory jsonFactoryMock;

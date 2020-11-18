@@ -24,7 +24,6 @@ import ru.prolib.caelum.lib.ICloseableIterator;
 import ru.prolib.caelum.lib.IteratorStub;
 import ru.prolib.caelum.service.EventListRequest;
 
-@SuppressWarnings("unchecked")
 public class FDBTransactionListEventsTest {
 	static Subspace space = new Subspace(Tuple.from("zoo"));
 	

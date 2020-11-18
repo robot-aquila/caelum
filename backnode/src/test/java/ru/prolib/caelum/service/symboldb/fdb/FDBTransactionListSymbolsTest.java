@@ -23,7 +23,6 @@ import ru.prolib.caelum.lib.ICloseableIterator;
 import ru.prolib.caelum.lib.IteratorStub;
 import ru.prolib.caelum.service.SymbolListRequest;
 
-@SuppressWarnings("unchecked")
 public class FDBTransactionListSymbolsTest {
 	static Subspace space = new Subspace(Tuple.from("glx"));
 	

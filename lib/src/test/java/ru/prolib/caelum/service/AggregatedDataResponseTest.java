@@ -14,7 +14,6 @@ import ru.prolib.caelum.lib.HostInfo;
 import ru.prolib.caelum.lib.ICloseableIterator;
 import ru.prolib.caelum.lib.ITuple;
 
-@SuppressWarnings("unchecked")
 public class AggregatedDataResponseTest {
 	IMocksControl control;
 	ICloseableIterator<ITuple> itMock1, itMock2;

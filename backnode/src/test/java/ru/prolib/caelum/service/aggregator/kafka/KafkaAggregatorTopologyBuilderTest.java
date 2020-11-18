@@ -157,6 +157,7 @@ public class KafkaAggregatorTopologyBuilderTest {
 		assertEquals(668915632, service.hashCode());
 	}
 	
+	@SuppressWarnings("unlikely-arg-type")
 	@Test
 	public void testEquals() {
 		assertTrue(service.equals(service));

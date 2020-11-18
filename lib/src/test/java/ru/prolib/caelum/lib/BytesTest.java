@@ -25,6 +25,15 @@ public class BytesTest {
 	}
 	
 	@Test
+	public void testCtor1() {
+	    service = new Bytes(template);
+	    
+	    assertSame(template, service.getSource());
+	    assertEquals(0, service.getOffset());
+	    assertEquals(6, service.getLength());
+	}
+	
+	@Test
 	public void testGetters() {
 		assertSame(source1, service.getSource());
 		assertEquals(4, service.getOffset());

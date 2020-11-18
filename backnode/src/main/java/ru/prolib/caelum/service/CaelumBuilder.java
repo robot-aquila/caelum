@@ -36,7 +36,7 @@ public class CaelumBuilder {
 	
 	protected IExtensionBuilder createExtensionBuilder(String class_name) throws IOException {
 		try {
-			return (IExtensionBuilder) Class.forName(class_name).newInstance();
+			return (IExtensionBuilder) Class.forName(class_name).getDeclaredConstructor().newInstance();
 		} catch ( Exception e ) {
 			throw new IOException("Exteension builder instantiation failed", e);
 		}
