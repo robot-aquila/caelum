@@ -17,9 +17,18 @@ public class Bytes {
 		this.length = length;
 	}
 	
-	public Bytes(byte[] source) {
-	    this(source, 0, source.length);
-	}
+    public Bytes(byte[] source) {
+        this(source, 0, source.length);
+    }
+    
+    /**
+     * Create new byte segment with specified size.
+     * <p>
+     * @param size - segment size in bytes
+     */
+    public Bytes(int size) {
+        this(new byte[size]);
+    }
 	
 	/**
 	 * Get bytes source.

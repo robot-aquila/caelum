@@ -110,6 +110,28 @@ public class ByteUtils {
 		return num;
 	}
 	
+	/**
+	 * Get number of significant bytes of an integer value.
+	 * <p>
+	 * Actually this is a fast size calculation to store integers like methods
+	 * {@link #intToByteArray(int, byte[])} and {@link #intToBytes(int)} do.
+	 * <p>
+	 * @param value - value to test
+	 * @return number of bytes needed to store significant data
+	 */
+	public int intSize(int value) {
+	    if ( (0x80000000 & value) == 0 ) {
+	        if ( (0xFFFFFF80 & value) == 0 ) return 1;
+	        if ( (0xFFFF8000 & value) == 0 ) return 2;
+	        if ( (0xFF800000 & value) == 0 ) return 3;
+	    } else {
+	        if ( (0xFFFFFF80 & value) == 0xFFFFFF80) return 1;
+	        if ( (0xFFFF8000 & value) == 0xFFFF8000) return 2;
+	        if ( (0xFF800000 & value) == 0xFF800000) return 3;
+	    }
+        return 4;
+	}
+	
 	public Bytes intToBytes(int value) {
 		byte bytes[] = new byte[4];
 		int num = intToByteArray(value, bytes);
@@ -190,4 +212,109 @@ public class ByteUtils {
 		byte[] bytes = hexStringToByteArr(hex);
 		return new Bytes(bytes, 0, bytes.length);
 	}
+    
+	/**
+	 * Pack integer into 3 bit field.
+	 * <p>
+	 * @param value - value to pack
+	 * @param position - position of the field inside the result byte. Allowed range
+	 * is between 0 (rightmost position without an offset) and 5 (most possible offset for 3 bit field).
+	 * @return packed value
+	 * @throws IllegalArgumentException - value is out of range 0-7 or position out of range 0-5
+	 */
+    public byte intToF3b(int value, int position) {
+        if ( (value & 0xFFFFFFF8) != 0 ) {
+            throw new IllegalArgumentException("Value out of range 0-7: " + value);
+        }
+        if ( position < 0 || position > 5 ) {
+            throw new IllegalArgumentException("Position out of range 0-5: " + position);
+        }
+        return value == 0 ? 0 : (byte)(value << position);
+    }
+    
+    /**
+     * Unpack integer from 3 bit field.
+     * <p>
+     * @param source - packed value source
+     * @param position - position of the field inside the result byte. Allowed range
+     * is between 0 (rightmost position without an offset) and 5 (most possible offset for 3 bit field).
+     * @return unpacked value
+     * @throws IllegalArgumentException - position out of range 0-5
+     */
+    public int f3bToInt(byte source, int position) {
+        switch ( position ) {
+        case 0: return (source & 0b00000111);
+        case 1: return (source & 0b00001110) >> 1;
+        case 2: return (source & 0b00011100) >> 2;
+        case 3: return (source & 0b00111000) >> 3;
+        case 4: return (source & 0b01110000) >> 4;
+        case 5: return (source & 0b11100000) >> 5;
+        default: throw new IllegalArgumentException("Position out of range 0-5: " + position);
+        }
+    }
+    
+    /**
+     * Pack boolean value to 1 bit field.
+     * <p>
+     * @param value - value to pack
+     * @param position - position of the field inside the result byte. Allowed range
+     * is between 0 (rightmost position without an offset) and 7 (most possible offset for 1 bit field).
+     * @return packed value
+     * @throws IllegalArgumentException - position out of range 0-7
+     */
+    public byte boolToBit(boolean value, int position) {
+        if ( (position & 0xFFFFFFF8) != 0 ) {
+            throw new IllegalArgumentException("Position out of range 0-7: " + position);
+        }
+        return value ? (byte) (1 << position) : 0;
+    }
+    
+    /**
+     * Unpack boolean value from 1 bit field.
+     * <p>
+     * @param source - packed value source
+     * @param position - position of the field inside the result byte. Allowed range
+     * is between 0 (rightmost position without an offset) and 7 (most possible offset for 1 bit field).
+     * @return unpacked value
+     * @throws IllegalArgumentException - position out of range 0-7
+     */
+    public boolean bitToBool(byte source, int position) {
+        if ( (position & 0xFFFFFFF8) != 0 ) {
+            throw new IllegalArgumentException("Position out of range 0-7: " + position);
+        }
+        return (source & (1 << position)) != 0;
+    }
+    
+    /**
+     * Pack size between 1 and 8 to 3-bit field.
+     * <p>
+     * Such fields are used to store length of size fields.
+     * Despite 2 bits are enough to pack size of integer there it is 3 bit field
+     * because those fields can be alternatively used for other purposes.
+     * <p>
+     * @param size - size to pack. Allowed range is between 1 and 8.
+     * @param position - position of the 3-bit field inside the result byte.
+     * See {@link #intToF3b(int, int)} for details.
+     * @return packed 3-bit field with value size in bytes
+     * @throws IllegalArgumentException - size out of range 1-8
+     */
+    public byte sizeToF3b(int size, int position) {
+        if ( size < 1 || size > 8 ) {
+            throw new IllegalArgumentException("Size out of range 1-8: " + size);
+        }
+        return intToF3b(size - 1, position);
+    }
+    
+    /**
+     * Unpack size from 3-bit field.
+     * <p>
+     * @param source - source byte to take data of
+     * @param position - position of the 3-bit field inside the result byte.
+     * See {@link #f3bToInt(byte, int)} for details.
+     * @return number of bytes that are represent significant bytes of an integer
+     */
+    public int f3bToSize(byte source, int position) {
+        return f3bToInt(source, position) + 1;
+    }
+
 }

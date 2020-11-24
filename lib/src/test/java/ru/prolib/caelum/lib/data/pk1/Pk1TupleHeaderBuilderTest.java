@@ -1,21 +1,21 @@
-package ru.prolib.caelum.lib.kafka;
+package ru.prolib.caelum.lib.data.pk1;
 
 import static org.junit.Assert.*;
 
 import org.junit.Before;
 import org.junit.Test;
 
-public class KafkaTuplePkHeaderBuilderTest {
-    private KafkaTuplePkHeaderBuilder service;
+public class Pk1TupleHeaderBuilderTest {
+    private Pk1TupleHeaderBuilder service;
     
     @Before
     public void setUp() throws Exception {
-        service = new KafkaTuplePkHeaderBuilder();
+        service = new Pk1TupleHeaderBuilder();
     }
     
     @Test
     public void testBuild() {
-        KafkaTuplePkHeader actual = service
+        Pk1TupleHeader actual = service
                 .decimals(3)
                 .volumeDecimals(5)
                 .openSize(12)
@@ -28,7 +28,7 @@ public class KafkaTuplePkHeaderBuilderTest {
                 .closeRelative(true)
                 .build();
         
-        KafkaTuplePkHeader expected = new KafkaTuplePkHeader(3, 5, 12, true, 8, false, 3, true, 11, 24);
+        Pk1TupleHeader expected = new Pk1TupleHeader(3, 5, 12, true, 8, false, 3, true, 11, 24);
         assertEquals(expected, actual);
     }
     
@@ -206,37 +206,37 @@ public class KafkaTuplePkHeaderBuilderTest {
             .openSize(12).highSize(8).lowSize(3).closeSize(11).volumeSize(24)
             .highRelative(true).lowRelative(false).closeRelative(true);
         
-        assertTrue(service.equals(new KafkaTuplePkHeaderBuilder().decimals(3).volumeDecimals(5)
+        assertTrue(service.equals(new Pk1TupleHeaderBuilder().decimals(3).volumeDecimals(5)
                 .openSize(12).highSize(8).lowSize(3).closeSize(11).volumeSize(24)
                 .highRelative(true).lowRelative(false).closeRelative(true)));
-        assertFalse(service.equals(new KafkaTuplePkHeaderBuilder().decimals(4).volumeDecimals(5)
+        assertFalse(service.equals(new Pk1TupleHeaderBuilder().decimals(4).volumeDecimals(5)
                 .openSize(12).highSize(8).lowSize(3).closeSize(11).volumeSize(24)
                 .highRelative(true).lowRelative(false).closeRelative(true)));
-        assertFalse(service.equals(new KafkaTuplePkHeaderBuilder().decimals(3).volumeDecimals(6)
+        assertFalse(service.equals(new Pk1TupleHeaderBuilder().decimals(3).volumeDecimals(6)
                 .openSize(12).highSize(8).lowSize(3).closeSize(11).volumeSize(24)
                 .highRelative(true).lowRelative(false).closeRelative(true)));
-        assertFalse(service.equals(new KafkaTuplePkHeaderBuilder().decimals(3).volumeDecimals(5)
+        assertFalse(service.equals(new Pk1TupleHeaderBuilder().decimals(3).volumeDecimals(5)
                 .openSize(13).highSize(8).lowSize(3).closeSize(11).volumeSize(24)
                 .highRelative(true).lowRelative(false).closeRelative(true)));
-        assertFalse(service.equals(new KafkaTuplePkHeaderBuilder().decimals(3).volumeDecimals(5)
+        assertFalse(service.equals(new Pk1TupleHeaderBuilder().decimals(3).volumeDecimals(5)
                 .openSize(12).highSize(9).lowSize(3).closeSize(11).volumeSize(24)
                 .highRelative(true).lowRelative(false).closeRelative(true)));
-        assertFalse(service.equals(new KafkaTuplePkHeaderBuilder().decimals(3).volumeDecimals(5)
+        assertFalse(service.equals(new Pk1TupleHeaderBuilder().decimals(3).volumeDecimals(5)
                 .openSize(12).highSize(8).lowSize(4).closeSize(11).volumeSize(24)
                 .highRelative(true).lowRelative(false).closeRelative(true)));
-        assertFalse(service.equals(new KafkaTuplePkHeaderBuilder().decimals(3).volumeDecimals(5)
+        assertFalse(service.equals(new Pk1TupleHeaderBuilder().decimals(3).volumeDecimals(5)
                 .openSize(12).highSize(8).lowSize(3).closeSize(12).volumeSize(24)
                 .highRelative(true).lowRelative(false).closeRelative(true)));
-        assertFalse(service.equals(new KafkaTuplePkHeaderBuilder().decimals(3).volumeDecimals(5)
+        assertFalse(service.equals(new Pk1TupleHeaderBuilder().decimals(3).volumeDecimals(5)
                 .openSize(12).highSize(8).lowSize(3).closeSize(11).volumeSize(25)
                 .highRelative(true).lowRelative(false).closeRelative(true)));
-        assertFalse(service.equals(new KafkaTuplePkHeaderBuilder().decimals(3).volumeDecimals(5)
+        assertFalse(service.equals(new Pk1TupleHeaderBuilder().decimals(3).volumeDecimals(5)
                 .openSize(12).highSize(8).lowSize(3).closeSize(11).volumeSize(24)
                 .highRelative(false).lowRelative(false).closeRelative(true)));
-        assertFalse(service.equals(new KafkaTuplePkHeaderBuilder().decimals(3).volumeDecimals(5)
+        assertFalse(service.equals(new Pk1TupleHeaderBuilder().decimals(3).volumeDecimals(5)
                 .openSize(12).highSize(8).lowSize(3).closeSize(11).volumeSize(24)
                 .highRelative(true).lowRelative(true).closeRelative(true)));
-        assertFalse(service.equals(new KafkaTuplePkHeaderBuilder().decimals(3).volumeDecimals(5)
+        assertFalse(service.equals(new Pk1TupleHeaderBuilder().decimals(3).volumeDecimals(5)
                 .openSize(12).highSize(8).lowSize(3).closeSize(11).volumeSize(24)
                 .highRelative(true).lowRelative(false).closeRelative(false)));
     }
@@ -255,7 +255,7 @@ public class KafkaTuplePkHeaderBuilderTest {
             .closeRelative(true);
         
         String expected = new StringBuilder()
-                .append("KafkaTuplePkHeaderBuilder[decimals=3,volumeDecimals=5,")
+                .append("Pk1TupleHeaderBuilder[decimals=3,volumeDecimals=5,")
                 .append("openSize=12,highRelative=true,highSize=8,lowRelative=false,lowSize=3,")
                 .append("closeRelative=true,closeSize=11,volumeSize=24]")
                 .toString();

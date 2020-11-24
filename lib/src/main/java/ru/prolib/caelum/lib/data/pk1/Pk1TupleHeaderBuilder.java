@@ -1,4 +1,4 @@
-package ru.prolib.caelum.lib.kafka;
+package ru.prolib.caelum.lib.data.pk1;
 
 
 import java.util.Objects;
@@ -7,61 +7,61 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-public class KafkaTuplePkHeaderBuilder {
+public class Pk1TupleHeaderBuilder {
     private Integer decimals, volumeDecimals, openSize, highSize, lowSize, closeSize, volumeSize;
     private Boolean highRelative, lowRelative, closeRelative;
     
-    public KafkaTuplePkHeaderBuilder decimals(int decimals) {
+    public Pk1TupleHeaderBuilder decimals(int decimals) {
         this.decimals = decimals;
         return this;
     }
     
-    public KafkaTuplePkHeaderBuilder volumeDecimals(int decimals) {
+    public Pk1TupleHeaderBuilder volumeDecimals(int decimals) {
         this.volumeDecimals = decimals;
         return this;
     }
     
-    public KafkaTuplePkHeaderBuilder openSize(int size) {
+    public Pk1TupleHeaderBuilder openSize(int size) {
         this.openSize = size;
         return this;
     }
     
-    public KafkaTuplePkHeaderBuilder highSize(int size) {
+    public Pk1TupleHeaderBuilder highSize(int size) {
         this.highSize = size;
         return this;
     }
     
-    public KafkaTuplePkHeaderBuilder lowSize(int size) {
+    public Pk1TupleHeaderBuilder lowSize(int size) {
         this.lowSize = size;
         return this;
     }
     
-    public KafkaTuplePkHeaderBuilder closeSize(int size) {
+    public Pk1TupleHeaderBuilder closeSize(int size) {
         this.closeSize = size;
         return this;
     }
     
-    public KafkaTuplePkHeaderBuilder volumeSize(int size) {
+    public Pk1TupleHeaderBuilder volumeSize(int size) {
         this.volumeSize = size;
         return this;
     }
     
-    public KafkaTuplePkHeaderBuilder highRelative(boolean relative) {
+    public Pk1TupleHeaderBuilder highRelative(boolean relative) {
         this.highRelative = relative;
         return this;
     }
     
-    public KafkaTuplePkHeaderBuilder lowRelative(boolean relative) {
+    public Pk1TupleHeaderBuilder lowRelative(boolean relative) {
         this.lowRelative = relative;
         return this;
     }
     
-    public KafkaTuplePkHeaderBuilder closeRelative(boolean relative) {
+    public Pk1TupleHeaderBuilder closeRelative(boolean relative) {
         this.closeRelative = relative;
         return this;
     }
     
-    public KafkaTuplePkHeader build() {
+    public Pk1TupleHeader build() {
         Objects.requireNonNull(decimals, "Decimals was not specified");
         Objects.requireNonNull(volumeDecimals, "Volume decimals was not specified");
         Objects.requireNonNull(openSize, "Size of opening value component was not specified");
@@ -72,7 +72,7 @@ public class KafkaTuplePkHeaderBuilder {
         Objects.requireNonNull(highRelative, "Relativity of the high value component was not specified");
         Objects.requireNonNull(lowRelative, "Relativity of the low value component was not specified");
         Objects.requireNonNull(closeRelative, "Relativity of the close value component was not specified");
-        return new KafkaTuplePkHeader(
+        return new Pk1TupleHeader(
                 decimals,
                 volumeDecimals,
                 openSize,
@@ -91,10 +91,10 @@ public class KafkaTuplePkHeaderBuilder {
         if  (other == this ) {
             return true;
         }
-        if ( other == null || other.getClass() != KafkaTuplePkHeaderBuilder.class ) {
+        if ( other == null || other.getClass() != Pk1TupleHeaderBuilder.class ) {
             return false;
         }
-        KafkaTuplePkHeaderBuilder o = (KafkaTuplePkHeaderBuilder) other;
+        Pk1TupleHeaderBuilder o = (Pk1TupleHeaderBuilder) other;
         return new EqualsBuilder()
                 .append(o.decimals, decimals)
                 .append(o.volumeDecimals, volumeDecimals)

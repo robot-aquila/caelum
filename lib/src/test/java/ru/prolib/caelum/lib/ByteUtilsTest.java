@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 import static ru.prolib.caelum.lib.ByteUtils.hexStringToByteArr;
 
 import java.math.BigDecimal;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -415,5 +416,229 @@ public class ByteUtilsTest {
 		assertEquals(expected, ByteUtils.hexStringToBytes("5FFF098DE"));
 		assertEquals(expected, ByteUtils.hexStringToBytes(" {   5   F F  F  0 9 8  D E} "));
 	}
+	
+    @Test
+    public void testIntSize() {
+        for ( int i = 0; i < 1000000; i ++ ) {
+            int value = ThreadLocalRandom.current().nextInt();
+            Bytes bytes = service.intToBytes(value);
+            assertEquals("Mismatch for value: " + value, bytes.getLength(), service.intSize(value));
+        }
+    }
+    
+    @Test
+    public void testIntToF3b() {
+        assertEquals((byte)0b00000111, service.intToF3b(7, 0));
+        assertEquals((byte)0b00001110, service.intToF3b(7, 1));
+        assertEquals((byte)0b00011100, service.intToF3b(7, 2));
+        assertEquals((byte)0b00111000, service.intToF3b(7, 3));
+        assertEquals((byte)0b01110000, service.intToF3b(7, 4));
+        assertEquals((byte)0b11100000, service.intToF3b(7, 5));
+        assertEquals((byte)0b00011000, service.intToF3b(3, 3));
+        assertEquals((byte)0b00010000, service.intToF3b(2, 3));
+        assertEquals((byte)0b00000000, service.intToF3b(0, 0));
+        assertEquals((byte)0b00000100, service.intToF3b(4, 0));
+    }
+    
+    @Test
+    public void testIntToF3b_ThrowsIfValueIsLessThat0() {
+        for ( int i = -1; i > -12; i -- ) {
+            var value = i;
+            var e = assertThrows(IllegalArgumentException.class, () -> service.intToF3b(value, 0));
+            assertEquals("Value out of range 0-7: " + i, e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testIntToF3b_ThrowsIfValueIsGreaterThan7() {
+        for ( int i = 8; i < 20; i ++ ) {
+            var value = i;
+            var e = assertThrows(IllegalArgumentException.class, () -> service.intToF3b(value, 0));
+            assertEquals("Value out of range 0-7: " + i, e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testIntToF3b_ThrowsIfPositionIsLessThan0() {
+        for ( int i = -1; i > -10; i -- ) {
+            var position = i;
+            var e = assertThrows(IllegalArgumentException.class, () -> service.intToF3b(1, position));
+            assertEquals("Position out of range 0-5: " + i, e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testIntToF3b_ThrowsIfPositionIsGreaterThan5() {
+        for ( int i = 6; i < 16; i ++ ) {
+            var position = i;
+            var e = assertThrows(IllegalArgumentException.class, () -> service.intToF3b(1, position));
+            assertEquals("Position out of range 0-5: " + i, e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testF3bToInt_ThrowsIfPositionIsLessThan0() {
+        for ( int i = -1; i > -10; i -- ) {
+            var position = i;
+            var e = assertThrows(IllegalArgumentException.class, () -> service.f3bToInt((byte)1, position));
+            assertEquals("Position out of range 0-5: " + i, e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testF3bToInt_ThrowsIfPositionIsGreaterThan5() {
+        for ( int i = 6; i < 16; i ++ ) {
+            var position = i;
+            var e = assertThrows(IllegalArgumentException.class, () -> service.f3bToInt((byte)1, position));
+            assertEquals("Position out of range 0-5: " + i, e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testF3bToInt() {
+        assertEquals(7, service.f3bToInt((byte)0b10110111, 0));
+        assertEquals(7, service.f3bToInt((byte)0b01101110, 1));
+        assertEquals(7, service.f3bToInt((byte)0b01011100, 2));
+        assertEquals(7, service.f3bToInt((byte)0b01111011, 3));
+        assertEquals(7, service.f3bToInt((byte)0b11110110, 4));
+        assertEquals(7, service.f3bToInt((byte)0b11101100, 5));
+        assertEquals(3, service.f3bToInt((byte)0b01011010, 3));
+        assertEquals(2, service.f3bToInt((byte)0b11010110, 3));
+        assertEquals(0, service.f3bToInt((byte)0b01101000, 0));
+        assertEquals(4, service.f3bToInt((byte)0b10111100, 0));
+    }
+    
+    @Test
+    public void testF3bToInt_ComplexTest() {
+        byte bytes[] = new byte[1];
+        for ( int position = 0; position <= 5; position ++ ) {
+            for ( int value = 0; value < 7; value ++ ) {
+                ThreadLocalRandom.current().nextBytes(bytes);
+                byte mask = service.intToF3b(0b00000111, position);
+                byte source = bytes[0];
+                source |= mask;
+                source ^= mask;
+                source |= service.intToF3b(value, position);
+                int actual = service.f3bToInt(source, position);
+                assertEquals(new StringBuilder()
+                        .append("Mismatch for value=").append(value).append(" position=").append(position)
+                        .toString(), value, actual);
+            }
+        }
+    }
+    
+    @Test
+    public void testBoolToBit() {
+        assertEquals(0b00000001, service.boolToBit(true, 0));
+        assertEquals(0b00000010, service.boolToBit(true, 1));
+        assertEquals(0b00000100, service.boolToBit(true, 2));
+        assertEquals(0b00001000, service.boolToBit(true, 3));
+        assertEquals(0b00010000, service.boolToBit(true, 4));
+        assertEquals(0b00100000, service.boolToBit(true, 5));
+        assertEquals(0b01000000, service.boolToBit(true, 6));
+        assertEquals((byte)0b10000000, service.boolToBit(true, 7));
+        
+        for ( int position= 0; position <= 7; position ++ ) {
+            assertEquals("Mismatch for position=" + position, 0x00, service.boolToBit(false, position));
+        }
+    }
+    
+    @Test
+    public void testBoolToBit_ThrowsIfPositionIsLessThan0() {
+        for ( int i = -1; i > -10; i -- ) {
+            var position = i;
+            var e = assertThrows(IllegalArgumentException.class, () -> service.boolToBit(true, position));
+            assertEquals("Position out of range 0-7: " + i, e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testBoolToBit_ThrowsIfPositionIsGreaterThan7() {
+        for ( int i = 8; i < 16; i ++ ) {
+            var position = i;
+            var e = assertThrows(IllegalArgumentException.class, () -> service.boolToBit(true, position));
+            assertEquals("Position out of range 0-7: " + i, e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testBitToBool() {
+        assertTrue(service.bitToBool((byte) 0b01101001, 0));
+        assertFalse(service.bitToBool((byte) 0b01101001, 1));
+        assertFalse(service.bitToBool((byte) 0b01101001, 2));
+        assertTrue(service.bitToBool((byte) 0b01101001, 3));
+        assertFalse(service.bitToBool((byte) 0b01101001, 4));
+        assertTrue(service.bitToBool((byte) 0b01101001, 5));
+        assertTrue(service.bitToBool((byte) 0b01101001, 6));
+        assertFalse(service.bitToBool((byte) 0b01101001, 7));
+    }
+    
+    @Test
+    public void testBitToBool_ComplexTest() {
+        byte bytes[] = new byte[1];
+        for ( int position = 0; position <= 7; position ++ ) {
+            ThreadLocalRandom.current().nextBytes(bytes);
+            byte mask = service.boolToBit(true, position);
+            byte source = bytes[0];
+            source |= mask;
+            source ^= mask;
+            assertTrue(new StringBuilder()
+                    .append("Mismatch for value=true position=").append(position)
+                    .toString(), service.bitToBool((byte)(source | mask), position));
+            assertFalse(new StringBuilder()
+                    .append("Mismatch for value=false position=").append(position)
+                    .toString(), service.bitToBool(source, position));
+        }
+    }
+    
+    @Test
+    public void testBitToBool_ThrowsIfPositionIsLessThan0() {
+        for ( int i = -1; i > -10; i -- ) {
+            var position = i;
+            var e = assertThrows(IllegalArgumentException.class, () -> service.bitToBool((byte) 0, position));
+            assertEquals("Position out of range 0-7: " + i, e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testBitToBool_ThrowsIfPositionIsGreaterThan7() {
+        for ( int i = 8; i < 16; i ++ ) {
+            var position = i;
+            var e = assertThrows(IllegalArgumentException.class, () -> service.bitToBool((byte) 0, position));
+            assertEquals("Position out of range 0-7: " + i, e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testSizeToF3b() {
+        assertEquals((byte) 0b00000101, service.sizeToF3b(6, 0));
+        assertEquals((byte) 0b00011000, service.sizeToF3b(7, 2));
+        assertEquals((byte) 0b01100000, service.sizeToF3b(4, 5));
+    }
+    
+    @Test
+    public void testSizeToF3b_ThrowsIfValueIsLessThan1() {
+        for ( int i = 0; i > -9; i -- ) {
+            var size = i;
+            var e = assertThrows(IllegalArgumentException.class, () -> service.sizeToF3b(size, 0));
+            assertEquals("Size out of range 1-8: " + i, e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testSizeToF3b_ThrowsIfValueIsGreaterThan8() {
+        for ( int i = 9; i < 19; i ++ ) {
+            var size = i;
+            var e = assertThrows(IllegalArgumentException.class, () -> service.sizeToF3b(size, 0));
+            assertEquals("Size out of range 1-8: " + i, e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testF3bToSize() {
+        assertEquals(6, service.f3bToSize((byte) 0b00000101, 0));
+        assertEquals(7, service.f3bToSize((byte) 0b00011000, 2));
+        assertEquals(4, service.f3bToSize((byte) 0b01100000, 5));
+    }
 
 }

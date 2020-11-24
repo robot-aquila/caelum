@@ -1,22 +1,21 @@
-package ru.prolib.caelum.lib.kafka;
+package ru.prolib.caelum.lib.data;
 
 import static org.junit.Assert.*;
 
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.junit.Before;
 import org.junit.Test;
 
 import ru.prolib.caelum.lib.ByteUtils;
 import ru.prolib.caelum.lib.Bytes;
 
-public class KafkaRawTupleTest {
+public class RawTupleTest {
 	
 	static Bytes toBytes(String hex) {
 		return ByteUtils.hexStringToBytes(hex);
 	}
 	
 	private Bytes open, high, low, close, volume;
-	private KafkaRawTuple service;
+	private RawTuple service;
 
 	@Before
 	public void setUp() throws Exception {
@@ -25,39 +24,24 @@ public class KafkaRawTupleTest {
 		low = toBytes("12 00");
 		close = toBytes("01 FE EE");
 		volume = toBytes("10 00 D0");
-		service = new KafkaRawTuple(open, high, low, close, 5, volume, 10);
+		service = new RawTuple(open, high, low, close, 5, volume, 10);
 	}
 	
 	@Test
 	public void testGetters() {
-		assertSame(open, service.getOpen());
-		assertSame(high, service.getHigh());
-		assertSame(low, service.getLow());
-		assertSame(close, service.getClose());
-		assertSame(volume, service.getVolume());
-		assertEquals(5, service.getDecimals());
-		assertEquals(10, service.getVolumeDecimals());
-	}
-	
-	@Test
-	public void testHashCode() {
-		int expected = new HashCodeBuilder(56771, 303)
-				.append(open)
-				.append(high)
-				.append(low)
-				.append(close)
-				.append(volume)
-				.append(5)
-				.append(10)
-				.build();
-		
-		assertEquals(expected, service.hashCode());
+		assertSame(open, service.open());
+		assertSame(high, service.high());
+		assertSame(low, service.low());
+		assertSame(close, service.close());
+		assertSame(volume, service.volume());
+		assertEquals(5, service.decimals());
+		assertEquals(10, service.volumeDecimals());
 	}
 	
 	@Test
 	public void testToString() {
 		String expected = new StringBuilder()
-				.append("KafkaRawTuple[")
+				.append("RawTuple[")
 				.append("open={01 05 AF EE 25},")
 				.append("high={65 FF 35 00 01},")
 				.append("low={12 00},")
@@ -81,7 +65,7 @@ public class KafkaRawTupleTest {
 
 	@Test
 	public void testEquals() {
-		assertTrue(service.equals(new KafkaRawTuple(
+		assertTrue(service.equals(new RawTuple(
 				toBytes("01 05 AF EE 25"),
 				toBytes("65 FF 35 00 01"),
 				toBytes("12 00"),
@@ -90,7 +74,7 @@ public class KafkaRawTupleTest {
 				toBytes("10 00 D0"),
 				10
 			)));
-		assertFalse(service.equals(new KafkaRawTuple(
+		assertFalse(service.equals(new RawTuple(
 				toBytes("02 15 FF EE"),
 				toBytes("65 FF 35 00 01"),
 				toBytes("12 00"),
@@ -99,7 +83,7 @@ public class KafkaRawTupleTest {
 				toBytes("10 00 D0"),
 				10
 			)));
-		assertFalse(service.equals(new KafkaRawTuple(
+		assertFalse(service.equals(new RawTuple(
 				toBytes("01 05 AF EE 25"),
 				toBytes("02 12 AB"),
 				toBytes("12 00"),
@@ -108,7 +92,7 @@ public class KafkaRawTupleTest {
 				toBytes("10 00 D0"),
 				10
 			)));
-		assertFalse(service.equals(new KafkaRawTuple(
+		assertFalse(service.equals(new RawTuple(
 				toBytes("01 05 AF EE 25"),
 				toBytes("65 FF 35 00 01"),
 				toBytes("32 15 F1"),
@@ -117,7 +101,7 @@ public class KafkaRawTupleTest {
 				toBytes("10 00 D0"),
 				10
 			)));
-		assertFalse(service.equals(new KafkaRawTuple(
+		assertFalse(service.equals(new RawTuple(
 				toBytes("01 05 AF EE 25"),
 				toBytes("65 FF 35 00 01"),
 				toBytes("12 00"),
@@ -126,7 +110,7 @@ public class KafkaRawTupleTest {
 				toBytes("10 00 D0"),
 				10
 			)));
-		assertFalse(service.equals(new KafkaRawTuple(
+		assertFalse(service.equals(new RawTuple(
 				toBytes("01 05 AF EE 25"),
 				toBytes("65 FF 35 00 01"),
 				toBytes("12 00"),
@@ -135,7 +119,7 @@ public class KafkaRawTupleTest {
 				toBytes("10 00 D0"),
 				10
 			)));
-		assertFalse(service.equals(new KafkaRawTuple(
+		assertFalse(service.equals(new RawTuple(
 				toBytes("01 05 AF EE 25"),
 				toBytes("65 FF 35 00 01"),
 				toBytes("12 00"),
@@ -144,7 +128,7 @@ public class KafkaRawTupleTest {
 				toBytes("D0 DC 15"),
 				10
 			)));
-		assertFalse(service.equals(new KafkaRawTuple(
+		assertFalse(service.equals(new RawTuple(
 				toBytes("01 05 AF EE 25"),
 				toBytes("65 FF 35 00 01"),
 				toBytes("12 00"),

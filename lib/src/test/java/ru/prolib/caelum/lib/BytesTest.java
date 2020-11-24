@@ -25,13 +25,22 @@ public class BytesTest {
 	}
 	
 	@Test
-	public void testCtor1() {
+	public void testCtor1_Array() {
 	    service = new Bytes(template);
 	    
 	    assertSame(template, service.getSource());
 	    assertEquals(0, service.getOffset());
 	    assertEquals(6, service.getLength());
 	}
+	
+    @Test
+    public void testCtor1_Integer() {
+        service = new Bytes(7);
+        
+        assertArrayEquals(ByteUtils.hexStringToByteArr("00 00 00 00 00 00 00"), service.getSource());
+        assertEquals(0, service.getOffset());
+        assertEquals(7, service.getLength());
+    }
 	
 	@Test
 	public void testGetters() {

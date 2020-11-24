@@ -1,10 +1,10 @@
-package ru.prolib.caelum.lib.kafka;
+package ru.prolib.caelum.lib.data.pk1;
 
 import ru.prolib.caelum.lib.Bytes;
 
 import static java.util.Objects.*;
 
-record KafkaTuplePkPayload (
+record Pk1TuplePayload (
 		Bytes open,
 		Bytes high,
 		Bytes low,
@@ -12,7 +12,7 @@ record KafkaTuplePkPayload (
 		Bytes volume
 	)
 {
-	public KafkaTuplePkPayload {
+	public Pk1TuplePayload {
 		requireNonNull(open);
 		requireNonNull(high);
 		requireNonNull(low);
