@@ -427,7 +427,7 @@ public class ByteUtilsTest {
     }
     
     @Test
-    public void testIntToF3b() {
+    public void testIntToF3b2() {
         assertEquals((byte)0b00000111, service.intToF3b(7, 0));
         assertEquals((byte)0b00001110, service.intToF3b(7, 1));
         assertEquals((byte)0b00011100, service.intToF3b(7, 2));
@@ -441,7 +441,7 @@ public class ByteUtilsTest {
     }
     
     @Test
-    public void testIntToF3b_ThrowsIfValueIsLessThat0() {
+    public void testIntToF3b2_ThrowsIfValueIsLessThan0() {
         for ( int i = -1; i > -12; i -- ) {
             var value = i;
             var e = assertThrows(IllegalArgumentException.class, () -> service.intToF3b(value, 0));
@@ -450,7 +450,7 @@ public class ByteUtilsTest {
     }
     
     @Test
-    public void testIntToF3b_ThrowsIfValueIsGreaterThan7() {
+    public void testIntToF3b2_ThrowsIfValueIsGreaterThan7() {
         for ( int i = 8; i < 20; i ++ ) {
             var value = i;
             var e = assertThrows(IllegalArgumentException.class, () -> service.intToF3b(value, 0));
@@ -459,7 +459,7 @@ public class ByteUtilsTest {
     }
     
     @Test
-    public void testIntToF3b_ThrowsIfPositionIsLessThan0() {
+    public void testIntToF3b2_ThrowsIfPositionIsLessThan0() {
         for ( int i = -1; i > -10; i -- ) {
             var position = i;
             var e = assertThrows(IllegalArgumentException.class, () -> service.intToF3b(1, position));
@@ -468,10 +468,60 @@ public class ByteUtilsTest {
     }
     
     @Test
-    public void testIntToF3b_ThrowsIfPositionIsGreaterThan5() {
+    public void testIntToF3b2_ThrowsIfPositionIsGreaterThan5() {
         for ( int i = 6; i < 16; i ++ ) {
             var position = i;
             var e = assertThrows(IllegalArgumentException.class, () -> service.intToF3b(1, position));
+            assertEquals("Position out of range 0-5: " + i, e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testIntToF3b3() {
+        assertEquals((byte)0b11001001, service.intToF3b((byte)0b11001001, 0b00000001, 0));
+        assertEquals((byte)0b11001001, service.intToF3b((byte)0b11001000, 0b00000001, 0));
+        assertEquals((byte)0b11001111, service.intToF3b((byte)0b11001101, 0b00000111, 0));
+        assertEquals((byte)0b11001111, service.intToF3b((byte)0b11001010, 0b00000111, 0));
+        assertEquals((byte)0b10100010, service.intToF3b((byte)0b10111010, 0b00000000, 2));
+        assertEquals((byte)0b10100010, service.intToF3b((byte)0b10111110, 0b00000000, 2));
+        assertEquals((byte)0b00110000, service.intToF3b((byte)0b00000000, 0b00000110, 3));
+        assertEquals((byte)0b00011010, service.intToF3b((byte)0b10111010, 0b00000000, 5));
+        assertEquals((byte)0b01011010, service.intToF3b((byte)0b10111010, 0b00000010, 5));
+        assertEquals((byte)0b11111010, service.intToF3b((byte)0b00011010, 0b00000111, 5));
+    }
+    
+    @Test
+    public void testIntToF3b3_ThrowsIfValueIsLessThan0() {
+        for ( int i = -1; i > -12; i -- ) {
+            var value = i;
+            var e = assertThrows(IllegalArgumentException.class, () -> service.intToF3b((byte)0, value, 0));
+            assertEquals("Value out of range 0-7: " + i, e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testIntToF3b3_ThrowsIfValueIsGreaterThan7() {
+        for ( int i = 8; i < 20; i ++ ) {
+            var value = i;
+            var e = assertThrows(IllegalArgumentException.class, () -> service.intToF3b((byte)0, value, 0));
+            assertEquals("Value out of range 0-7: " + i, e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testIntToF3b3_ThrowsIfPositionIsLessThan0() {
+        for ( int i = -1; i > -10; i -- ) {
+            var position = i;
+            var e = assertThrows(IllegalArgumentException.class, () -> service.intToF3b((byte)0, 1, position));
+            assertEquals("Position out of range 0-5: " + i, e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testIntToF3b3_ThrowsIfPositionIsGreaterThan5() {
+        for ( int i = 6; i < 16; i ++ ) {
+            var position = i;
+            var e = assertThrows(IllegalArgumentException.class, () -> service.intToF3b((byte)0, 1, position));
             assertEquals("Position out of range 0-5: " + i, e.getMessage());
         }
     }
@@ -528,7 +578,43 @@ public class ByteUtilsTest {
     }
     
     @Test
-    public void testBoolToBit() {
+    public void testBoolToBit3() {
+        assertEquals((byte)0b11011001, service.boolToBit((byte)0b11011001, true, 7));
+        assertEquals((byte)0b11011001, service.boolToBit((byte)0b01011001, true, 7));
+        assertEquals((byte)0b01011001, service.boolToBit((byte)0b01011001, true, 3));
+        assertEquals((byte)0b01011001, service.boolToBit((byte)0b01010001, true, 3));
+        assertEquals((byte)0b01011001, service.boolToBit((byte)0b01011001, true, 0));
+        assertEquals((byte)0b01011001, service.boolToBit((byte)0b01011000, true, 0));
+        assertEquals((byte)0b01010001, service.boolToBit((byte)0b01011001, false, 3));
+        assertEquals((byte)0b01010001, service.boolToBit((byte)0b01010001, false, 3));
+        assertEquals((byte)0b10011001, service.boolToBit((byte)0b11011001, false, 6));
+        assertEquals((byte)0b00011001, service.boolToBit((byte)0b00011001, false, 6));
+    }
+    
+    @Test
+    public void testBoolToBit3_ThrowsIfPositionIsLessThan0() {
+        for ( int i = -1; i > -10; i -- ) {
+            var position = i;
+            var e = assertThrows(IllegalArgumentException.class,
+                    () -> service.boolToBit((byte)0b01101001, true, position)
+                );
+            assertEquals("Position out of range 0-7: " + i, e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testBoolToBit3_ThrowsIfPositionIsGreaterThan7() {
+        for ( int i = 8; i < 16; i ++ ) {
+            var position = i;
+            var e = assertThrows(IllegalArgumentException.class,
+                    () -> service.boolToBit((byte)0b01001101, true, position)
+                );
+            assertEquals("Position out of range 0-7: " + i, e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testBoolToBit2() {
         assertEquals(0b00000001, service.boolToBit(true, 0));
         assertEquals(0b00000010, service.boolToBit(true, 1));
         assertEquals(0b00000100, service.boolToBit(true, 2));
@@ -544,7 +630,7 @@ public class ByteUtilsTest {
     }
     
     @Test
-    public void testBoolToBit_ThrowsIfPositionIsLessThan0() {
+    public void testBoolToBit2_ThrowsIfPositionIsLessThan0() {
         for ( int i = -1; i > -10; i -- ) {
             var position = i;
             var e = assertThrows(IllegalArgumentException.class, () -> service.boolToBit(true, position));
@@ -553,7 +639,7 @@ public class ByteUtilsTest {
     }
     
     @Test
-    public void testBoolToBit_ThrowsIfPositionIsGreaterThan7() {
+    public void testBoolToBit2_ThrowsIfPositionIsGreaterThan7() {
         for ( int i = 8; i < 16; i ++ ) {
             var position = i;
             var e = assertThrows(IllegalArgumentException.class, () -> service.boolToBit(true, position));

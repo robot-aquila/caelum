@@ -212,6 +212,27 @@ public class ByteUtils {
 		byte[] bytes = hexStringToByteArr(hex);
 		return new Bytes(bytes, 0, bytes.length);
 	}
+	
+	/**
+	 * Pack integer into 3 bit field.
+	 * <p>
+	 * @param source - source byte to apply changes
+	 * @param value - value to pack
+	 * @param position - position of the field inside the result byte. Allowed range
+     * is between 0 (rightmost position without an offset) and 5 (most possible offset for 3 bit field).
+     * @return packed value
+     * @throws IllegalArgumentException - value is out of range 0-7 or position out of range 0-5
+	 */
+	public byte intToF3b(byte source, int value, int position) {
+        if ( (value & 0xFFFFFFF8) != 0 ) {
+            throw new IllegalArgumentException("Value out of range 0-7: " + value);
+        }
+        if ( position < 0 || position > 5 ) {
+            throw new IllegalArgumentException("Position out of range 0-5: " + position);
+        }
+        byte mask = (byte)(0b00000111 << position);
+        return (byte) ((source | mask) ^ mask | (byte)(value << position));
+	}
     
 	/**
 	 * Pack integer into 3 bit field.
@@ -250,6 +271,28 @@ public class ByteUtils {
         case 4: return (source & 0b01110000) >> 4;
         case 5: return (source & 0b11100000) >> 5;
         default: throw new IllegalArgumentException("Position out of range 0-5: " + position);
+        }
+    }
+    
+    /**
+     * Pack boolean value to 1 bit field.
+     * <p>
+     * @param source - source byte to apply changes
+     * @param value - value to pack
+     * @param position - position of the field inside the result byte. Allowed range
+     * is between 0 (rightmost position without an offset) and 7 (most possible offset for 1 bit field).
+     * @return packed value
+     * @throws IllegalArgumentException - position out of range 0-7
+     */
+    public byte boolToBit(byte source, boolean value, int position) {
+        if ( (position & 0xFFFFFFF8) != 0 ) {
+            throw new IllegalArgumentException("Position out of range 0-7: " + position);
+        }
+        byte mask = (byte)(1 << position);
+        if ( value ) {
+            return (source & mask) == 0 ? (byte)(source | mask) : source;
+        } else {
+            return (source & mask) == 0 ? source : (byte)(source ^ mask);
         }
     }
     

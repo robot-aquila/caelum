@@ -23,4 +23,8 @@ public class Pk1Packer {
         return new Bytes(dest.array());
     }
     
+    public RawTuple unpack(Bytes source) {
+        return null;
+    }
+    
 }

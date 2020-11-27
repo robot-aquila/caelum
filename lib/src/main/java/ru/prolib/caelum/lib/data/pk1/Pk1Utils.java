@@ -58,37 +58,13 @@ public class Pk1Utils {
     }
     
     /**
-     * Test whether number of decimals can be stored in header or additional section should be used?
-     * <p>
-     * @param header - the header
-     * @return true if number of decimals can fit to header fields, false otherwise
-     */
-    public boolean canStoreNumberOfDecimalsInHeader(Pk1TupleHeader header) {
-        return header.decimals() >=0 && header.decimals() <= 7
-            && header.volumeDecimals() >= 0 && header.volumeDecimals() <= 7;
-    }
-    
-    /**
-     * Test whether OHLC sizes can be stored in header or additional section should be used?
-     * <p>
-     * @param header - the header
-     * @return true if OHLC sizes can fit to header fields, false otherwise
-     */
-    public boolean canStoreOhlcSizesInHeader(Pk1TupleHeader header) {
-        return header.openSize() > 0 && header.openSize() < 9
-            && header.highSize() > 0 && header.highSize() < 9
-            && header.lowSize() > 0 && header.lowSize() < 9
-            && header.closeSize() > 0 && header.closeSize() < 9;
-    }
-    
-    /**
      * Get size of header section in bytes.
      * <p>
      * @param header - the header
      * @return number of bytes needed to store the header
      */
     public int getHeaderSectionSize(Pk1TupleHeader header) {
-        return canStoreOhlcSizesInHeader(header) ? 3 : 3
+        return header.canStoreOhlcSizesInHeader() ? 3 : 3
             + byteUtils.intSize(header.openSize())
             + byteUtils.intSize(header.highSize())
             + byteUtils.intSize(header.lowSize())
@@ -102,7 +78,7 @@ public class Pk1Utils {
      * @return number of bytes needed to store the number of decimals
      */
     public int getDecimalsSectionSize(Pk1TupleHeader header) {
-        if ( canStoreNumberOfDecimalsInHeader(header) ) {
+        if ( header.canStoreNumberOfDecimalsInHeader() ) {
             return 0;
         }
         return byteUtils.intSize(header.decimals())
@@ -145,24 +121,44 @@ public class Pk1Utils {
     }
     
     public void packHeaderByte1(Pk1TupleHeader header, ByteBuffer dest) {
-        if ( canStoreNumberOfDecimalsInHeader(header) ) {
+        if ( header.canStoreNumberOfDecimalsInHeader() ) {
             dest.put((byte)(
-                    byteUtils.boolToBit(!canStoreOhlcSizesInHeader(header), 1) |
+                    byteUtils.boolToBit(!header.canStoreOhlcSizesInHeader(), 1) |
                     byteUtils.intToF3b(header.decimals(), 2) |
                     byteUtils.intToF3b(header.volumeDecimals(), 5)
                 ));
         } else {
             dest.put((byte)(
                     byteUtils.boolToBit(true, 0) |
-                    byteUtils.boolToBit(!canStoreOhlcSizesInHeader(header), 1) |
+                    byteUtils.boolToBit(!header.canStoreOhlcSizesInHeader(), 1) |
                     byteUtils.sizeToF3b(byteUtils.intSize(header.decimals()), 2) |
                     byteUtils.sizeToF3b(byteUtils.intSize(header.volumeDecimals()), 5)
                 ));
         }
     }
+//    
+//    public Pk1TupleHeaderByte1 unpackHeaderByte1(ByteBuffer source) {
+//        byte b = source.get();
+//        boolean canStoreNumberOfDecimalsInHeader = !byteUtils.bitToBool(b, 0),
+//                canStoreOhlcSizesInHeader = !byteUtils.bitToBool(b, 1);
+//        int decimals, volumeDecimals;
+//        if ( canStoreNumberOfDecimalsInHeader ) {
+//            decimals = byteUtils.f3bToInt(b, 2);
+//            volumeDecimals = byteUtils.f3bToInt(b, 5);
+//        } else {
+//            decimals = byteUtils.f3bToSize(b, 2);
+//            volumeDecimals = byteUtils.f3bToSize(b, 5);
+//        }
+//        return new Pk1TupleHeaderByte1(
+//                canStoreNumberOfDecimalsInHeader,
+//                canStoreOhlcSizesInHeader,
+//                decimals,
+//                volumeDecimals
+//            );
+//    }
     
     public void packHeaderOpenAndHigh(Pk1TupleHeader header, ByteBuffer dest) {
-        if ( canStoreOhlcSizesInHeader(header) ) {
+        if ( header.canStoreOhlcSizesInHeader() ) {
             dest.put((byte)(
                     byteUtils.boolToBit(header.isHighRelative(), 0) |
                     byteUtils.sizeToF3b(header.highSize(), 1) |
@@ -178,7 +174,7 @@ public class Pk1Utils {
     }
     
     public void packHeaderLowAndClose(Pk1TupleHeader header, ByteBuffer dest) {
-        if ( canStoreOhlcSizesInHeader(header) ) {
+        if ( header.canStoreOhlcSizesInHeader() ) {
             dest.put((byte)(
                     byteUtils.boolToBit(header.isCloseRelative(), 0) |
                     byteUtils.sizeToF3b(header.closeSize(), 1) |
@@ -197,7 +193,7 @@ public class Pk1Utils {
     }
     
     public void packHeaderOhlcSizes(Pk1TupleHeader header, ByteBuffer dest) {
-        if ( canStoreOhlcSizesInHeader(header) == false ) {
+        if ( header.canStoreOhlcSizesInHeader() == false ) {
             // TODO: I would like to do it faster and cheaper
             dest.put(byteUtils.intToBytes(header.openSize()).copyBytes());
             dest.put(byteUtils.intToBytes(header.highSize()).copyBytes());
@@ -207,7 +203,7 @@ public class Pk1Utils {
     }
     
     public void packDecimals(Pk1TupleHeader header, ByteBuffer dest) {
-        if ( canStoreNumberOfDecimalsInHeader(header) == false ) {
+        if ( header.canStoreNumberOfDecimalsInHeader() == false ) {
             // TODO: I would like to do it faster and cheaper
             dest.put(byteUtils.intToBytes(header.decimals()).copyBytes());
             dest.put(byteUtils.intToBytes(header.volumeDecimals()).copyBytes());

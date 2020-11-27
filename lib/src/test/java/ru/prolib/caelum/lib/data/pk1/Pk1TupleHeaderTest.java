@@ -1,6 +1,8 @@
 package ru.prolib.caelum.lib.data.pk1;
 
 import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -25,6 +27,11 @@ public class Pk1TupleHeaderTest {
         assertTrue(service.isCloseRelative());
         assertEquals(2, service.closeSize());
         assertEquals(4, service.volumeSize());
+    }
+    
+    @Test
+    public void testIsA_IPk1TupleHeader() {
+        assertThat(service, instanceOf(IPk1TupleHeader.class));
     }
     
     @Test
@@ -59,6 +66,62 @@ public class Pk1TupleHeaderTest {
             assertFalse(service.equals(new Pk1TupleHeader(5, 3, 8, true, 7, false, 3, false, 2, 4)));
             assertFalse(service.equals(new Pk1TupleHeader(5, 3, 8, true, 7, false, 3, true, 3, 4)));
             assertFalse(service.equals(new Pk1TupleHeader(5, 3, 8, true, 7, false, 3, true, 2, 5)));
+    }
+    
+    @Test
+    public void testCanStoreNumberOfDecimalsInHeader() {
+        Object[][] fixture = {
+                {  0,  0, true  },
+                { -1,  0, false },
+                {  0, -1, false },
+                {  1,  0, true  },
+                {  0,  1, true  },
+                {  1,  1, true  },
+                { -1,  7, false },
+                {  7, -1, false },
+                {  7,  7, true  },
+                {  8,  0, false },
+                {  0,  8, false },
+                {  8,  8, false },
+        };
+        
+        for ( int i = 0; i < fixture.length; i ++  ) {
+            int decimals = (int) fixture[i][0], volumeDecimals = (int) fixture[i][1];
+            var expected = (boolean) fixture[i][2];
+            var header = new Pk1TupleHeader(decimals, volumeDecimals, 1, true, 1, true, 1, true, 1, 1);
+            assertEquals(new StringBuilder()
+                    .append("Unexpected result for decimals=").append(decimals)
+                    .append(" volumeDecimals=").append(volumeDecimals)
+                    .toString(), expected, header.canStoreNumberOfDecimalsInHeader());
+        }
+    }
+    
+    @Test
+    public void testCanStoreOhlcSizesInHeader() {
+        Object[][] fixture = {
+                // open size, high size, low size, close size, expected result
+                {  1,  1,  1,  1, true  },
+                {  0,  0,  0,  0, false }, // impossible case but should answer
+                {  8,  8,  8,  8, true  },
+                { 10,  8,  8,  8, false },
+                {  8, 10,  8,  8, false },
+                {  8,  8, 10,  8, false },
+                {  8,  8,  8, 10, false },
+                {  0,  5,  5,  5, false },
+                {  5, -1,  4,  2, false }, // impossible but should answer
+                {  1,  2,  3,  4, true  }
+        };
+        
+        for ( int i = 0; i < fixture.length; i ++ ) {
+            int openSize = (int) fixture[i][0], highSize = (int) fixture[i][1],
+                lowSize = (int) fixture[i][2], closeSize = (int) fixture[i][3];
+            var expected = (boolean) fixture[i][4];
+            var header = new Pk1TupleHeader(0, 0, openSize, true, highSize, true, lowSize, true, closeSize, 1);
+            assertEquals(new StringBuilder()
+                    .append("Unexpected result for openSize=").append(openSize).append(" highSize=").append(highSize)
+                    .append(" lowSize=").append(lowSize).append(" closeSize=").append(closeSize)
+                    .toString(), expected, header.canStoreOhlcSizesInHeader());
+        }
     }
 
 }
