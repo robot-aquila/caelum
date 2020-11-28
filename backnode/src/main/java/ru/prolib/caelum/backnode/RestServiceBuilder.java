@@ -8,7 +8,6 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
 import ru.prolib.caelum.backnode.mvc.StreamFactory;
-import ru.prolib.caelum.lib.ByteUtils;
 import ru.prolib.caelum.lib.Intervals;
 import ru.prolib.caelum.service.ExtensionState;
 import ru.prolib.caelum.service.ExtensionStatus;
@@ -27,7 +26,7 @@ public class RestServiceBuilder implements IExtensionBuilder {
 	}
 	
 	protected Object createRestServiceComponent(ICaelum caelum, boolean testMode) {
-		return new RestService(caelum, new StreamFactory(), new Intervals(), ByteUtils.getInstance(), testMode);
+		return new RestService(caelum, new StreamFactory(), new Intervals(), testMode);
 	}
 	
 	protected Servlet createServletContainer(ResourceConfig rc) {

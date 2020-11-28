@@ -5,15 +5,6 @@ import org.apache.kafka.common.serialization.Serializer;
 import ru.prolib.caelum.lib.ByteUtils;
 
 public class KafkaItemSerializer implements Serializer<KafkaItem> {
-	private final ByteUtils utils;
-	
-	public KafkaItemSerializer(ByteUtils utils) {
-		this.utils = utils;
-	}
-	
-	public KafkaItemSerializer() {
-		this(ByteUtils.getInstance());
-	}
 	
 	@Override
 	public int hashCode() {
@@ -34,7 +25,7 @@ public class KafkaItemSerializer implements Serializer<KafkaItem> {
 	@Override
 	public byte[] serialize(String topic, KafkaItem item) {
 		long value = item.getValue(), volume = item.getVolume();
-		if ( utils.isLongCompact(value, volume) ) {
+		if ( ByteUtils.isLongCompact(value, volume) ) {
 			// value in range of two bytes and volume in range of 6 bits
 			byte buffer[] = new byte[4];
 			buffer[0] = (byte)(0x01 | (volume & 0x3F) << 2);
@@ -46,8 +37,8 @@ public class KafkaItemSerializer implements Serializer<KafkaItem> {
 		}
 		
 		byte value_bytes[] = new byte[8], volume_bytes[] = new byte[8];
-		int value_num_bytes = utils.longToByteArray(value, value_bytes),
-			volume_num_bytes = utils.longToByteArray(volume, volume_bytes);
+		int value_num_bytes = ByteUtils.longToByteArray(value, value_bytes),
+			volume_num_bytes = ByteUtils.longToByteArray(volume, volume_bytes);
 		byte buffer[] = new byte[value_num_bytes + volume_num_bytes + 2];
 		buffer[0] = (byte)(0x02 | (value_num_bytes - 1) << 2 | (volume_num_bytes - 1) << 5);
 		buffer[1] = (byte)(item.getDecimals() | (item.getVolumeDecimals() << 4));

@@ -5,17 +5,12 @@ import java.math.BigDecimal;
 import org.apache.commons.lang3.StringUtils;
 
 public class ByteUtils {
-	private static final ByteUtils instance = new ByteUtils();
 	
-	public static ByteUtils getInstance() {
-		return instance;
-	}
-	
-	public boolean isLongCompact(long value, long volume) {
+	public static boolean isLongCompact(long value, long volume) {
 		return (0xFFFFFFFFFFFFFFC0L & volume) == 0L && (0xFFFFFFFFFFFF0000L & value) == 0L;
 	}
 	
-	public boolean isNumberOfDecimalsFits4Bits(int decimals) {
+	public static boolean isNumberOfDecimalsFits4Bits(int decimals) {
 		if ( decimals < 0 || decimals > 255 ) {
 			throw new IllegalArgumentException("Number of decimals must be in range 0-255 but: " + decimals);
 		}
@@ -32,7 +27,7 @@ public class ByteUtils {
 	 * is less significant byte.
 	 * @return number of significant bytes (at least 1, at most 8)
 	 */
-	public int longToByteArray(long value, byte result[]) {
+	public static int longToByteArray(long value, byte result[]) {
 		int num = 0, empty = (0x8000000000000000L & value) == 0 ? 0 : 0xFF;
 		byte next_byte;
 		for ( int i = 7; i >= 0; i -- ) {
@@ -64,7 +59,7 @@ public class ByteUtils {
 		return num;
 	}
 	
-	public Bytes longToBytes(long value) {
+	public static Bytes longToBytes(long value) {
 		byte bytes[] = new byte[8];
 		int num = longToByteArray(value, bytes);
 		return new Bytes(bytes, 8 - num, num);
@@ -80,7 +75,7 @@ public class ByteUtils {
 	 * is less significant byte.
 	 * @return number of significant bytes (at least 1, at most 4)
 	 */
-	public int intToByteArray(int value, byte result[]) {
+	public static int intToByteArray(int value, byte result[]) {
 		int num = 0, empty = (0x80000000 & value) == 0 ? 0 : 0xFF;
 		byte next_byte;
 		for ( int i = 3; i >= 0; i -- ) {
@@ -119,7 +114,7 @@ public class ByteUtils {
 	 * @param value - value to test
 	 * @return number of bytes needed to store significant data
 	 */
-	public int intSize(int value) {
+	public static int intSize(int value) {
 	    if ( (0x80000000 & value) == 0 ) {
 	        if ( (0xFFFFFF80 & value) == 0 ) return 1;
 	        if ( (0xFFFF8000 & value) == 0 ) return 2;
@@ -132,7 +127,7 @@ public class ByteUtils {
         return 4;
 	}
 	
-	public Bytes intToBytes(int value) {
+	public static Bytes intToBytes(int value) {
 		byte bytes[] = new byte[4];
 		int num = intToByteArray(value, bytes);
 		return new Bytes(bytes, 4 - num, num);
@@ -147,7 +142,7 @@ public class ByteUtils {
 	 * @return extracted value
 	 * @throws IllegalArgumentException num_bytes is greater than 8
 	 */
-	public long bytesToLong(byte bytes[], int offset, int num_bytes) {
+	public static long bytesToLong(byte bytes[], int offset, int num_bytes) {
 		long result = ((bytes[offset] & 0x80) == 0) ? 0x0L : 0xFFFFFFFFFFFFFFFFL;
 		int last = offset + num_bytes;
 		for ( ; offset < last; offset ++ ) {
@@ -157,7 +152,7 @@ public class ByteUtils {
 		return result;
 	}
 	
-	public long centsToLong(BigDecimal value) {
+	public static long centsToLong(BigDecimal value) {
 		return value.multiply(BigDecimal.TEN.pow(value.scale())).longValueExact();
 	}
 	
@@ -223,7 +218,7 @@ public class ByteUtils {
      * @return packed value
      * @throws IllegalArgumentException - value is out of range 0-7 or position out of range 0-5
 	 */
-	public byte intToF3b(byte source, int value, int position) {
+	public static byte intToF3b(byte source, int value, int position) {
         if ( (value & 0xFFFFFFF8) != 0 ) {
             throw new IllegalArgumentException("Value out of range 0-7: " + value);
         }
@@ -243,7 +238,7 @@ public class ByteUtils {
 	 * @return packed value
 	 * @throws IllegalArgumentException - value is out of range 0-7 or position out of range 0-5
 	 */
-    public byte intToF3b(int value, int position) {
+    public static byte intToF3b(int value, int position) {
         if ( (value & 0xFFFFFFF8) != 0 ) {
             throw new IllegalArgumentException("Value out of range 0-7: " + value);
         }
@@ -262,7 +257,7 @@ public class ByteUtils {
      * @return unpacked value
      * @throws IllegalArgumentException - position out of range 0-5
      */
-    public int f3bToInt(byte source, int position) {
+    public static int f3bToInt(byte source, int position) {
         switch ( position ) {
         case 0: return (source & 0b00000111);
         case 1: return (source & 0b00001110) >> 1;
@@ -284,7 +279,7 @@ public class ByteUtils {
      * @return packed value
      * @throws IllegalArgumentException - position out of range 0-7
      */
-    public byte boolToBit(byte source, boolean value, int position) {
+    public static byte boolToBit(byte source, boolean value, int position) {
         if ( (position & 0xFFFFFFF8) != 0 ) {
             throw new IllegalArgumentException("Position out of range 0-7: " + position);
         }
@@ -305,7 +300,7 @@ public class ByteUtils {
      * @return packed value
      * @throws IllegalArgumentException - position out of range 0-7
      */
-    public byte boolToBit(boolean value, int position) {
+    public static byte boolToBit(boolean value, int position) {
         if ( (position & 0xFFFFFFF8) != 0 ) {
             throw new IllegalArgumentException("Position out of range 0-7: " + position);
         }
@@ -321,7 +316,7 @@ public class ByteUtils {
      * @return unpacked value
      * @throws IllegalArgumentException - position out of range 0-7
      */
-    public boolean bitToBool(byte source, int position) {
+    public static boolean bitToBool(byte source, int position) {
         if ( (position & 0xFFFFFFF8) != 0 ) {
             throw new IllegalArgumentException("Position out of range 0-7: " + position);
         }
@@ -341,11 +336,32 @@ public class ByteUtils {
      * @return packed 3-bit field with value size in bytes
      * @throws IllegalArgumentException - size out of range 1-8
      */
-    public byte sizeToF3b(int size, int position) {
+    public static byte sizeToF3b(int size, int position) {
         if ( size < 1 || size > 8 ) {
             throw new IllegalArgumentException("Size out of range 1-8: " + size);
         }
         return intToF3b(size - 1, position);
+    }
+    
+    /**
+     * Pack size between 1 and 8 to 3-bit field.
+     * <p>
+     * Such fields are used to store length of size fields.
+     * Despite 2 bits are enough to pack size of integer there it is 3 bit field
+     * because those fields can be alternatively used for other purposes.
+     * <p>
+     * @param source - source byte to apply changes 
+     * @param size - size to pack. Allowed range is between 1 and 8.
+     * @param position - position of the 3-bit field inside the result byte.
+     * See {@link #intToF3b(int, int)} for details.
+     * @return packed 3-bit field with value size in bytes
+     * @throws IllegalArgumentException - size out of range 1-8
+     */
+    public static byte sizeToF3b(byte source, int size, int position) {
+        if ( size < 1 || size > 8 ) {
+            throw new IllegalArgumentException("Size out of range 1-8: " + size);
+        }
+        return intToF3b(source, size - 1, position);
     }
     
     /**
@@ -356,7 +372,7 @@ public class ByteUtils {
      * See {@link #f3bToInt(byte, int)} for details.
      * @return number of bytes that are represent significant bytes of an integer
      */
-    public int f3bToSize(byte source, int position) {
+    public static int f3bToSize(byte source, int position) {
         return f3bToInt(source, position) + 1;
     }
 

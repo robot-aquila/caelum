@@ -6,15 +6,6 @@ import ru.prolib.caelum.lib.ItemType;
 import ru.prolib.caelum.lib.ByteUtils;
 
 public class KafkaItemDeserializer implements Deserializer<KafkaItem> {
-	private final ByteUtils utils;
-	
-	public KafkaItemDeserializer(ByteUtils utils) {
-		this.utils = utils;
-	}
-	
-	public KafkaItemDeserializer() {
-		this(ByteUtils.getInstance());
-	}
 	
 	@Override
 	public int hashCode() {
@@ -39,14 +30,14 @@ public class KafkaItemDeserializer implements Deserializer<KafkaItem> {
 		case 0:
 			throw new IllegalArgumentException("Record type not supported: 0");
 		case 1:
-			return new KafkaItem(utils.bytesToLong(bytes, 2, 2), (byte)(bytes[1] & 0x0F),
+			return new KafkaItem(ByteUtils.bytesToLong(bytes, 2, 2), (byte)(bytes[1] & 0x0F),
 					(header & 0xFF) >> 2, (byte)((bytes[1] & 0xF0) >> 4),
 					ItemType.LONG_COMPACT);
 		case 2:
 			int value_num_bytes = ((header & 0x1C) >> 2) + 1;
 			int volume_num_bytes = ((header & 0xE0) >> 5) + 1;
-			return new KafkaItem(utils.bytesToLong(bytes, 2, value_num_bytes), (byte)(bytes[1] & 0x0F),
-					utils.bytesToLong(bytes, 2 + value_num_bytes, volume_num_bytes), (byte)((bytes[1] & 0xF0) >> 4),
+			return new KafkaItem(ByteUtils.bytesToLong(bytes, 2, value_num_bytes), (byte)(bytes[1] & 0x0F),
+					ByteUtils.bytesToLong(bytes, 2 + value_num_bytes, volume_num_bytes), (byte)((bytes[1] & 0xF0) >> 4),
 					ItemType.LONG_REGULAR);
 		case 3:
 			throw new IllegalArgumentException("Record type not supported: 3");

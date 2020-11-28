@@ -42,15 +42,14 @@ public class Item implements IItem {
 	 * @throws IllegalArgumentException - if number of decimals are not in allowed range
 	 */
 	public static Item ofDecimax15(String symbol, long time, long value, int decimals, long volume, int volumeDecimals) {
-		ByteUtils utils = ByteUtils.getInstance();
-		if ( ! utils.isNumberOfDecimalsFits4Bits(decimals) ) {
+		if ( ! ByteUtils.isNumberOfDecimalsFits4Bits(decimals) ) {
 			throw new IllegalArgumentException("Number of decimals must be in range 0-15 but: " + decimals);
 		}
-		if ( ! utils.isNumberOfDecimalsFits4Bits(volumeDecimals) ) {
+		if ( ! ByteUtils.isNumberOfDecimalsFits4Bits(volumeDecimals) ) {
 			throw new IllegalArgumentException("Number of volume decimals must be in range 0-15 but: " + volumeDecimals);
 		}
 		return new Item(symbol, time, 0L, value, (byte)decimals, volume, (byte)volumeDecimals,
-				utils.isLongCompact(value, volume) ? ItemType.LONG_COMPACT : ItemType.LONG_REGULAR);
+				ByteUtils.isLongCompact(value, volume) ? ItemType.LONG_COMPACT : ItemType.LONG_REGULAR);
 	}
 
 	@Override

@@ -8,15 +8,6 @@ import org.apache.kafka.common.serialization.Serializer;
 import ru.prolib.caelum.lib.ByteUtils;
 
 public class IntStrMapSerializer implements Serializer<Map<Integer, String>> {
-	private final ByteUtils utils;
-	
-	public IntStrMapSerializer(ByteUtils utils) {
-		this.utils = utils;
-	}
-	
-	public IntStrMapSerializer() {
-		this(ByteUtils.getInstance());
-	}
 	
 	@Override
 	public int hashCode() {
@@ -44,7 +35,7 @@ public class IntStrMapSerializer implements Serializer<Map<Integer, String>> {
 			Map.Entry<Integer, String> entry = it.next();
 			int event_id = entry.getKey();
 			String event_data = entry.getValue();
-			int id_num_bytes = utils.longToByteArray(event_id, id_bytes);
+			int id_num_bytes = ByteUtils.longToByteArray(event_id, id_bytes);
 			byte record[] = null;
 			if ( event_data == null ) {
 				record = new byte[1 + id_num_bytes];
@@ -53,7 +44,7 @@ public class IntStrMapSerializer implements Serializer<Map<Integer, String>> {
 			} else {
 				byte data_bytes[] = event_data.getBytes();
 				int data_size = data_bytes.length;
-				int data_size_num_bytes = utils.longToByteArray(data_size, data_size_bytes);
+				int data_size_num_bytes = ByteUtils.longToByteArray(data_size, data_size_bytes);
 				record = new byte[ 1 + id_num_bytes + data_size_num_bytes + data_size];
 				record[0] = (byte)(id_num_bytes - 1 << 1 | data_size_num_bytes - 1 << 5);
 				int used_length = 1;

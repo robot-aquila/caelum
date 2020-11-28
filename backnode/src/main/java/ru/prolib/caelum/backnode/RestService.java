@@ -72,19 +72,16 @@ public class RestService {
 	private final ICaelum caelum;
 	private final StreamFactory streamFactory;
 	private final Intervals intervals;
-	private final ByteUtils byteUtils;
 	private final boolean testMode;
 	
 	public RestService(ICaelum caelum,
 			StreamFactory streamFactory,
 			Intervals intervals,
-			ByteUtils byteUtils,
 			boolean testMode)
 	{
 		this.caelum = caelum;
 		this.streamFactory = streamFactory;
 		this.intervals = intervals;
-		this.byteUtils = byteUtils;
 		this.testMode = testMode;
 	}
 	
@@ -98,10 +95,6 @@ public class RestService {
 	
 	public Intervals getIntervals() {
 		return intervals;
-	}
-	
-	public ByteUtils getByteUtils() {
-		return byteUtils;
 	}
 	
 	public boolean isTestMode() {
@@ -210,14 +203,14 @@ public class RestService {
 	
 	private long toLong(BigDecimal value) {
 		try {
-			return byteUtils.centsToLong(value);
+			return ByteUtils.centsToLong(value);
 		} catch ( ArithmeticException e ) {
 			throw new BadRequestException("Unsupported decimal size: " + value.toPlainString(), e);
 		}
 	}
 	
 	private byte toNumberOfDecimals(BigDecimal value) {
-		if ( byteUtils.isNumberOfDecimalsFits4Bits(value.scale()) == false ) {
+		if ( ByteUtils.isNumberOfDecimalsFits4Bits(value.scale()) == false ) {
 			throw new BadRequestException("Unsupported number of decimals: " + value.toPlainString());
 		}
 		return (byte) value.scale();

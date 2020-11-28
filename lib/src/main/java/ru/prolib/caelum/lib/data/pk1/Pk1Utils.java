@@ -8,11 +8,6 @@ import ru.prolib.caelum.lib.Bytes;
 import ru.prolib.caelum.lib.data.RawTuple;
 
 public class Pk1Utils {
-    private final ByteUtils byteUtils;
-    
-    public Pk1Utils(ByteUtils byteUtils) {
-        this.byteUtils = byteUtils;
-    }
     
     public Pk1Tuple toTuplePk(RawTuple tuple) {
         Pk1TupleHeaderBuilder headerBuilder = new Pk1TupleHeaderBuilder();
@@ -65,10 +60,10 @@ public class Pk1Utils {
      */
     public int getHeaderSectionSize(Pk1TupleHeader header) {
         return header.canStoreOhlcSizesInHeader() ? 3 : 3
-            + byteUtils.intSize(header.openSize())
-            + byteUtils.intSize(header.highSize())
-            + byteUtils.intSize(header.lowSize())
-            + byteUtils.intSize(header.closeSize());
+            + ByteUtils.intSize(header.openSize())
+            + ByteUtils.intSize(header.highSize())
+            + ByteUtils.intSize(header.lowSize())
+            + ByteUtils.intSize(header.closeSize());
     }
     
     /**
@@ -81,8 +76,8 @@ public class Pk1Utils {
         if ( header.canStoreNumberOfDecimalsInHeader() ) {
             return 0;
         }
-        return byteUtils.intSize(header.decimals())
-            + byteUtils.intSize(header.volumeDecimals());
+        return ByteUtils.intSize(header.decimals())
+            + ByteUtils.intSize(header.volumeDecimals());
     }
     
     /**
@@ -123,31 +118,31 @@ public class Pk1Utils {
     public void packHeaderByte1(Pk1TupleHeader header, ByteBuffer dest) {
         if ( header.canStoreNumberOfDecimalsInHeader() ) {
             dest.put((byte)(
-                    byteUtils.boolToBit(!header.canStoreOhlcSizesInHeader(), 1) |
-                    byteUtils.intToF3b(header.decimals(), 2) |
-                    byteUtils.intToF3b(header.volumeDecimals(), 5)
+                    ByteUtils.boolToBit(!header.canStoreOhlcSizesInHeader(), 1) |
+                    ByteUtils.intToF3b(header.decimals(), 2) |
+                    ByteUtils.intToF3b(header.volumeDecimals(), 5)
                 ));
         } else {
             dest.put((byte)(
-                    byteUtils.boolToBit(true, 0) |
-                    byteUtils.boolToBit(!header.canStoreOhlcSizesInHeader(), 1) |
-                    byteUtils.sizeToF3b(byteUtils.intSize(header.decimals()), 2) |
-                    byteUtils.sizeToF3b(byteUtils.intSize(header.volumeDecimals()), 5)
+                    ByteUtils.boolToBit(true, 0) |
+                    ByteUtils.boolToBit(!header.canStoreOhlcSizesInHeader(), 1) |
+                    ByteUtils.sizeToF3b(ByteUtils.intSize(header.decimals()), 2) |
+                    ByteUtils.sizeToF3b(ByteUtils.intSize(header.volumeDecimals()), 5)
                 ));
         }
     }
 //    
 //    public Pk1TupleHeaderByte1 unpackHeaderByte1(ByteBuffer source) {
 //        byte b = source.get();
-//        boolean canStoreNumberOfDecimalsInHeader = !byteUtils.bitToBool(b, 0),
-//                canStoreOhlcSizesInHeader = !byteUtils.bitToBool(b, 1);
+//        boolean canStoreNumberOfDecimalsInHeader = !ByteUtils.bitToBool(b, 0),
+//                canStoreOhlcSizesInHeader = !ByteUtils.bitToBool(b, 1);
 //        int decimals, volumeDecimals;
 //        if ( canStoreNumberOfDecimalsInHeader ) {
-//            decimals = byteUtils.f3bToInt(b, 2);
-//            volumeDecimals = byteUtils.f3bToInt(b, 5);
+//            decimals = ByteUtils.f3bToInt(b, 2);
+//            volumeDecimals = ByteUtils.f3bToInt(b, 5);
 //        } else {
-//            decimals = byteUtils.f3bToSize(b, 2);
-//            volumeDecimals = byteUtils.f3bToSize(b, 5);
+//            decimals = ByteUtils.f3bToSize(b, 2);
+//            volumeDecimals = ByteUtils.f3bToSize(b, 5);
 //        }
 //        return new Pk1TupleHeaderByte1(
 //                canStoreNumberOfDecimalsInHeader,
@@ -160,15 +155,15 @@ public class Pk1Utils {
     public void packHeaderOpenAndHigh(Pk1TupleHeader header, ByteBuffer dest) {
         if ( header.canStoreOhlcSizesInHeader() ) {
             dest.put((byte)(
-                    byteUtils.boolToBit(header.isHighRelative(), 0) |
-                    byteUtils.sizeToF3b(header.highSize(), 1) |
-                    byteUtils.sizeToF3b(header.openSize(), 5)
+                    ByteUtils.boolToBit(header.isHighRelative(), 0) |
+                    ByteUtils.sizeToF3b(header.highSize(), 1) |
+                    ByteUtils.sizeToF3b(header.openSize(), 5)
                 ));
         } else {
             dest.put((byte)(
-                    byteUtils.boolToBit(header.isHighRelative(), 0) |
-                    byteUtils.sizeToF3b(byteUtils.intSize(header.highSize()), 1) |
-                    byteUtils.sizeToF3b(byteUtils.intSize(header.openSize()), 5)
+                    ByteUtils.boolToBit(header.isHighRelative(), 0) |
+                    ByteUtils.sizeToF3b(ByteUtils.intSize(header.highSize()), 1) |
+                    ByteUtils.sizeToF3b(ByteUtils.intSize(header.openSize()), 5)
                 ));
         }
     }
@@ -176,17 +171,17 @@ public class Pk1Utils {
     public void packHeaderLowAndClose(Pk1TupleHeader header, ByteBuffer dest) {
         if ( header.canStoreOhlcSizesInHeader() ) {
             dest.put((byte)(
-                    byteUtils.boolToBit(header.isCloseRelative(), 0) |
-                    byteUtils.sizeToF3b(header.closeSize(), 1) |
-                    byteUtils.boolToBit(header.isLowRelative(), 4) |
-                    byteUtils.sizeToF3b(header.lowSize(), 5)
+                    ByteUtils.boolToBit(header.isCloseRelative(), 0) |
+                    ByteUtils.sizeToF3b(header.closeSize(), 1) |
+                    ByteUtils.boolToBit(header.isLowRelative(), 4) |
+                    ByteUtils.sizeToF3b(header.lowSize(), 5)
                 ));
         } else {
             dest.put((byte)(
-                    byteUtils.boolToBit(header.isCloseRelative(), 0) |
-                    byteUtils.sizeToF3b(byteUtils.intSize(header.closeSize()), 1) |
-                    byteUtils.boolToBit(header.isLowRelative(), 4) |
-                    byteUtils.sizeToF3b(byteUtils.intSize(header.lowSize()), 5)
+                    ByteUtils.boolToBit(header.isCloseRelative(), 0) |
+                    ByteUtils.sizeToF3b(ByteUtils.intSize(header.closeSize()), 1) |
+                    ByteUtils.boolToBit(header.isLowRelative(), 4) |
+                    ByteUtils.sizeToF3b(ByteUtils.intSize(header.lowSize()), 5)
                 ));
         }
         
@@ -195,18 +190,18 @@ public class Pk1Utils {
     public void packHeaderOhlcSizes(Pk1TupleHeader header, ByteBuffer dest) {
         if ( header.canStoreOhlcSizesInHeader() == false ) {
             // TODO: I would like to do it faster and cheaper
-            dest.put(byteUtils.intToBytes(header.openSize()).copyBytes());
-            dest.put(byteUtils.intToBytes(header.highSize()).copyBytes());
-            dest.put(byteUtils.intToBytes(header.lowSize()).copyBytes());
-            dest.put(byteUtils.intToBytes(header.closeSize()).copyBytes());
+            dest.put(ByteUtils.intToBytes(header.openSize()).copyBytes());
+            dest.put(ByteUtils.intToBytes(header.highSize()).copyBytes());
+            dest.put(ByteUtils.intToBytes(header.lowSize()).copyBytes());
+            dest.put(ByteUtils.intToBytes(header.closeSize()).copyBytes());
         }
     }
     
     public void packDecimals(Pk1TupleHeader header, ByteBuffer dest) {
         if ( header.canStoreNumberOfDecimalsInHeader() == false ) {
             // TODO: I would like to do it faster and cheaper
-            dest.put(byteUtils.intToBytes(header.decimals()).copyBytes());
-            dest.put(byteUtils.intToBytes(header.volumeDecimals()).copyBytes());
+            dest.put(ByteUtils.intToBytes(header.decimals()).copyBytes());
+            dest.put(ByteUtils.intToBytes(header.volumeDecimals()).copyBytes());
         }
     }
     

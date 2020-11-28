@@ -26,4 +26,18 @@ public interface IPk1TupleHeader {
     boolean isCloseRelative();
     int closeSize();
     int volumeSize();
+    
+    /**
+     * Get record total size in bytes.
+     * <p>
+     * @return number of bytes
+     */
+    int recordSize();
+    
+    /**
+     * Get header size in bytes.
+     * <p>
+     * @return number of bytes
+     */
+    int headerSize();
 }

@@ -8,15 +8,6 @@ import ru.prolib.caelum.lib.ByteUtils;
 import ru.prolib.caelum.lib.TupleType;
 
 public class KafkaTupleDeserializer implements Deserializer<KafkaTuple>  {
-	protected final ByteUtils utils;
-	
-	public KafkaTupleDeserializer(ByteUtils utils) {
-		this.utils = utils;
-	}
-	
-	public KafkaTupleDeserializer() {
-		this(ByteUtils.getInstance());
-	}
 	
 	@Override
 	public int hashCode() {
@@ -47,18 +38,18 @@ public class KafkaTupleDeserializer implements Deserializer<KafkaTuple>  {
 				close_num_bytes = ((bytes[3] & 0b11100000) >> 5) + 1,
 				offset = 4;
 			// 1) unpack open value. it's always absolute
-			long open = utils.bytesToLong(bytes, offset, open_num_bytes);
+			long open = ByteUtils.bytesToLong(bytes, offset, open_num_bytes);
 			offset += open_num_bytes;
 			// 2) unpack high value. possible relative
-			long high = utils.bytesToLong(bytes, offset, high_num_bytes);
+			long high = ByteUtils.bytesToLong(bytes, offset, high_num_bytes);
 			if ( (bytes[2] & 0b00010000) != 0 ) high = open - high;
 			offset += high_num_bytes;
 			// 3) unpack low value. possible relative
-			long low = utils.bytesToLong(bytes, offset, low_num_bytes);
+			long low = ByteUtils.bytesToLong(bytes, offset, low_num_bytes);
 			if ( (bytes[3] & 0b00000001) != 0 ) low = open - low;
 			offset += low_num_bytes;
 			// 4) unpack close value. possible relative
-			long close = utils.bytesToLong(bytes, offset, close_num_bytes);
+			long close = ByteUtils.bytesToLong(bytes, offset, close_num_bytes);
 			if ( (bytes[3] & 0b00010000) != 0 ) close = open - close;
 			offset += close_num_bytes;
 			// 5) unpack volume
@@ -67,7 +58,7 @@ public class KafkaTupleDeserializer implements Deserializer<KafkaTuple>  {
 			TupleType type = TupleType.LONG_REGULAR;
 			int actual_volume_num_bytes = bytes.length - offset;
 			if ( actual_volume_num_bytes == volume_num_bytes ) {
-				volume = utils.bytesToLong(bytes, offset, actual_volume_num_bytes);
+				volume = ByteUtils.bytesToLong(bytes, offset, actual_volume_num_bytes);
 			} else {
 				type = TupleType.LONG_WIDEVOL;
 				byte big_volume_bytes[] = new byte[actual_volume_num_bytes];

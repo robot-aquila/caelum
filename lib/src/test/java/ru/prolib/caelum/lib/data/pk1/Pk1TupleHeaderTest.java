@@ -123,5 +123,36 @@ public class Pk1TupleHeaderTest {
                     .toString(), expected, header.canStoreOhlcSizesInHeader());
         }
     }
+    
+    @Test
+    public void testHeaderSize_CanStoreDecimalsInHeader_CanStoreOhlcSizesInHeader() {
+        assertEquals(3, new Pk1TupleHeader(5, 3, 1, false, 1, false, 1, false, 1, 1).headerSize());
+    }
+    
+    @Test
+    public void testHeaderSize_CanNotStoreDecimalsInHeader_CanStoreOhlcSizesInHeader() {
+        assertEquals(5, new Pk1TupleHeader(10, 3, 1, false, 1, false, 1, false, 1, 1).headerSize());
+    }
+    
+    @Test
+    public void testHeaderSize_CanStoreDecimalsInHeader_CanNotStoreOhlcSizesInHeader() {
+        assertEquals(9, new Pk1TupleHeader(5, 3, 1, false, 1, false, 0x00EB12, false, 10, 1).headerSize());
+    }
+    
+    @Test
+    public void testHeaderSize_CanNotStoreDecimalsInHeader_CanNotStoreOhlcSizesInHeader() {
+        assertEquals(10, new Pk1TupleHeader(5, 10, 1, false, 0x1224, false, 1, false, 1, 1).headerSize());
+    }
+    
+    @Test
+    public void testRecordSize() {
+        assertEquals(8, new Pk1TupleHeader(5, 3, 1, false, 1, false, 1, false, 1, 1).recordSize());
+        assertEquals(10, new Pk1TupleHeader(5, 12, 1, false, 1, false, 1, false, 1, 1).recordSize());
+        // os=3, hs=2, ls=1, cs=4
+        // header size=3 + 3 + 2 + 1 + 4 = 13
+        // total: 13 + 182231 + 1511 + 26 + 19009122 + 32 =         
+        assertEquals(19192935, new Pk1TupleHeader(5, 3, 182231, false, 1511, false, 26, false, 19009122, 32).recordSize());
+        assertEquals(19192937, new Pk1TupleHeader(25, 3, 182231, false, 1511, false, 26, false, 19009122, 32).recordSize());
+    }
 
 }

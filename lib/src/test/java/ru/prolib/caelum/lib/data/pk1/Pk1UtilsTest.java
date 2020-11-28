@@ -17,7 +17,7 @@ public class Pk1UtilsTest {
 
     @Before
     public void setUp() throws Exception {
-        service = new Pk1Utils(ByteUtils.getInstance());
+        service = new Pk1Utils();
     }
 
     @Test

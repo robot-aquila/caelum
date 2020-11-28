@@ -49,11 +49,10 @@ public class Tuple implements ITuple {
 	public static Tuple ofDecimax15(String symbol, long time, long open, long high, long low, long close, int decimals,
 			long volume, int volumeDecimals)
 	{
-		ByteUtils utils = ByteUtils.getInstance();
-		if ( ! utils.isNumberOfDecimalsFits4Bits(decimals) ) {
+		if ( ! ByteUtils.isNumberOfDecimalsFits4Bits(decimals) ) {
 			throw new IllegalArgumentException("Number of decimals must be in range 0-15 but: " + decimals);
 		}
-		if ( ! utils.isNumberOfDecimalsFits4Bits(volumeDecimals) ) {
+		if ( ! ByteUtils.isNumberOfDecimalsFits4Bits(volumeDecimals) ) {
 			throw new IllegalArgumentException("Number of volume decimals must be in range 0-15 but: " + volumeDecimals);
 		}
 		return new Tuple(symbol, time, open, high, low, close, (byte)decimals,

@@ -63,7 +63,6 @@ public class RestServiceBuilderTest {
 		assertSame(caelumMock, x.getCaelum());
 		assertNotNull(x.getStreamFactory());
 		assertNotNull(x.getIntervals());
-		assertNotNull(x.getByteUtils());
 		assertTrue(x.isTestMode());
 		
 		actual = service.createRestServiceComponent(caelumMock, false);
@@ -74,7 +73,6 @@ public class RestServiceBuilderTest {
 		assertSame(caelumMock, x.getCaelum());
 		assertNotNull(x.getStreamFactory());
 		assertNotNull(x.getIntervals());
-		assertNotNull(x.getByteUtils());
 		assertFalse(x.isTestMode());
 	}
 	

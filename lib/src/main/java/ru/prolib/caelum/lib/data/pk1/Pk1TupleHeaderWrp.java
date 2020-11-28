@@ -3,18 +3,13 @@ package ru.prolib.caelum.lib.data.pk1;
 import ru.prolib.caelum.lib.ByteUtils;
 
 public class Pk1TupleHeaderWrp implements IPk1TupleHeader {
-    private final ByteUtils byteUtils;
     private final byte[] bytes;
-    private final int startOffset;
+    private final int startOffset, recordSize;
     
-    public Pk1TupleHeaderWrp(ByteUtils byteUtils, byte[] bytes, int startOffset) {
-        this.byteUtils = byteUtils;
+    public Pk1TupleHeaderWrp(byte[] bytes, int startOffset, int recordSize) {
         this.bytes = bytes;
         this.startOffset = startOffset;
-    }
-    
-    public ByteUtils getByteUtils() {
-        return byteUtils;
+        this.recordSize = recordSize;
     }
     
     public byte[] getBytes() {
@@ -24,15 +19,20 @@ public class Pk1TupleHeaderWrp implements IPk1TupleHeader {
     public int getStartOffset() {
         return startOffset;
     }
-
+    
+    @Override
+    public int recordSize() {
+        return recordSize;
+    }
+    
     @Override
     public boolean canStoreNumberOfDecimalsInHeader() {
-        return !byteUtils.bitToBool(bytes[startOffset], 0);
+        return !ByteUtils.bitToBool(bytes[startOffset], 0);
     }
 
     @Override
     public boolean canStoreOhlcSizesInHeader() {
-        return !byteUtils.bitToBool(bytes[startOffset], 1);
+        return !ByteUtils.bitToBool(bytes[startOffset], 1);
     }
     
     /**
@@ -47,82 +47,119 @@ public class Pk1TupleHeaderWrp implements IPk1TupleHeader {
         }
         byte b1 = bytes[startOffset + 1], b2 = bytes[startOffset + 2]; 
         return startOffset + 3
-                + byteUtils.f3bToSize(b1, 1)
-                + byteUtils.f3bToSize(b1, 5)
-                + byteUtils.f3bToSize(b2, 1)
-                + byteUtils.f3bToSize(b2, 5);
+                + ByteUtils.f3bToSize(b1, 1)
+                + ByteUtils.f3bToSize(b1, 5)
+                + ByteUtils.f3bToSize(b2, 1)
+                + ByteUtils.f3bToSize(b2, 5);
     }
 
     @Override
     public int decimals() {
         if ( canStoreNumberOfDecimalsInHeader() ) {
-            return byteUtils.f3bToInt(bytes[startOffset], 2);
+            return ByteUtils.f3bToInt(bytes[startOffset], 2);
         }
-        return (int) byteUtils.bytesToLong(
+        return (int) ByteUtils.bytesToLong(
                 bytes,
                 getDecimalsSectionStartOffset(),
-                byteUtils.f3bToSize(bytes[startOffset], 2)
+                ByteUtils.f3bToSize(bytes[startOffset], 2)
             );
     }
 
     @Override
     public int volumeDecimals() {
         if ( canStoreNumberOfDecimalsInHeader() ) {
-            return byteUtils.f3bToInt(bytes[startOffset], 5);
+            return ByteUtils.f3bToInt(bytes[startOffset], 5);
         }
-        return (int) byteUtils.bytesToLong(
+        return (int) ByteUtils.bytesToLong(
                 bytes,
-                getDecimalsSectionStartOffset() + byteUtils.f3bToSize(bytes[startOffset], 2),
-                byteUtils.f3bToSize(bytes[startOffset], 5)
+                getDecimalsSectionStartOffset() + ByteUtils.f3bToSize(bytes[startOffset], 2),
+                ByteUtils.f3bToSize(bytes[startOffset], 5)
             );
     }
 
     @Override
     public int openSize() {
-        // TODO Auto-generated method stub
-        return 0;
+        if ( canStoreOhlcSizesInHeader() ) {
+            return ByteUtils.f3bToSize(bytes[startOffset + 1], 5);
+        }
+        return (int) ByteUtils.bytesToLong(
+                bytes,
+                startOffset + 3,
+                ByteUtils.f3bToSize(bytes[startOffset + 1], 5)
+            );
     }
 
     @Override
     public boolean isHighRelative() {
-        // TODO Auto-generated method stub
-        return false;
+        return ByteUtils.bitToBool(bytes[startOffset + 1], 0);
     }
 
     @Override
     public int highSize() {
-        // TODO Auto-generated method stub
-        return 0;
+        if ( canStoreOhlcSizesInHeader() ) {
+            return ByteUtils.f3bToSize(bytes[startOffset + 1], 1);
+        }
+        return (int) ByteUtils.bytesToLong(
+                bytes,
+                startOffset + 3 + ByteUtils.f3bToSize(bytes[startOffset + 1], 5),
+                ByteUtils.f3bToSize(bytes[startOffset + 1], 1)
+            );
     }
 
     @Override
     public boolean isLowRelative() {
-        // TODO Auto-generated method stub
-        return false;
+        return ByteUtils.bitToBool(bytes[startOffset + 2], 4);
     }
 
     @Override
     public int lowSize() {
-        // TODO Auto-generated method stub
-        return 0;
+        if ( canStoreOhlcSizesInHeader() ) {
+            return ByteUtils.f3bToSize(bytes[startOffset + 2], 5);
+        }
+        byte b1 = bytes[startOffset + 1];
+        return (int) ByteUtils.bytesToLong(
+                bytes,
+                startOffset + 3 + ByteUtils.f3bToSize(b1, 1) + ByteUtils.f3bToSize(b1, 5),
+                ByteUtils.f3bToSize(bytes[startOffset + 2], 5)
+            );
     }
 
     @Override
     public boolean isCloseRelative() {
-        // TODO Auto-generated method stub
-        return false;
+        return ByteUtils.bitToBool(bytes[startOffset + 2], 0);
     }
 
     @Override
     public int closeSize() {
-        // TODO Auto-generated method stub
-        return 0;
+        if ( canStoreOhlcSizesInHeader() ) {
+            return ByteUtils.f3bToSize(bytes[startOffset + 2], 1);
+        }
+        byte b1 = bytes[startOffset + 1], b2 = bytes[startOffset + 2];
+        return (int) ByteUtils.bytesToLong(
+                bytes,
+                startOffset + 3 + ByteUtils.f3bToSize(b1, 1) + ByteUtils.f3bToSize(b1, 5) + ByteUtils.f3bToSize(b2, 5),
+                ByteUtils.f3bToSize(b2, 1)
+            );
     }
-
+    
+    @Override
+    public int headerSize() {
+        int size = 3;
+        if ( canStoreNumberOfDecimalsInHeader() == false ) {
+            size += ByteUtils.f3bToSize(bytes[startOffset], 2) + ByteUtils.f3bToSize(bytes[startOffset], 5);
+        }
+        if ( canStoreOhlcSizesInHeader() == false ) {
+            byte b1 = bytes[startOffset + 1], b2 = bytes[startOffset + 2];
+            size += ByteUtils.f3bToSize(b1, 1) + ByteUtils.f3bToSize(b1, 5)
+                  + ByteUtils.f3bToSize(b2, 1) + ByteUtils.f3bToSize(b2, 5);
+        }
+        return size;
+    } 
+    
+    
     @Override
     public int volumeSize() {
-        // TODO Auto-generated method stub
-        return 0;
+        return recordSize - headerSize() - openSize() - highSize() - lowSize() - closeSize();
     }
 
 }
