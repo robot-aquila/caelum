@@ -45,7 +45,12 @@ public class Pk1TupleHeaderWrp implements IPk1TupleHeader {
         if ( canStoreOhlcSizesInHeader() ) {
             return startOffset + 3;
         }
-        throw new UnsupportedOperationException();
+        byte b1 = bytes[startOffset + 1], b2 = bytes[startOffset + 2]; 
+        return startOffset + 3
+                + byteUtils.f3bToSize(b1, 1)
+                + byteUtils.f3bToSize(b1, 5)
+                + byteUtils.f3bToSize(b2, 1)
+                + byteUtils.f3bToSize(b2, 5);
     }
 
     @Override
@@ -53,8 +58,11 @@ public class Pk1TupleHeaderWrp implements IPk1TupleHeader {
         if ( canStoreNumberOfDecimalsInHeader() ) {
             return byteUtils.f3bToInt(bytes[startOffset], 2);
         }
-        return (int)
-            byteUtils.bytesToLong(bytes, getDecimalsSectionStartOffset(), byteUtils.f3bToSize(bytes[startOffset], 2));
+        return (int) byteUtils.bytesToLong(
+                bytes,
+                getDecimalsSectionStartOffset(),
+                byteUtils.f3bToSize(bytes[startOffset], 2)
+            );
     }
 
     @Override
@@ -62,7 +70,11 @@ public class Pk1TupleHeaderWrp implements IPk1TupleHeader {
         if ( canStoreNumberOfDecimalsInHeader() ) {
             return byteUtils.f3bToInt(bytes[startOffset], 5);
         }
-        throw new UnsupportedOperationException();
+        return (int) byteUtils.bytesToLong(
+                bytes,
+                getDecimalsSectionStartOffset() + byteUtils.f3bToSize(bytes[startOffset], 2),
+                byteUtils.f3bToSize(bytes[startOffset], 5)
+            );
     }
 
     @Override
