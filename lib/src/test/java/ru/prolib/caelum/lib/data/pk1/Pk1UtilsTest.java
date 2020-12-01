@@ -1,34 +1,40 @@
 package ru.prolib.caelum.lib.data.pk1;
 
 import static org.junit.Assert.*;
+import static org.easymock.EasyMock.*;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 
+import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 
 import ru.prolib.caelum.lib.ByteUtils;
 import ru.prolib.caelum.lib.Bytes;
-import ru.prolib.caelum.lib.data.RawTuple;
+import ru.prolib.caelum.lib.data.TupleData;
 
 public class Pk1UtilsTest {
+    private IMocksControl control;
     private Pk1Utils service;
+    private IPk1TupleHeader headerMock;
 
     @Before
     public void setUp() throws Exception {
+        control = createStrictControl();
+        headerMock = control.createMock(IPk1TupleHeader.class);
         service = new Pk1Utils();
     }
 
     @Test
     public void testToTuplePk_AllOhlcComponentsAbsolute() {
-        RawTuple tuple = new RawTuple(
-                new Bytes(BigInteger.valueOf(17289L).toByteArray()),
-                new Bytes(BigInteger.valueOf(5000009912435L).toByteArray()),
-                new Bytes(BigInteger.valueOf(-98).toByteArray()),
-                new Bytes(BigInteger.valueOf(-23).toByteArray()),
+        TupleData tuple = new TupleData(
+                BigInteger.valueOf(17289L),
+                BigInteger.valueOf(5000009912435L),
+                BigInteger.valueOf(-98),
+                BigInteger.valueOf(-23),
                 4,
-                new Bytes(BigInteger.valueOf(100000L).toByteArray()),
+                BigInteger.valueOf(100000L),
                 6
             );
         
@@ -59,13 +65,13 @@ public class Pk1UtilsTest {
     
     @Test
     public void testToTuplePk_AllOhlcComponentsRelative() {
-        RawTuple tuple = new RawTuple(
-                new Bytes(BigInteger.valueOf(779900071L).toByteArray()),
-                new Bytes(BigInteger.valueOf(779900099L).toByteArray()),
-                new Bytes(BigInteger.valueOf(779899055L).toByteArray()),
-                new Bytes(BigInteger.valueOf(779900080L).toByteArray()),
+        TupleData tuple = new TupleData(
+                BigInteger.valueOf(779900071L),
+                BigInteger.valueOf(779900099L),
+                BigInteger.valueOf(779899055L),
+                BigInteger.valueOf(779900080L),
                 10,
-                new Bytes(BigInteger.valueOf(1000L).toByteArray()),
+                BigInteger.valueOf(1000L),
                 5
             );
         
@@ -95,89 +101,23 @@ public class Pk1UtilsTest {
     }
     
     @Test
-    public void testGetHeaderSectionSize() {
-        assertEquals(3, service.getHeaderSectionSize(Pk1TestUtils.tupleHeaderBuilderRandom()
-                .openSize(1)
-                .highSize(2)
-                .lowSize(3)
-                .closeSize(4)
-                .build()));
-        assertEquals(7, service.getHeaderSectionSize(Pk1TestUtils.tupleHeaderBuilderRandom()
-                .openSize(7)
-                .highSize(8)
-                .lowSize(9)
-                .closeSize(10)
-                .build()));
-        assertEquals(11, service.getHeaderSectionSize(Pk1TestUtils.tupleHeaderBuilderRandom()
-                .openSize(20)   // 1 byte
-                .highSize(200)  // 2 bytes
-                .lowSize(2000)  // 2 bytes
-                .closeSize(200000) // 3 bytes
-                .build()));
-    }
-    
-    @Test
-    public void testGetDecimalsSectionSize() {
-        assertEquals(0, service.getDecimalsSectionSize(Pk1TestUtils.tupleHeaderBuilderRandom()
-                .decimals(3)
-                .volumeDecimals(7)
-                .build()));
-        assertEquals(2, service.getDecimalsSectionSize(Pk1TestUtils.tupleHeaderBuilderRandom()
-                .decimals(-1)
-                .volumeDecimals(25)
-                .build()));
-        assertEquals(0, service.getDecimalsSectionSize(Pk1TestUtils.tupleHeaderBuilderRandom()
-                .decimals(7)
-                .volumeDecimals(7)
-                .build()));
-        assertEquals(3, service.getDecimalsSectionSize(Pk1TestUtils.tupleHeaderBuilderRandom()
-                .decimals(452)
-                .volumeDecimals(3)
-                .build()));
-    }
-    
-    @Test
-    public void testGetOhlcDataSectionSize() {
-        assertEquals(12, service.getOhlcDataSectionSize(Pk1TestUtils.tupleHeaderBuilderRandom()
-                .openSize(5)
-                .highSize(2)
-                .lowSize(3)
-                .closeSize(2)
-                .build()));
-    }
-    
-    @Test
-    public void testGetVolumeDataSectionSize() {
-        assertEquals(7, service.getVolumeDataSectionSize(Pk1TestUtils.tupleHeaderBuilderRandom()
-                .volumeSize(7)
-                .build()));
-    }
-    
-    
-    @Test
-    public void testGetRecordSize() {
-        assertEquals(25, service.getRecordSize(Pk1TestUtils.tupleHeaderBuilderRandom()
-                .decimals(452)
-                .volumeDecimals(3)
-                .openSize(5)
-                .highSize(2)
-                .lowSize(3)
-                .closeSize(2)
-                .volumeSize(7)
-                .build()));
-        
-        // header section = 3
-        // decimals data section = 3
-        // OHLC data section = 12
-        // volume data section = 7 bytes
-    }
-    
-    @Test
     public void testNewByteBuffer() {
         ByteBuffer actual = service.newByteBuffer(16);
         
         assertNotNull(actual);
         assertEquals(16, actual.capacity());
+    }
+    
+    @Test
+    public void testNewByteBufferForRecord() {
+        expect(headerMock.recordSize()).andReturn(34);
+        control.replay();
+        
+        ByteBuffer actual = service.newByteBufferForRecord(headerMock);
+        
+        control.verify();
+        assertNotNull(actual);
+        assertEquals(34, actual.capacity());
     }
     
     @Test
