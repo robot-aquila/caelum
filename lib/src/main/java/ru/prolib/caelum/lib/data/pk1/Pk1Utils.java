@@ -114,19 +114,19 @@ public class Pk1Utils {
     
     public void packHeaderOhlcSizes(IPk1TupleHeader header, ByteBuffer dest) {
         if ( header.canStoreOhlcSizesInHeader() == false ) {
-            // TODO: I would like to do it faster and cheaper
-            dest.put(ByteUtils.intToBytes(header.openSize()).copyBytes());
-            dest.put(ByteUtils.intToBytes(header.highSize()).copyBytes());
-            dest.put(ByteUtils.intToBytes(header.lowSize()).copyBytes());
-            dest.put(ByteUtils.intToBytes(header.closeSize()).copyBytes());
+            Bytes os, hs, ls, cs;
+            dest.put((os = ByteUtils.intToBytes(header.openSize())).getSource(), os.getOffset(), os.getLength());
+            dest.put((hs = ByteUtils.intToBytes(header.highSize())).getSource(), hs.getOffset(), hs.getLength());
+            dest.put((ls = ByteUtils.intToBytes(header.lowSize())).getSource(), ls.getOffset(), ls.getLength());
+            dest.put((cs = ByteUtils.intToBytes(header.closeSize())).getSource(), cs.getOffset(), cs.getLength());
         }
     }
     
     public void packDecimals(IPk1TupleHeader header, ByteBuffer dest) {
         if ( header.canStoreNumberOfDecimalsInHeader() == false ) {
-            // TODO: I would like to do it faster and cheaper
-            dest.put(ByteUtils.intToBytes(header.decimals()).copyBytes());
-            dest.put(ByteUtils.intToBytes(header.volumeDecimals()).copyBytes());
+            Bytes dx, vx;
+            dest.put((dx = ByteUtils.intToBytes(header.decimals())).getSource(), dx.getOffset(), dx.getLength());
+            dest.put((vx = ByteUtils.intToBytes(header.volumeDecimals())).getSource(), vx.getOffset(), vx.getLength());
         }
     }
     

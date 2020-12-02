@@ -2,7 +2,6 @@ package ru.prolib.caelum.lib.data.pk1;
 
 import ru.prolib.caelum.lib.Bytes;
 import ru.prolib.caelum.lib.data.ITupleData;
-import ru.prolib.caelum.lib.data.TupleData;
 
 public class Pk1Packer {
     private final Pk1Utils utils;
@@ -24,7 +23,7 @@ public class Pk1Packer {
         return new Bytes(dest.array());
     }
     
-    public TupleData unpack(Bytes source) {
+    public ITupleData unpack(Bytes source) {
         return null;
     }
     
