@@ -2,6 +2,10 @@ package ru.prolib.caelum.lib.data.pk1;
 
 import java.math.BigInteger;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
 import ru.prolib.caelum.lib.Bytes;
 import ru.prolib.caelum.lib.data.ITupleData;
 
@@ -30,7 +34,7 @@ public class Pk1TupleData implements ITupleData {
                 bytes.getOffset() + header.headerSize() + header.openSize(),
                 header.highSize()
             );
-        return header.isHighRelative() ? open().add(x) : x;
+        return header.isHighRelative() ? open().subtract(x) : x;
     }
 
     @Override
@@ -40,7 +44,7 @@ public class Pk1TupleData implements ITupleData {
                 bytes.getOffset() + header.headerSize() + header.openSize() + header.highSize(),
                 header.lowSize()
             );
-        return header.isLowRelative() ? open().add(x) : x;
+        return header.isLowRelative() ? open().subtract(x) : x;
     }
 
     @Override
@@ -50,7 +54,7 @@ public class Pk1TupleData implements ITupleData {
                 bytes.getOffset() + header.headerSize() + header.openSize() + header.highSize() + header.lowSize(),
                 header.closeSize()
             );
-        return header.isCloseRelative() ? open().add(x) : x;
+        return header.isCloseRelative() ? open().subtract(x) : x;
     }
 
     @Override
@@ -71,6 +75,34 @@ public class Pk1TupleData implements ITupleData {
     @Override
     public int volumeDecimals() {
         return header.volumeDecimals();
+    }
+    
+    @Override
+    public boolean equals(Object other) {
+        if ( other == this ) {
+            return true;
+        }
+        if ( other == null || other.getClass() != Pk1TupleData.class ) {
+            return false;
+        }
+        var o = (Pk1TupleData) other;
+        return new EqualsBuilder()
+                .append(o.header, header)
+                .append(o.bytes, bytes)
+                .build();
+    }
+    
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+                .append("open", open())
+                .append("high", high())
+                .append("low", low())
+                .append("close", close())
+                .append("decimals", decimals())
+                .append("volume", volume())
+                .append("volumeDecimals", volumeDecimals())
+                .build();
     }
 
 }

@@ -139,4 +139,8 @@ public class Pk1Utils {
         dest.put((v = payload.volume()).getSource(), v.getOffset(), v.getLength());
     }
     
+    public IPk1TupleHeader unpackHeader(Bytes bytes) {
+        return new Pk1TupleHeaderWrp(bytes.getSource(), bytes.getOffset(), bytes.getLength() - bytes.getOffset());
+    }
+    
 }

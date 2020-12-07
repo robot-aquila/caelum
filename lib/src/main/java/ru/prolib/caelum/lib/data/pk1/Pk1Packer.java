@@ -10,10 +10,14 @@ public class Pk1Packer {
         this.utils = utils;
     }
     
+    public Pk1Packer() {
+        this(new Pk1Utils());
+    }
+    
     public Bytes pack(ITupleData source) {
         var tuple = utils.toTuplePk(source);
-        var dest = utils.newByteBufferForRecord(tuple.header());
         var header = tuple.header();
+        var dest = utils.newByteBufferForRecord(header);
         utils.packHeaderByte1(header, dest);
         utils.packHeaderOpenAndHigh(header, dest);
         utils.packHeaderLowAndClose(header, dest);
@@ -24,7 +28,8 @@ public class Pk1Packer {
     }
     
     public ITupleData unpack(Bytes source) {
-        return null;
+        return new Pk1TupleData(utils.unpackHeader(source),
+            new Bytes(source.getSource(), source.getOffset(), source.getLength()));
     }
     
 }

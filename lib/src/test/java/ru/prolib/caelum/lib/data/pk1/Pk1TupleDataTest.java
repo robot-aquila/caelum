@@ -77,7 +77,7 @@ public class Pk1TupleDataTest {
         System.arraycopy(ByteUtils.hexStringToByteArr("014A1E"), 0, bytes, 27, 3); // high 84510 = 014A1E
         control.replay();
         
-        assertEquals(BigInteger.valueOf(129707L), service.high());
+        assertEquals(BigInteger.valueOf(-39313L), service.high());
         
         control.verify();
     }
@@ -110,7 +110,7 @@ public class Pk1TupleDataTest {
         System.arraycopy(ByteUtils.hexStringToByteArr("FDD1"), 0, bytes, 55, 2); // low -559 = FDD1
         control.replay();
         
-        assertEquals(BigInteger.valueOf(-383L), service.low());
+        assertEquals(BigInteger.valueOf(735L), service.low());
         
         control.verify();
     }
@@ -146,7 +146,7 @@ public class Pk1TupleDataTest {
         System.arraycopy(ByteUtils.hexStringToByteArr("F2F7A0"), 0, bytes, 22, 3); // close -854112 = F2F7A0
         control.replay();
         
-        assertEquals(BigInteger.valueOf(-854134L), service.close());
+        assertEquals(BigInteger.valueOf(854090L), service.close());
         
         control.verify();
     }
@@ -182,6 +182,26 @@ public class Pk1TupleDataTest {
         assertEquals(3, service.volumeDecimals());
         
         control.verify();
+    }
+    
+    @SuppressWarnings("unlikely-arg-type")
+    @Test
+    public void testEquals_SpecialCases() {
+        assertTrue(service.equals(service));
+        assertFalse(service.equals(this));
+        assertFalse(service.equals(null));
+    }
+    
+    @Test
+    public void testEquals() {
+        Bytes bytesMock1 = control.createMock(Bytes.class);
+        Bytes bytesMock2 = control.createMock(Bytes.class);
+        IPk1TupleHeader headerMock2 = control.createMock(IPk1TupleHeader.class);
+        service = new Pk1TupleData(headerMock, bytesMock1);
+        assertTrue(service.equals(new Pk1TupleData(headerMock, bytesMock1)));
+        assertFalse(service.equals(new Pk1TupleData(headerMock2, bytesMock1)));
+        assertFalse(service.equals(new Pk1TupleData(headerMock, bytesMock2)));
+        assertFalse(service.equals(new Pk1TupleData(headerMock2, bytesMock2)));
     }
     
 }

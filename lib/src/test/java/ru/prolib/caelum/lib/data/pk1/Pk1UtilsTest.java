@@ -434,4 +434,17 @@ public class Pk1UtilsTest {
         assertArrayEquals(ByteUtils.hexStringToByteArr("5529FE95 00FF 092715 00FE2419 008027"), dest.array());
         assertEquals(16, dest.position());
     }
+    
+    @Test
+    public void testUnpackHeader() {
+        Bytes source = new Bytes(new byte[100], 5, 95);
+        
+        Pk1TupleHeaderWrp actual = (Pk1TupleHeaderWrp) service.unpackHeader(source);
+        
+        assertNotNull(actual);
+        assertSame(source.getSource(),actual.getBytes());
+        assertEquals(5, source.getOffset());
+        assertEquals(95, source.getLength());
+    }
+    
 }
