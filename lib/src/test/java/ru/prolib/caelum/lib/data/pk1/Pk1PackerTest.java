@@ -28,35 +28,35 @@ public class Pk1PackerTest {
     }
 
     @Test
-    public void testPack() {
+    public void testPackTuple() {
         var doesNotMatter = BigInteger.ONE;
         var source = new TupleData(doesNotMatter, doesNotMatter, doesNotMatter, doesNotMatter, 0, doesNotMatter, 0);
         var dest = ByteBuffer.allocate(24);
         var payload = tuplePayloadRandom();
         expect(utilsMock.toTuplePk(source)).andReturn(new Pk1Tuple(headerMock, payload));
         expect(utilsMock.newByteBufferForRecord(headerMock)).andReturn(dest);
-        utilsMock.packHeaderByte1(headerMock, dest);
-        utilsMock.packHeaderOpenAndHigh(headerMock, dest);
-        utilsMock.packHeaderLowAndClose(headerMock, dest);
-        utilsMock.packHeaderOhlcSizes(headerMock, dest);
-        utilsMock.packDecimals(headerMock, dest);
-        utilsMock.packPayload(payload, dest);
+        utilsMock.packTupleHeaderByte1(headerMock, dest);
+        utilsMock.packTupleHeaderOpenAndHigh(headerMock, dest);
+        utilsMock.packTupleHeaderLowAndClose(headerMock, dest);
+        utilsMock.packTupleHeaderOhlcSizes(headerMock, dest);
+        utilsMock.packTupleDecimals(headerMock, dest);
+        utilsMock.packTuplePayload(payload, dest);
         control.replay();
         
-        var actual = service.pack(source);
+        var actual = service.packTuple(source);
         
         control.verify();
         assertSame(dest.array(), actual.getSource());
     }
     
     @Test
-    public void testUnpack() {
+    public void testUnpackTuple() {
         byte[] bytes;
         Bytes source = new Bytes(bytes = new byte[100], 25, 40);
-        expect(utilsMock.unpackHeader(source)).andReturn(headerMock);
+        expect(utilsMock.unpackTupleHeader(source)).andReturn(headerMock);
         control.replay();
         
-        var actual = service.unpack(source);
+        var actual = service.unpackTuple(source);
         
         control.verify();
         var expected = new Pk1TupleData(headerMock, new Bytes(bytes, 25, 40));
@@ -64,7 +64,7 @@ public class Pk1PackerTest {
     }
     
     @Test
-    public void testFullCycle_SmallValues() {
+    public void testPackTuple_FullCycle_SmallValues() {
         service = new Pk1Packer();
         var source = new TupleData(
                 BigInteger.valueOf(670294L),
@@ -76,13 +76,13 @@ public class Pk1PackerTest {
                 3
             );
         
-        var actual = service.unpack(service.pack(source));
+        var actual = service.unpackTuple(service.packTuple(source));
         
         assertEquals(source, actual);
     }
     
     @Test
-    public void testFullCycle_BigValues() {
+    public void testPackTuple_FullCycle_BigValues() {
         service = new Pk1Packer();
         var source = new TupleData(
                 BigInteger.valueOf(81230294L).pow(26),
@@ -94,7 +94,7 @@ public class Pk1PackerTest {
                 88919722
             );
         
-        var actual = service.unpack(service.pack(source));
+        var actual = service.unpackTuple(service.packTuple(source));
         
         assertEquals(source, actual);
     }

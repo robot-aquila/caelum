@@ -109,7 +109,7 @@ public class Pk1UtilsTest {
     }
     
     @Test
-    public void testNewByteBufferForRecord() {
+    public void testNewByteBufferForRecord_TupleHeader() {
         expect(headerMock.recordSize()).andReturn(34);
         control.replay();
         
@@ -121,10 +121,10 @@ public class Pk1UtilsTest {
     }
     
     @Test
-    public void testPackHeaderByte1_DecimalsInHeaderAndOhlcSizesInHeader() {
+    public void testPackTupleHeaderByte1_DecimalsInHeaderAndOhlcSizesInHeader() {
         ByteBuffer dest = ByteBuffer.allocate(1);
         
-        service.packHeaderByte1(Pk1TestUtils.tupleHeaderBuilderRandom()
+        service.packTupleHeaderByte1(Pk1TestUtils.tupleHeaderBuilderRandom()
                 .decimals(5)
                 .volumeDecimals(3)
                 .openSize(1)
@@ -141,10 +141,10 @@ public class Pk1UtilsTest {
     }
     
     @Test
-    public void testPackHeaderByte1_DecimalsInHeaderAndOhlcSizesOutside() {
+    public void testPackTupleHeaderByte1_DecimalsInHeaderAndOhlcSizesOutside() {
         ByteBuffer dest = ByteBuffer.allocate(1);
         
-        service.packHeaderByte1(Pk1TestUtils.tupleHeaderBuilderRandom()
+        service.packTupleHeaderByte1(Pk1TestUtils.tupleHeaderBuilderRandom()
                 .decimals(2)
                 .volumeDecimals(0)
                 .openSize(16) // At least one of OHLC component should be longer than 8 bytes
@@ -160,10 +160,10 @@ public class Pk1UtilsTest {
     }
     
     @Test
-    public void testPackHeaderByte1_DecimalsOutsideAndOhlcSizesInHeader() {
+    public void testPackTupleHeaderByte1_DecimalsOutsideAndOhlcSizesInHeader() {
         ByteBuffer dest = ByteBuffer.allocate(1);
         
-        service.packHeaderByte1(Pk1TestUtils.tupleHeaderBuilderRandom()
+        service.packTupleHeaderByte1(Pk1TestUtils.tupleHeaderBuilderRandom()
                 .decimals(256) // At least one of "decimals" should be greater than 7
                 .volumeDecimals(-65590) // ...or be negative
                 .openSize(1)
@@ -179,10 +179,10 @@ public class Pk1UtilsTest {
     }
     
     @Test
-    public void testPackHeaderByte1_DecimalsOutsideAndOhlcSizesOutside() {
+    public void testPackTupleHeaderByte1_DecimalsOutsideAndOhlcSizesOutside() {
         ByteBuffer dest = ByteBuffer.allocate(1);
         
-        service.packHeaderByte1(Pk1TestUtils.tupleHeaderBuilderRandom()
+        service.packTupleHeaderByte1(Pk1TestUtils.tupleHeaderBuilderRandom()
                 .decimals(99881725) // any fantastic scale
                 .volumeDecimals(177855)
                 .openSize(1)
@@ -198,10 +198,10 @@ public class Pk1UtilsTest {
     }
     
     @Test
-    public void testPackHeaderOpenAndHigh_OhlcSizesInHeader() {
+    public void testPackTupleHeaderOpenAndHigh_OhlcSizesInHeader() {
         ByteBuffer dest = ByteBuffer.allocate(1);
         
-        service.packHeaderOpenAndHigh(Pk1TestUtils.tupleHeaderBuilderRandom()
+        service.packTupleHeaderOpenAndHigh(Pk1TestUtils.tupleHeaderBuilderRandom()
                 .openSize(8)
                 .highRelative(true)
                 .highSize(3)
@@ -215,10 +215,10 @@ public class Pk1UtilsTest {
     }
     
     @Test
-    public void testPackHeaderOpenAndHigh_OhlcSizesOutside() {
+    public void testPackTupleHeaderOpenAndHigh_OhlcSizesOutside() {
         ByteBuffer dest = ByteBuffer.allocate(1);
         
-        service.packHeaderOpenAndHigh(Pk1TestUtils.tupleHeaderBuilderRandom()
+        service.packTupleHeaderOpenAndHigh(Pk1TestUtils.tupleHeaderBuilderRandom()
                 .openSize(148290)
                 .highRelative(true)
                 .highSize(2409)
@@ -231,10 +231,10 @@ public class Pk1UtilsTest {
     }
     
     @Test
-    public void testPackHeaderOpenAndHigh_HighIsRelative() {
+    public void testPackTupleHeaderOpenAndHigh_HighIsRelative() {
         ByteBuffer dest = ByteBuffer.allocate(1);
         
-        service.packHeaderOpenAndHigh(Pk1TestUtils.tupleHeaderBuilderRandom()
+        service.packTupleHeaderOpenAndHigh(Pk1TestUtils.tupleHeaderBuilderRandom()
                 .openSize(1)
                 .highRelative(true)
                 .highSize(1)
@@ -247,10 +247,10 @@ public class Pk1UtilsTest {
     }
     
     @Test
-    public void testPackHeaderOpenAndHigh_HighIsAbsolute() {
+    public void testPackTupleHeaderOpenAndHigh_HighIsAbsolute() {
         ByteBuffer dest = ByteBuffer.allocate(1);
         
-        service.packHeaderOpenAndHigh(Pk1TestUtils.tupleHeaderBuilderRandom()
+        service.packTupleHeaderOpenAndHigh(Pk1TestUtils.tupleHeaderBuilderRandom()
                 .openSize(1)
                 .highRelative(false)
                 .highSize(1)
@@ -263,10 +263,10 @@ public class Pk1UtilsTest {
     }
     
     @Test
-    public void testPackHeaderLowAndClose_OhlcSizesInHeader() {
+    public void testPackTupleHeaderLowAndClose_OhlcSizesInHeader() {
         ByteBuffer dest = ByteBuffer.allocate(1);
         
-        service.packHeaderLowAndClose(Pk1TestUtils.tupleHeaderBuilderRandom()
+        service.packTupleHeaderLowAndClose(Pk1TestUtils.tupleHeaderBuilderRandom()
                 .lowRelative(false)
                 .lowSize(5)
                 .closeRelative(false)
@@ -281,10 +281,10 @@ public class Pk1UtilsTest {
     }
     
     @Test
-    public void testPackHeaderLowAndClose_OhlcSizesOutside() {
+    public void testPackTupleHeaderLowAndClose_OhlcSizesOutside() {
         ByteBuffer dest = ByteBuffer.allocate(1);
         
-        service.packHeaderLowAndClose(Pk1TestUtils.tupleHeaderBuilderRandom()
+        service.packTupleHeaderLowAndClose(Pk1TestUtils.tupleHeaderBuilderRandom()
                 .lowRelative(false)
                 .lowSize(596112) 
                 .closeRelative(false)
@@ -298,10 +298,10 @@ public class Pk1UtilsTest {
     }
     
     @Test
-    public void testPackHeaderLowAndClose_LowIsAbsolute() {
+    public void testPackTupleHeaderLowAndClose_LowIsAbsolute() {
         ByteBuffer dest = ByteBuffer.allocate(1);
         
-        service.packHeaderLowAndClose(Pk1TestUtils.tupleHeaderBuilderRandom()
+        service.packTupleHeaderLowAndClose(Pk1TestUtils.tupleHeaderBuilderRandom()
                 .lowRelative(false)
                 .lowSize(1) 
                 .closeRelative(true)
@@ -315,10 +315,10 @@ public class Pk1UtilsTest {
     }
     
     @Test
-    public void testPackHeaderLowAndClose_LowIsRelative() {
+    public void testPackTupleHeaderLowAndClose_LowIsRelative() {
         ByteBuffer dest = ByteBuffer.allocate(1);
         
-        service.packHeaderLowAndClose(Pk1TestUtils.tupleHeaderBuilderRandom()
+        service.packTupleHeaderLowAndClose(Pk1TestUtils.tupleHeaderBuilderRandom()
                 .lowRelative(true)
                 .lowSize(1) 
                 .closeRelative(true)
@@ -332,10 +332,10 @@ public class Pk1UtilsTest {
     }
     
     @Test
-    public void testPackHeaderLowAndClose_CloseIsAbsolute() {
+    public void testPackTupleHeaderLowAndClose_CloseIsAbsolute() {
         ByteBuffer dest = ByteBuffer.allocate(1);
         
-        service.packHeaderLowAndClose(Pk1TestUtils.tupleHeaderBuilderRandom()
+        service.packTupleHeaderLowAndClose(Pk1TestUtils.tupleHeaderBuilderRandom()
                 .lowRelative(true)
                 .lowSize(8) 
                 .closeRelative(false)
@@ -349,10 +349,10 @@ public class Pk1UtilsTest {
     }
     
     @Test
-    public void testPackHeaderLowAndClose_CloseIsRelative() {
+    public void testPackTupleHeaderLowAndClose_CloseIsRelative() {
         ByteBuffer dest = ByteBuffer.allocate(1);
         
-        service.packHeaderLowAndClose(Pk1TestUtils.tupleHeaderBuilderRandom()
+        service.packTupleHeaderLowAndClose(Pk1TestUtils.tupleHeaderBuilderRandom()
                 .lowRelative(true)
                 .lowSize(8) 
                 .closeRelative(true)
@@ -366,10 +366,10 @@ public class Pk1UtilsTest {
     }
     
     @Test
-    public void testPackHeaderOhlcSizes_ShouldPackIfThereIsDedicatedSection() {
+    public void testPackTupleHeaderOhlcSizes_ShouldPackIfThereIsDedicatedSection() {
         ByteBuffer dest = ByteBuffer.allocate(10);
         
-        service.packHeaderOhlcSizes(Pk1TestUtils.tupleHeaderBuilderRandom()
+        service.packTupleHeaderOhlcSizes(Pk1TestUtils.tupleHeaderBuilderRandom()
                 .openSize(0x01D4C0) // 3 bytes
                 .highSize(0x032C) // 2 bytes
                 .lowSize(0x0F) // 1 byte
@@ -381,10 +381,10 @@ public class Pk1UtilsTest {
     }
     
     @Test
-    public void testPackHeaderOhlcSizes_ShouldSkipIfNotNeeded() {
+    public void testPackTupleHeaderOhlcSizes_ShouldSkipIfNotNeeded() {
         ByteBuffer dest = ByteBuffer.allocate(1);
         
-        service.packHeaderOhlcSizes(Pk1TestUtils.tupleHeaderBuilderRandom()
+        service.packTupleHeaderOhlcSizes(Pk1TestUtils.tupleHeaderBuilderRandom()
                 .openSize(8)
                 .highSize(2)
                 .lowSize(1)
@@ -395,10 +395,10 @@ public class Pk1UtilsTest {
     }
     
     @Test
-    public void testPackDecimals_ShouldPackIfThereIsDedicatedSection() {
+    public void testPackTupleDecimals_ShouldPackIfThereIsDedicatedSection() {
         ByteBuffer dest = ByteBuffer.allocate(3);
         
-        service.packDecimals(Pk1TestUtils.tupleHeaderBuilderRandom()
+        service.packTupleDecimals(Pk1TestUtils.tupleHeaderBuilderRandom()
                 .decimals(815)
                 .volumeDecimals(2)
                 .build(), dest);
@@ -408,10 +408,10 @@ public class Pk1UtilsTest {
     }
     
     @Test
-    public void testPackDecimals_ShouldSkipIfNotNeeded() {
+    public void testPackTupleDecimals_ShouldSkipIfNotNeeded() {
         ByteBuffer dest = ByteBuffer.allocate(1);
         
-        service.packDecimals(Pk1TestUtils.tupleHeaderBuilderRandom()
+        service.packTupleDecimals(Pk1TestUtils.tupleHeaderBuilderRandom()
                 .decimals(5)
                 .volumeDecimals(3)
                 .build(), dest);
@@ -420,10 +420,10 @@ public class Pk1UtilsTest {
     }
     
     @Test
-    public void testPackPayload() {
+    public void testPackTuplePayload() {
         ByteBuffer dest = ByteBuffer.allocate(16);
         
-        service.packPayload(new Pk1TuplePayload(
+        service.packTuplePayload(new Pk1TuplePayload(
                 new Bytes(BigInteger.valueOf(0x5529FE95).toByteArray()), // 4 bytes
                 new Bytes(BigInteger.valueOf(0xFF).toByteArray()), // 2 bytes
                 new Bytes(BigInteger.valueOf(0x092715).toByteArray()), // 3 bytes
@@ -436,10 +436,10 @@ public class Pk1UtilsTest {
     }
     
     @Test
-    public void testUnpackHeader() {
+    public void testUnpackTupleHeader() {
         Bytes source = new Bytes(new byte[100], 5, 95);
         
-        Pk1TupleHeaderWrp actual = (Pk1TupleHeaderWrp) service.unpackHeader(source);
+        Pk1TupleHeaderWrp actual = (Pk1TupleHeaderWrp) service.unpackTupleHeader(source);
         
         assertNotNull(actual);
         assertSame(source.getSource(),actual.getBytes());

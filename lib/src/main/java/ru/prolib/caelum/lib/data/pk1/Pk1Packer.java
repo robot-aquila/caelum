@@ -14,21 +14,21 @@ public class Pk1Packer {
         this(new Pk1Utils());
     }
     
-    public Bytes pack(ITupleData source) {
+    public Bytes packTuple(ITupleData source) {
         var tuple = utils.toTuplePk(source);
         var header = tuple.header();
         var dest = utils.newByteBufferForRecord(header);
-        utils.packHeaderByte1(header, dest);
-        utils.packHeaderOpenAndHigh(header, dest);
-        utils.packHeaderLowAndClose(header, dest);
-        utils.packHeaderOhlcSizes(header, dest);
-        utils.packDecimals(header, dest);
-        utils.packPayload(tuple.payload(), dest);
+        utils.packTupleHeaderByte1(header, dest);
+        utils.packTupleHeaderOpenAndHigh(header, dest);
+        utils.packTupleHeaderLowAndClose(header, dest);
+        utils.packTupleHeaderOhlcSizes(header, dest);
+        utils.packTupleDecimals(header, dest);
+        utils.packTuplePayload(tuple.payload(), dest);
         return new Bytes(dest.array());
     }
     
-    public ITupleData unpack(Bytes source) {
-        return new Pk1TupleData(utils.unpackHeader(source),
+    public ITupleData unpackTuple(Bytes source) {
+        return new Pk1TupleData(utils.unpackTupleHeader(source),
             new Bytes(source.getSource(), source.getOffset(), source.getLength()));
     }
     

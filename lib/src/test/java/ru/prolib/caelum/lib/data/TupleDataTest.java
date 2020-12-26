@@ -9,15 +9,7 @@ import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 
-import ru.prolib.caelum.lib.ByteUtils;
-import ru.prolib.caelum.lib.Bytes;
-
 public class TupleDataTest {
-    
-    static Bytes toBytes(String hex) {
-        return ByteUtils.hexStringToBytes(hex);
-    }
-    
     private IMocksControl control;
     private BigInteger open, high, low, close, volume;
     private TupleData service;

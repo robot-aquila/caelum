@@ -60,7 +60,7 @@ public class Pk1Utils {
         return newByteBuffer(header.recordSize());
     }
     
-    public void packHeaderByte1(IPk1TupleHeader header, ByteBuffer dest) {
+    public void packTupleHeaderByte1(IPk1TupleHeader header, ByteBuffer dest) {
         if ( header.canStoreNumberOfDecimalsInHeader() ) {
             dest.put((byte)(
                     ByteUtils.boolToBit(!header.canStoreOhlcSizesInHeader(), 1) |
@@ -77,7 +77,7 @@ public class Pk1Utils {
         }
     }
     
-    public void packHeaderOpenAndHigh(IPk1TupleHeader header, ByteBuffer dest) {
+    public void packTupleHeaderOpenAndHigh(IPk1TupleHeader header, ByteBuffer dest) {
         if ( header.canStoreOhlcSizesInHeader() ) {
             dest.put((byte)(
                     ByteUtils.boolToBit(header.isHighRelative(), 0) |
@@ -93,7 +93,7 @@ public class Pk1Utils {
         }
     }
     
-    public void packHeaderLowAndClose(IPk1TupleHeader header, ByteBuffer dest) {
+    public void packTupleHeaderLowAndClose(IPk1TupleHeader header, ByteBuffer dest) {
         if ( header.canStoreOhlcSizesInHeader() ) {
             dest.put((byte)(
                     ByteUtils.boolToBit(header.isCloseRelative(), 0) |
@@ -112,7 +112,7 @@ public class Pk1Utils {
         
     }
     
-    public void packHeaderOhlcSizes(IPk1TupleHeader header, ByteBuffer dest) {
+    public void packTupleHeaderOhlcSizes(IPk1TupleHeader header, ByteBuffer dest) {
         if ( header.canStoreOhlcSizesInHeader() == false ) {
             Bytes os, hs, ls, cs;
             dest.put((os = ByteUtils.intToBytes(header.openSize())).getSource(), os.getOffset(), os.getLength());
@@ -122,7 +122,7 @@ public class Pk1Utils {
         }
     }
     
-    public void packDecimals(IPk1TupleHeader header, ByteBuffer dest) {
+    public void packTupleDecimals(IPk1TupleHeader header, ByteBuffer dest) {
         if ( header.canStoreNumberOfDecimalsInHeader() == false ) {
             Bytes dx, vx;
             dest.put((dx = ByteUtils.intToBytes(header.decimals())).getSource(), dx.getOffset(), dx.getLength());
@@ -130,7 +130,7 @@ public class Pk1Utils {
         }
     }
     
-    public void packPayload(Pk1TuplePayload payload, ByteBuffer dest) {
+    public void packTuplePayload(Pk1TuplePayload payload, ByteBuffer dest) {
         Bytes o, h, l, c, v;
         dest.put((o = payload.open()).getSource(), o.getOffset(), o.getLength());
         dest.put((h = payload.high()).getSource(), h.getOffset(), h.getLength());
@@ -139,7 +139,7 @@ public class Pk1Utils {
         dest.put((v = payload.volume()).getSource(), v.getOffset(), v.getLength());
     }
     
-    public IPk1TupleHeader unpackHeader(Bytes bytes) {
+    public IPk1TupleHeader unpackTupleHeader(Bytes bytes) {
         return new Pk1TupleHeaderWrp(bytes.getSource(), bytes.getOffset(), bytes.getLength() - bytes.getOffset());
     }
     
