@@ -18,7 +18,7 @@ record Pk1TupleHeader (
 
     @Override
     public boolean canStoreNumberOfDecimalsInHeader() {
-        return decimals >=0 && decimals() <= 7 && volumeDecimals >= 0 && volumeDecimals <= 7;
+        return decimals >=0 && decimals <= 7 && volumeDecimals >= 0 && volumeDecimals <= 7;
     }
     
     @Override

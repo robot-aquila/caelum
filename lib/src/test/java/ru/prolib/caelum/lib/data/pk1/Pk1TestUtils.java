@@ -31,5 +31,14 @@ public class Pk1TestUtils {
                 new Bytes(BigInteger.valueOf(rnd.nextLong()).toByteArray())
             );
     }
+    
+    public static Pk1ItemHeaderBuilder itemHeaderBuilderRandom() {
+        return new Pk1ItemHeaderBuilder()
+            .decimals(2)
+            .volumeDecimals(5)
+            .valueSize(5)
+            .volumeSize(3)
+            .customDataSize(6);
+    }
 
 }

@@ -17,12 +17,10 @@ import ru.prolib.caelum.lib.data.TupleData;
 public class Pk1UtilsTest {
     private IMocksControl control;
     private Pk1Utils service;
-    private IPk1TupleHeader headerMock;
 
     @Before
     public void setUp() throws Exception {
         control = createStrictControl();
-        headerMock = control.createMock(IPk1TupleHeader.class);
         service = new Pk1Utils();
     }
 
@@ -109,7 +107,8 @@ public class Pk1UtilsTest {
     }
     
     @Test
-    public void testNewByteBufferForRecord_TupleHeader() {
+    public void testNewByteBufferForRecord() {
+        IPk1Header headerMock = control.createMock(IPk1Header.class);
         expect(headerMock.recordSize()).andReturn(34);
         control.replay();
         
@@ -135,7 +134,7 @@ public class Pk1UtilsTest {
         
         //       hdr_dcm_ohlc### #hdr_mp_dcm
         byte expected = 0b01110100;
-        //   hdr_dcm_value###   #hdr_mp_ohlc     
+        //  hdr_dcm_volume###   #hdr_mp_ohlc     
         assertEquals(expected, dest.get(0));
         assertEquals(1, dest.position());
     }
@@ -155,7 +154,7 @@ public class Pk1UtilsTest {
         
         //       hdr_dcm_ohlc### #hdr_mp_dcm
         byte expected = 0b00001010;
-        //   hdr_dcm_value###   #hdr_mp_ohlc     
+        //  hdr_dcm_volume###   #hdr_mp_ohlc     
         assertEquals(expected, dest.get(0));
     }
     
@@ -174,7 +173,7 @@ public class Pk1UtilsTest {
         
         //       hdr_dcm_ohlc### #hdr_mp_dcm
         byte expected = 0b01000101; // KIM: sizes are stored reduced by 1
-        //   hdr_dcm_value###   #hdr_mp_ohlc     
+        //  hdr_dcm_volume###   #hdr_mp_ohlc     
         assertEquals(expected, dest.get(0));
     }
     
@@ -193,7 +192,7 @@ public class Pk1UtilsTest {
         
         //       hdr_dcm_ohlc### #hdr_mp_dcm
         byte expected = 0b01001111; // KIM: sizes are stored reduced by 1
-        //   hdr_dcm_value###   #hdr_mp_ohlc     
+        //  hdr_dcm_volume###   #hdr_mp_ohlc     
         assertEquals(expected, dest.get(0));
     }
     
@@ -445,6 +444,82 @@ public class Pk1UtilsTest {
         assertSame(source.getSource(),actual.getBytes());
         assertEquals(5, source.getOffset());
         assertEquals(95, source.getLength());
+    }
+    
+    @Test
+    public void testPackItemHeaderByte1_DecimalsInHeader_SizesInHeader() {
+        ByteBuffer dest = ByteBuffer.allocate(1);
+        
+        service.packItemHeaderByte1(Pk1TestUtils.itemHeaderBuilderRandom()
+                .decimals(5)
+                .volumeDecimals(3)
+                .valueSize(1)
+                .volumeSize(1)
+                .customDataSize(0)
+                .build(), dest);
+        
+        //      hdr_dcm_value### #hdr_mp_dcm
+        byte expected = 0b01110100;
+        //  hdr_dcm_volume###   #hdr_mp_valvol
+        assertEquals(expected, dest.get(0));
+        assertEquals(1, dest.position());
+    }
+    
+    @Test
+    public void testPackItemHeaderByte1_DecimalsInHeader_SizesOutside() {
+        ByteBuffer dest = ByteBuffer.allocate(1);
+        
+        service.packItemHeaderByte1(Pk1TestUtils.itemHeaderBuilderRandom()
+                .decimals(2)
+                .volumeDecimals(7)
+                .valueSize(12)
+                .volumeSize(446)
+                .customDataSize(100)
+                .build(), dest);
+        
+        //            hdr_dcm_value### #hdr_mp_dcm
+        byte expected = (byte)0b11101010;
+        //        hdr_dcm_volume###   #hdr_mp_valvol
+        assertEquals(expected, dest.get(0));
+        assertEquals(1, dest.position());
+    }
+    
+    @Test
+    public void testPackItemHeaderByte1_DecimalsOutside_SizesInHeader() {
+        ByteBuffer dest = ByteBuffer.allocate(1);
+        
+        service.packItemHeaderByte1(Pk1TestUtils.itemHeaderBuilderRandom()
+                .decimals(274) // 2 bytes
+                .volumeDecimals(574100) // 3 bytes
+                .valueSize(2)
+                .volumeSize(5)
+                .customDataSize(100)
+                .build(), dest);
+        
+        //            hdr_dcm_value### #hdr_mp_dcm
+        byte expected = (byte)0b01000101;
+        //        hdr_dcm_volume###   #hdr_mp_valvol
+        assertEquals(expected, dest.get(0));
+        assertEquals(1, dest.position());
+    }
+    
+    @Test
+    public void testPackItemHeaderByte1_DecimalsOutside_SizesOutside() {
+        ByteBuffer dest = ByteBuffer.allocate(1);
+        
+        service.packItemHeaderByte1(Pk1TestUtils.itemHeaderBuilderRandom()
+                .decimals(40021) // 3 bytes
+                .volumeDecimals(26091) // 2 bytes
+                .valueSize(900721) // 3 bytes
+                .volumeSize(0) // 0 bytes
+                .customDataSize(100)
+                .build(), dest);
+        
+        //            hdr_dcm_value### #hdr_mp_dcm
+        byte expected = (byte)0b00101011;
+        //        hdr_dcm_volume###   #hdr_mp_valvol
+        assertEquals(expected, dest.get(0));
+        assertEquals(1, dest.position());
     }
     
 }

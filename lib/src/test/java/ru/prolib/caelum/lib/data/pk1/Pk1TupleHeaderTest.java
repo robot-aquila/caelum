@@ -55,17 +55,17 @@ public class Pk1TupleHeaderTest {
     
     @Test
     public void testEquals() {
-            assertTrue(service.equals(new Pk1TupleHeader(5, 3, 8, true, 7, false, 3, true, 2, 4)));
-            assertFalse(service.equals(new Pk1TupleHeader(6, 3, 8, true, 7, false, 3, true, 2, 4)));
-            assertFalse(service.equals(new Pk1TupleHeader(5, 4, 8, true, 7, false, 3, true, 2, 4)));
-            assertFalse(service.equals(new Pk1TupleHeader(5, 3, 9, true, 7, false, 3, true, 2, 4)));
-            assertFalse(service.equals(new Pk1TupleHeader(5, 3, 8, false, 7, false, 3, true, 2, 4)));
-            assertFalse(service.equals(new Pk1TupleHeader(5, 3, 8, true, 8, false, 3, true, 2, 4)));
-            assertFalse(service.equals(new Pk1TupleHeader(5, 3, 8, true, 7, true, 3, true, 2, 4)));
-            assertFalse(service.equals(new Pk1TupleHeader(5, 3, 8, true, 7, false, 4, true, 2, 4)));
-            assertFalse(service.equals(new Pk1TupleHeader(5, 3, 8, true, 7, false, 3, false, 2, 4)));
-            assertFalse(service.equals(new Pk1TupleHeader(5, 3, 8, true, 7, false, 3, true, 3, 4)));
-            assertFalse(service.equals(new Pk1TupleHeader(5, 3, 8, true, 7, false, 3, true, 2, 5)));
+        assertTrue(service.equals(new Pk1TupleHeader(5, 3, 8, true, 7, false, 3, true, 2, 4)));
+        assertFalse(service.equals(new Pk1TupleHeader(6, 3, 8, true, 7, false, 3, true, 2, 4)));
+        assertFalse(service.equals(new Pk1TupleHeader(5, 4, 8, true, 7, false, 3, true, 2, 4)));
+        assertFalse(service.equals(new Pk1TupleHeader(5, 3, 9, true, 7, false, 3, true, 2, 4)));
+        assertFalse(service.equals(new Pk1TupleHeader(5, 3, 8, false, 7, false, 3, true, 2, 4)));
+        assertFalse(service.equals(new Pk1TupleHeader(5, 3, 8, true, 8, false, 3, true, 2, 4)));
+        assertFalse(service.equals(new Pk1TupleHeader(5, 3, 8, true, 7, true, 3, true, 2, 4)));
+        assertFalse(service.equals(new Pk1TupleHeader(5, 3, 8, true, 7, false, 4, true, 2, 4)));
+        assertFalse(service.equals(new Pk1TupleHeader(5, 3, 8, true, 7, false, 3, false, 2, 4)));
+        assertFalse(service.equals(new Pk1TupleHeader(5, 3, 8, true, 7, false, 3, true, 3, 4)));
+        assertFalse(service.equals(new Pk1TupleHeader(5, 3, 8, true, 7, false, 3, true, 2, 5)));
     }
     
     @Test

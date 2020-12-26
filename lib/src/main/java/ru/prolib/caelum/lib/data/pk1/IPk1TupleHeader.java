@@ -1,6 +1,6 @@
 package ru.prolib.caelum.lib.data.pk1;
 
-public interface IPk1TupleHeader {
+public interface IPk1TupleHeader extends IPk1Header {
     
     /**
      * Test whether number of decimals can be stored in header or additional section should be used?
@@ -26,18 +26,4 @@ public interface IPk1TupleHeader {
     boolean isCloseRelative();
     int closeSize();
     int volumeSize();
-    
-    /**
-     * Get record total size in bytes.
-     * <p>
-     * @return number of bytes
-     */
-    int recordSize();
-    
-    /**
-     * Get header size in bytes.
-     * <p>
-     * @return number of bytes
-     */
-    int headerSize();
 }

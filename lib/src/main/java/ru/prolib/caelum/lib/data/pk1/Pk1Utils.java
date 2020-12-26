@@ -56,7 +56,7 @@ public class Pk1Utils {
         return ByteBuffer.allocate(size);
     }
     
-    public ByteBuffer newByteBufferForRecord(IPk1TupleHeader header) {
+    public ByteBuffer newByteBufferForRecord(IPk1Header header) {
         return newByteBuffer(header.recordSize());
     }
     
@@ -75,6 +75,24 @@ public class Pk1Utils {
                     ByteUtils.sizeToF3b(ByteUtils.intSize(header.volumeDecimals()), 5)
                 ));
         }
+    }
+    
+    public void packItemHeaderByte1(IPk1ItemHeader header, ByteBuffer dest) {
+        if ( header.canStoreNumberOfDecimalsInHeader() ) {
+            dest.put((byte)(
+                    ByteUtils.boolToBit(!header.canStoreSizesInHeader(), 1) |
+                    ByteUtils.intToF3b(header.decimals(), 2) |
+                    ByteUtils.intToF3b(header.volumeDecimals(), 5)
+                ));
+        } else {
+            dest.put((byte)(
+                    ByteUtils.boolToBit(true, 0) |
+                    ByteUtils.boolToBit(!header.canStoreSizesInHeader(), 1) |
+                    ByteUtils.sizeToF3b(ByteUtils.intSize(header.decimals()), 2) |
+                    ByteUtils.sizeToF3b(ByteUtils.intSize(header.volumeDecimals()), 5)
+                ));
+        }
+        
     }
     
     public void packTupleHeaderOpenAndHigh(IPk1TupleHeader header, ByteBuffer dest) {

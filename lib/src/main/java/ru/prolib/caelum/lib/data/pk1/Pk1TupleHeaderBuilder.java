@@ -1,6 +1,5 @@
 package ru.prolib.caelum.lib.data.pk1;
 
-
 import java.util.Objects;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -88,7 +87,7 @@ public class Pk1TupleHeaderBuilder {
     
     @Override
     public boolean equals(Object other) {
-        if  (other == this ) {
+        if  ( other == this ) {
             return true;
         }
         if ( other == null || other.getClass() != Pk1TupleHeaderBuilder.class ) {
