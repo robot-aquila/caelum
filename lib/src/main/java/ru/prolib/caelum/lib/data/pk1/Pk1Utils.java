@@ -209,6 +209,19 @@ public class Pk1Utils {
         }
     }
     
+    public void packItemPayload(Pk1ItemPayload payload, ByteBuffer dest) {
+        Bytes value = payload.value(), volume = payload.volume(), customData = payload.customData();
+        if ( value != null ) {
+            dest.put(value.getSource(), value.getOffset(), value.getLength());
+        }
+        if ( volume != null ) {
+            dest.put(volume.getSource(), volume.getOffset(), volume.getLength());
+        }
+        if ( customData != null ) {
+            dest.put(customData.getSource(), customData.getOffset(), customData.getLength());
+        }
+    }
+    
     public Pk1Item toPk1Item(IItemData item) {
         Bytes valueBytes = null, volumeBytes = null, customDataBytes = item.customData();
         if ( item.value() != null ) {

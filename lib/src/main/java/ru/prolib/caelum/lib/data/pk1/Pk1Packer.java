@@ -1,6 +1,7 @@
 package ru.prolib.caelum.lib.data.pk1;
 
 import ru.prolib.caelum.lib.Bytes;
+import ru.prolib.caelum.lib.data.IItemData;
 import ru.prolib.caelum.lib.data.ITupleData;
 
 public class Pk1Packer {
@@ -30,6 +31,22 @@ public class Pk1Packer {
     public ITupleData unpackTuple(Bytes source) {
         return new Pk1TupleData(utils.unpackTupleHeader(source),
             new Bytes(source.getSource(), source.getOffset(), source.getLength()));
+    }
+    
+    public Bytes packItem(IItemData source) {
+        var item = utils.toPk1Item(source);
+        var header = item.header();
+        var dest = utils.newByteBufferForRecord(header);
+        utils.packItemHeaderByte1(header, dest);
+        utils.packItemHeaderValVol(header, dest);
+        utils.packItemHeaderSizes(header, dest);
+        utils.packItemHeaderDecimals(header, dest);
+        utils.packItemPayload(item.payload(), dest);
+        return new Bytes(dest.array());
+    }
+    
+    public IItemData unpackItem(Bytes source) {
+        return null;
     }
     
 }

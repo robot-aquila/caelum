@@ -838,4 +838,65 @@ public class Pk1UtilsTest {
         assertEquals(expected, actual);
     }
     
+    @Test
+    public void testPackItemPayload_AllComponentsAreDefined() {
+        ByteBuffer dest = ByteBuffer.allocate(12);
+        
+        service.packItemPayload(new Pk1ItemPayload(
+                new Bytes(BigInteger.valueOf(0x208711L).toByteArray()),
+                new Bytes(BigInteger.valueOf(0x5524BEL).toByteArray()),
+                new Bytes(ByteUtils.hexStringToByteArr("AF123619EED0"))
+            ), dest);
+        
+        assertArrayEquals(ByteUtils.hexStringToByteArr("208711 5524BE AF123619EED0"), dest.array());
+    }
+    
+    @Test
+    public void testPackItemPayload_ValueNotDefined() {
+        ByteBuffer dest = ByteBuffer.allocate(9);
+        
+        service.packItemPayload(new Pk1ItemPayload(
+                null,
+                new Bytes(BigInteger.valueOf(0x5524BEL).toByteArray()),
+                new Bytes(ByteUtils.hexStringToByteArr("AF123619EED0"))
+            ), dest);
+        
+        assertArrayEquals(ByteUtils.hexStringToByteArr("5524BE AF123619EED0"), dest.array());
+    }
+    
+    @Test
+    public void testPackItemPayload_VolumeNotDefined() {
+        ByteBuffer dest = ByteBuffer.allocate(9);
+        
+        service.packItemPayload(new Pk1ItemPayload(
+                new Bytes(BigInteger.valueOf(0x208711L).toByteArray()),
+                null,
+                new Bytes(ByteUtils.hexStringToByteArr("AF123619EED0"))
+            ), dest);
+        
+        assertArrayEquals(ByteUtils.hexStringToByteArr("208711 AF123619EED0"), dest.array());
+    }
+    
+    @Test
+    public void testPackItemPayload_CustomDataNotDefined() {
+        ByteBuffer dest = ByteBuffer.allocate(6);
+        
+        service.packItemPayload(new Pk1ItemPayload(
+                new Bytes(BigInteger.valueOf(0x208711L).toByteArray()),
+                new Bytes(BigInteger.valueOf(0x5524BEL).toByteArray()),
+                null
+            ), dest);
+        
+        assertArrayEquals(ByteUtils.hexStringToByteArr("208711 5524BE"), dest.array());
+    }
+    
+    @Test
+    public void testPackItemPayload_NoComponentsDefined() {
+        ByteBuffer dest = ByteBuffer.allocate(10);
+        
+        service.packItemPayload(new Pk1ItemPayload(null, null, null), dest);
+        
+        assertEquals(0, dest.position());
+    }
+    
 }

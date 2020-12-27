@@ -40,5 +40,14 @@ public class Pk1TestUtils {
             .volumeSize(3)
             .customDataSize(6);
     }
+    
+    public static Pk1ItemPayload itemPayloadRandom() {
+        var rnd = ThreadLocalRandom.current();
+        return new Pk1ItemPayload(
+                new Bytes(BigInteger.valueOf(rnd.nextLong()).toByteArray()),
+                new Bytes(BigInteger.valueOf(rnd.nextLong()).toByteArray()),
+                new Bytes(12)
+            );
+    }
 
 }

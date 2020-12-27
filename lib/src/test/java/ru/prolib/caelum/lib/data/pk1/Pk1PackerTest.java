@@ -8,22 +8,26 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import org.easymock.IMocksControl;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import ru.prolib.caelum.lib.Bytes;
+import ru.prolib.caelum.lib.data.ItemData;
 import ru.prolib.caelum.lib.data.TupleData;
 
 public class Pk1PackerTest {
     private IMocksControl control;
     private Pk1Utils utilsMock;
-    private IPk1TupleHeader headerMock;
+    private IPk1TupleHeader tupleHeaderMock;
+    private IPk1ItemHeader itemHeaderMock;
     private Pk1Packer service;
 
     @Before
     public void setUp() throws Exception {
         control = createStrictControl();
         utilsMock = control.createMock(Pk1Utils.class);
-        headerMock = control.createMock(IPk1TupleHeader.class);
+        tupleHeaderMock = control.createMock(IPk1TupleHeader.class);
+        itemHeaderMock = control.createMock(IPk1ItemHeader.class);
         service = new Pk1Packer(utilsMock);
     }
 
@@ -33,13 +37,13 @@ public class Pk1PackerTest {
         var source = new TupleData(doesNotMatter, doesNotMatter, doesNotMatter, doesNotMatter, 0, doesNotMatter, 0);
         var dest = ByteBuffer.allocate(24);
         var payload = tuplePayloadRandom();
-        expect(utilsMock.toPk1Tuple(source)).andReturn(new Pk1Tuple(headerMock, payload));
-        expect(utilsMock.newByteBufferForRecord(headerMock)).andReturn(dest);
-        utilsMock.packTupleHeaderByte1(headerMock, dest);
-        utilsMock.packTupleHeaderOpenAndHigh(headerMock, dest);
-        utilsMock.packTupleHeaderLowAndClose(headerMock, dest);
-        utilsMock.packTupleHeaderOhlcSizes(headerMock, dest);
-        utilsMock.packTupleHeaderDecimals(headerMock, dest);
+        expect(utilsMock.toPk1Tuple(source)).andReturn(new Pk1Tuple(tupleHeaderMock, payload));
+        expect(utilsMock.newByteBufferForRecord(tupleHeaderMock)).andReturn(dest);
+        utilsMock.packTupleHeaderByte1(tupleHeaderMock, dest);
+        utilsMock.packTupleHeaderOpenAndHigh(tupleHeaderMock, dest);
+        utilsMock.packTupleHeaderLowAndClose(tupleHeaderMock, dest);
+        utilsMock.packTupleHeaderOhlcSizes(tupleHeaderMock, dest);
+        utilsMock.packTupleHeaderDecimals(tupleHeaderMock, dest);
         utilsMock.packTuplePayload(payload, dest);
         control.replay();
         
@@ -53,13 +57,13 @@ public class Pk1PackerTest {
     public void testUnpackTuple() {
         byte[] bytes;
         Bytes source = new Bytes(bytes = new byte[100], 25, 40);
-        expect(utilsMock.unpackTupleHeader(source)).andReturn(headerMock);
+        expect(utilsMock.unpackTupleHeader(source)).andReturn(tupleHeaderMock);
         control.replay();
         
         var actual = service.unpackTuple(source);
         
         control.verify();
-        var expected = new Pk1TupleData(headerMock, new Bytes(bytes, 25, 40));
+        var expected = new Pk1TupleData(tupleHeaderMock, new Bytes(bytes, 25, 40));
         assertEquals(expected, actual);
     }
     
@@ -99,4 +103,42 @@ public class Pk1PackerTest {
         assertEquals(source, actual);
     }
     
+    @Test
+    public void testPackItem() {
+        var doesNotMatter = BigInteger.ONE;
+        var source = new ItemData(doesNotMatter, 0, doesNotMatter, 0, null);
+        var dest = ByteBuffer.allocate(12);
+        var payload = itemPayloadRandom();
+        expect(utilsMock.toPk1Item(source)).andReturn(new Pk1Item(itemHeaderMock, payload));
+        expect(utilsMock.newByteBufferForRecord(itemHeaderMock)).andReturn(dest);
+        utilsMock.packItemHeaderByte1(itemHeaderMock, dest);
+        utilsMock.packItemHeaderValVol(itemHeaderMock, dest);
+        utilsMock.packItemHeaderSizes(itemHeaderMock, dest);
+        utilsMock.packItemHeaderDecimals(itemHeaderMock, dest);
+        utilsMock.packItemPayload(payload, dest);
+        control.replay();
+        
+        var actual = service.packItem(source);
+        
+        control.verify();
+        assertSame(dest.array(), actual.getSource());
+    }
+    
+    @Ignore
+    @Test
+    public void testUnpackItem() {
+        fail();
+    }
+    
+    @Ignore
+    @Test
+    public void testPackItem_FullCycle_SmallValues() {
+        fail();
+    }
+    
+    @Ignore
+    @Test
+    public void testPackItem_FullCycle_BigValues() {
+        fail();
+    }
 }
