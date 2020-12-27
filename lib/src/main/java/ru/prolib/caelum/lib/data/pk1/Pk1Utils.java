@@ -5,11 +5,12 @@ import java.nio.ByteBuffer;
 
 import ru.prolib.caelum.lib.ByteUtils;
 import ru.prolib.caelum.lib.Bytes;
+import ru.prolib.caelum.lib.data.IItemData;
 import ru.prolib.caelum.lib.data.ITupleData;
 
 public class Pk1Utils {
     
-    public Pk1Tuple toTuplePk(ITupleData tuple) {
+    public Pk1Tuple toPk1Tuple(ITupleData tuple) {
         Pk1TupleHeaderBuilder headerBuilder = new Pk1TupleHeaderBuilder();
         BigInteger o = tuple.open(), h = tuple.high(), l = tuple.low(), c = tuple.close(), v = tuple.volume();
         byte[]
@@ -206,6 +207,24 @@ public class Pk1Utils {
             dest.put((dx = ByteUtils.intToBytes(header.decimals())).getSource(), dx.getOffset(), dx.getLength());
             dest.put((vx = ByteUtils.intToBytes(header.volumeDecimals())).getSource(), vx.getOffset(), vx.getLength());
         }
+    }
+    
+    public Pk1Item toPk1Item(IItemData item) {
+        Bytes valueBytes = null, volumeBytes = null, customDataBytes = item.customData();
+        if ( item.value() != null ) {
+            valueBytes = new Bytes(item.value().toByteArray());
+        }
+        if ( BigInteger.ZERO.equals(item.volume()) == false ) {
+            volumeBytes = new Bytes(item.volume().toByteArray());
+        }
+        return new Pk1Item(new Pk1ItemHeaderBuilder()
+                .decimals(item.decimals())
+                .volumeDecimals(item.volumeDecimals())
+                .valueSize(valueBytes == null ? 0 : valueBytes.getLength())
+                .volumeSize(volumeBytes == null ? 0 : volumeBytes.getLength())
+                .customDataSize(customDataBytes == null ? 0 : customDataBytes.getLength())
+                .build(),
+                new Pk1ItemPayload(valueBytes, volumeBytes, customDataBytes));
     }
     
 }

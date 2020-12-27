@@ -15,7 +15,7 @@ public class Pk1Packer {
     }
     
     public Bytes packTuple(ITupleData source) {
-        var tuple = utils.toTuplePk(source);
+        var tuple = utils.toPk1Tuple(source);
         var header = tuple.header();
         var dest = utils.newByteBufferForRecord(header);
         utils.packTupleHeaderByte1(header, dest);

@@ -14,7 +14,7 @@ public class KafkaRawTupleSerializer implements Serializer<TupleData> {
 
 	@Override
 	public byte[] serialize(String topic, TupleData tuple) {
-	    var pk = utils.toTuplePk(tuple);
+	    var pk = utils.toPk1Tuple(tuple);
 		
 		// TODO Auto-generated method stub
 		return null;

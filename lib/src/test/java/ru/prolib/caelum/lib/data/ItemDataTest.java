@@ -37,6 +37,13 @@ public class ItemDataTest {
         assertSame(customData, service.customData());
     }
     
+    @Test
+    public void testCtor_ShouldThrowIfVolumeIsNull() {
+        NullPointerException e = assertThrows(NullPointerException.class,
+                () -> new ItemData(value, 3, null, 5, customData));
+        assertEquals("Volume cannot be null", e.getMessage());
+    }
+    
     @SuppressWarnings("unlikely-arg-type")
     @Test
     public void testEquals_SpecialCases() {

@@ -33,7 +33,7 @@ public class Pk1PackerTest {
         var source = new TupleData(doesNotMatter, doesNotMatter, doesNotMatter, doesNotMatter, 0, doesNotMatter, 0);
         var dest = ByteBuffer.allocate(24);
         var payload = tuplePayloadRandom();
-        expect(utilsMock.toTuplePk(source)).andReturn(new Pk1Tuple(headerMock, payload));
+        expect(utilsMock.toPk1Tuple(source)).andReturn(new Pk1Tuple(headerMock, payload));
         expect(utilsMock.newByteBufferForRecord(headerMock)).andReturn(dest);
         utilsMock.packTupleHeaderByte1(headerMock, dest);
         utilsMock.packTupleHeaderOpenAndHigh(headerMock, dest);

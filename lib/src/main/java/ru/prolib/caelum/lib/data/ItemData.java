@@ -1,6 +1,7 @@
 package ru.prolib.caelum.lib.data;
 
 import java.math.BigInteger;
+import java.util.Objects;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 
@@ -13,6 +14,10 @@ public record ItemData (
         int volumeDecimals,
         Bytes customData) implements IItemData
 {
+    public ItemData {
+        Objects.requireNonNull(volume, "Volume cannot be null");
+    }
+    
     @Override
     public boolean equals(Object other) {
         if ( other == this ) {

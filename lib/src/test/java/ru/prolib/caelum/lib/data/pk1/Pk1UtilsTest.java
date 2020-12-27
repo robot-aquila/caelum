@@ -5,6 +5,7 @@ import static org.easymock.EasyMock.*;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.easymock.IMocksControl;
 import org.junit.Before;
@@ -12,6 +13,7 @@ import org.junit.Test;
 
 import ru.prolib.caelum.lib.ByteUtils;
 import ru.prolib.caelum.lib.Bytes;
+import ru.prolib.caelum.lib.data.ItemData;
 import ru.prolib.caelum.lib.data.TupleData;
 
 public class Pk1UtilsTest {
@@ -25,7 +27,7 @@ public class Pk1UtilsTest {
     }
 
     @Test
-    public void testToTuplePk_AllOhlcComponentsAbsolute() {
+    public void testToPk1Tuple_AllOhlcComponentsAbsolute() {
         TupleData tuple = new TupleData(
                 BigInteger.valueOf(17289L),
                 BigInteger.valueOf(5000009912435L),
@@ -36,7 +38,7 @@ public class Pk1UtilsTest {
                 6
             );
         
-        Pk1Tuple actual = service.toTuplePk(tuple);
+        Pk1Tuple actual = service.toPk1Tuple(tuple);
         
         assertEquals(new Pk1Tuple(
                 new Pk1TupleHeaderBuilder()
@@ -62,7 +64,7 @@ public class Pk1UtilsTest {
     }
     
     @Test
-    public void testToTuplePk_AllOhlcComponentsRelative() {
+    public void testToPk1Tuple_AllOhlcComponentsRelative() {
         TupleData tuple = new TupleData(
                 BigInteger.valueOf(779900071L),
                 BigInteger.valueOf(779900099L),
@@ -73,7 +75,7 @@ public class Pk1UtilsTest {
                 5
             );
         
-        Pk1Tuple actual = service.toTuplePk(tuple);
+        Pk1Tuple actual = service.toPk1Tuple(tuple);
         
         assertEquals(new Pk1Tuple(
                 new Pk1TupleHeaderBuilder()
@@ -716,6 +718,124 @@ public class Pk1UtilsTest {
         
         assertArrayEquals(ByteUtils.hexStringToByteArr("05 0512"), dest.array());
         assertEquals(3, dest.position());
+    }
+    
+    @Test
+    public void testToPk1Item_AllComponentsDefined() {
+        Bytes customData = new Bytes(25);
+        ThreadLocalRandom.current().nextBytes(customData.getSource());
+        var item = new ItemData(
+                BigInteger.valueOf(60008261L),
+                5,
+                BigInteger.valueOf(10000L),
+                3,
+                customData
+            );
+        
+        var actual = service.toPk1Item(item);
+        
+        var expected = new Pk1Item(new Pk1ItemHeaderBuilder()
+                .decimals(5)
+                .volumeDecimals(3)
+                .valueSize(4)
+                .volumeSize(2)
+                .customDataSize(25)
+                .build(),
+                new Pk1ItemPayload(
+                        new Bytes(BigInteger.valueOf(60008261L).toByteArray()),
+                        new Bytes(BigInteger.valueOf(10000L).toByteArray()),
+                        customData
+                    )
+            );
+        assertEquals(expected, actual);
+    }
+    
+    @Test
+    public void testToPk1Item_ValueNotDefined() {
+        Bytes customData = new Bytes(12);
+        ThreadLocalRandom.current().nextBytes(customData.getSource());
+        var item = new ItemData(
+                null,
+                2,
+                BigInteger.valueOf(4567L),
+                6,
+                customData
+            );
+        
+        var actual = service.toPk1Item(item);
+        
+        var expected = new Pk1Item(new Pk1ItemHeaderBuilder()
+                .decimals(2)
+                .volumeDecimals(6)
+                .valueSize(0)
+                .volumeSize(2)
+                .customDataSize(12)
+                .build(),
+                new Pk1ItemPayload(
+                        null,
+                        new Bytes(BigInteger.valueOf(4567).toByteArray()),
+                        customData
+                    )
+            );
+        assertEquals(expected, actual);
+    }
+    
+    @Test
+    public void testToPk1Item_VolumeIsZero() {
+        Bytes customData = new Bytes(15);
+        ThreadLocalRandom.current().nextBytes(customData.getSource());
+        var item = new ItemData(
+                BigInteger.valueOf(115L),
+                2,
+                BigInteger.ZERO,
+                7,
+                customData
+            );
+        
+        var actual = service.toPk1Item(item);
+        
+        var expected = new Pk1Item(new Pk1ItemHeaderBuilder()
+                .decimals(2)
+                .volumeDecimals(7)
+                .valueSize(1)
+                .volumeSize(0)
+                .customDataSize(15)
+                .build(),
+                new Pk1ItemPayload(
+                        new Bytes(BigInteger.valueOf(115L).toByteArray()),
+                        null,
+                        customData
+                    )
+            );
+        assertEquals(expected, actual);
+    }
+    
+    @Test
+    public void testToPk1Item_CustomDataNotDefined() {
+        var item = new ItemData(
+                BigInteger.valueOf(78992L),
+                5,
+                BigInteger.valueOf(112L),
+                3,
+                null
+            );
+        
+        var actual = service.toPk1Item(item);
+        
+        var expected = new Pk1Item(new Pk1ItemHeaderBuilder()
+                .decimals(5)
+                .volumeDecimals(3)
+                .valueSize(3)
+                .volumeSize(1)
+                .customDataSize(0)
+                .build(),
+                new Pk1ItemPayload(
+                        new Bytes(BigInteger.valueOf(78992L).toByteArray()),
+                        new Bytes(BigInteger.valueOf(112L).toByteArray()),
+                        null
+                    )
+            );
+        assertEquals(expected, actual);
     }
     
 }

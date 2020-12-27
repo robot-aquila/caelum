@@ -3,11 +3,11 @@ package ru.prolib.caelum.lib.data.pk1;
 import java.util.Objects;
 
 /**
- * Structure to combine both Pk1 tuple header and data.
+ * Structure to combine both Pk1 item header and data.
  */
-record Pk1Tuple (IPk1TupleHeader header, Pk1TuplePayload payload) {
+record Pk1Item (IPk1ItemHeader header, Pk1ItemPayload payload) {
     
-    public Pk1Tuple {
+    public Pk1Item {
         Objects.requireNonNull(header);
         Objects.requireNonNull(payload);
     }
