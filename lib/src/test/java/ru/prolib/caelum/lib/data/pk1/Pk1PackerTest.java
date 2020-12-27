@@ -39,7 +39,7 @@ public class Pk1PackerTest {
         utilsMock.packTupleHeaderOpenAndHigh(headerMock, dest);
         utilsMock.packTupleHeaderLowAndClose(headerMock, dest);
         utilsMock.packTupleHeaderOhlcSizes(headerMock, dest);
-        utilsMock.packTupleDecimals(headerMock, dest);
+        utilsMock.packTupleHeaderDecimals(headerMock, dest);
         utilsMock.packTuplePayload(payload, dest);
         control.replay();
         

@@ -394,10 +394,10 @@ public class Pk1UtilsTest {
     }
     
     @Test
-    public void testPackTupleDecimals_ShouldPackIfThereIsDedicatedSection() {
+    public void testPackTupleHeaderDecimals_ShouldPackIfThereIsDedicatedSection() {
         ByteBuffer dest = ByteBuffer.allocate(3);
         
-        service.packTupleDecimals(Pk1TestUtils.tupleHeaderBuilderRandom()
+        service.packTupleHeaderDecimals(Pk1TestUtils.tupleHeaderBuilderRandom()
                 .decimals(815)
                 .volumeDecimals(2)
                 .build(), dest);
@@ -407,10 +407,10 @@ public class Pk1UtilsTest {
     }
     
     @Test
-    public void testPackTupleDecimals_ShouldSkipIfNotNeeded() {
+    public void testPackTupleHeaderDecimals_ShouldSkipIfNotNeeded() {
         ByteBuffer dest = ByteBuffer.allocate(1);
         
-        service.packTupleDecimals(Pk1TestUtils.tupleHeaderBuilderRandom()
+        service.packTupleHeaderDecimals(Pk1TestUtils.tupleHeaderBuilderRandom()
                 .decimals(5)
                 .volumeDecimals(3)
                 .build(), dest);
@@ -628,6 +628,94 @@ public class Pk1UtilsTest {
         //           value size ### ### volume size
         assertEquals(expected, dest.get(0));
         assertEquals(1, dest.position());
+    }
+    
+    @Test
+    public void testPackItemHeaderSizes_ShouldSkipIfNotNeeded() {
+        ByteBuffer dest = ByteBuffer.allocate(1);
+        
+        service.packItemHeaderSizes(Pk1TestUtils.itemHeaderBuilderRandom()
+                .valueSize(3)
+                .volumeSize(5)
+                .build(), dest);
+        
+        assertEquals(0, dest.position());
+    }
+    
+    @Test
+    public void testPackItemHeaderSizes_ShouldSkipIfNotNeeded_BothComponentsAreNotDefined() {
+        ByteBuffer dest = ByteBuffer.allocate(1);
+        
+        service.packItemHeaderSizes(Pk1TestUtils.itemHeaderBuilderRandom()
+                .valueSize(0)
+                .volumeSize(0)
+                .build(), dest);
+        
+        assertEquals(0, dest.position());
+    }
+    
+    @Test
+    public void testPackItemHeaderSizes_ShouldPackIfNeeded_HasValue_HasVolume() {
+        ByteBuffer dest = ByteBuffer.allocate(4);
+        
+        service.packItemHeaderSizes(Pk1TestUtils.itemHeaderBuilderRandom()
+                .valueSize(0xA2)
+                .volumeSize(0x025B)
+                .build(), dest);
+        
+        assertArrayEquals(ByteUtils.hexStringToByteArr("00A2 025B"), dest.array());
+        assertEquals(4, dest.position());
+    }
+    
+    @Test
+    public void testPackItemHeaderSizes_ShouldPackIfNeeded_HasNoValue_HasVolume() {
+        ByteBuffer dest = ByteBuffer.allocate(3);
+        
+        service.packItemHeaderSizes(Pk1TestUtils.itemHeaderBuilderRandom()
+                .valueSize(0x00)
+                .volumeSize(0x5612EE)
+                .build(), dest);
+        
+        assertArrayEquals(ByteUtils.hexStringToByteArr("5612EE"), dest.array());
+        assertEquals(3, dest.position());
+    }
+    
+    @Test
+    public void testPackItemHeaderSizes_ShouldPackIfNeeded_HasValue_HasNoVolume() {
+        ByteBuffer dest = ByteBuffer.allocate(4);
+        
+        service.packItemHeaderSizes(Pk1TestUtils.itemHeaderBuilderRandom()
+                .valueSize(0x8800FA)
+                .volumeSize(0)
+                .build(), dest);
+        
+        assertArrayEquals(ByteUtils.hexStringToByteArr("008800FA"), dest.array());
+        assertEquals(4, dest.position());
+    }
+    
+    @Test
+    public void testPackItemHeaderDecimals_ShouldSkipIfNotNeeded() {
+        ByteBuffer dest = ByteBuffer.allocate(1);
+        
+        service.packItemHeaderDecimals(Pk1TestUtils.itemHeaderBuilderRandom()
+                .decimals(5)
+                .volumeDecimals(3)
+                .build(), dest);
+        
+        assertEquals(0, dest.position());
+    }
+    
+    @Test
+    public void testPackItemHeaderDecimals_ShouldPackIfNeeded() {
+        ByteBuffer dest = ByteBuffer.allocate(3);
+        
+        service.packItemHeaderDecimals(Pk1TestUtils.itemHeaderBuilderRandom()
+                .decimals(0x05)
+                .volumeDecimals(0x0512)
+                .build(), dest);
+        
+        assertArrayEquals(ByteUtils.hexStringToByteArr("05 0512"), dest.array());
+        assertEquals(3, dest.position());
     }
     
 }

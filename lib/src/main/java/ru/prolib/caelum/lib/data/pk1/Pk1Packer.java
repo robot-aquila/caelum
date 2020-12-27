@@ -22,7 +22,7 @@ public class Pk1Packer {
         utils.packTupleHeaderOpenAndHigh(header, dest);
         utils.packTupleHeaderLowAndClose(header, dest);
         utils.packTupleHeaderOhlcSizes(header, dest);
-        utils.packTupleDecimals(header, dest);
+        utils.packTupleHeaderDecimals(header, dest);
         utils.packTuplePayload(tuple.payload(), dest);
         return new Bytes(dest.array());
     }

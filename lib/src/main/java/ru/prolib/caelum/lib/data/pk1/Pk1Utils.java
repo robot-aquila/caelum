@@ -122,7 +122,7 @@ public class Pk1Utils {
         }
     }
     
-    public void packTupleDecimals(IPk1TupleHeader header, ByteBuffer dest) {
+    public void packTupleHeaderDecimals(IPk1TupleHeader header, ByteBuffer dest) {
         if ( header.canStoreNumberOfDecimalsInHeader() == false ) {
             Bytes dx, vx;
             dest.put((dx = ByteUtils.intToBytes(header.decimals())).getSource(), dx.getOffset(), dx.getLength());
@@ -184,6 +184,28 @@ public class Pk1Utils {
             }
         }
         dest.put(data);
+    }
+    
+    public void packItemHeaderSizes(IPk1ItemHeader header, ByteBuffer dest) {
+        if ( header.canStoreSizesInHeader() == false ) {
+            Bytes x;
+            if ( header.isValuePresent() ) {
+                x = ByteUtils.intToBytes(header.valueSize());
+                dest.put(x.getSource(), x.getOffset(), x.getLength());
+            }
+            if ( header.isVolumePresent() ) {
+                x = ByteUtils.intToBytes(header.volumeSize());
+                dest.put(x.getSource(), x.getOffset(), x.getLength());
+            }
+        }
+    }
+    
+    public void packItemHeaderDecimals(IPk1ItemHeader header, ByteBuffer dest) {
+        if ( header.canStoreNumberOfDecimalsInHeader() == false ) {
+            Bytes dx, vx;
+            dest.put((dx = ByteUtils.intToBytes(header.decimals())).getSource(), dx.getOffset(), dx.getLength());
+            dest.put((vx = ByteUtils.intToBytes(header.volumeDecimals())).getSource(), vx.getOffset(), vx.getLength());
+        }
     }
     
 }
