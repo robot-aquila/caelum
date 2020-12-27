@@ -77,24 +77,6 @@ public class Pk1Utils {
         }
     }
     
-    public void packItemHeaderByte1(IPk1ItemHeader header, ByteBuffer dest) {
-        if ( header.canStoreNumberOfDecimalsInHeader() ) {
-            dest.put((byte)(
-                    ByteUtils.boolToBit(!header.canStoreSizesInHeader(), 1) |
-                    ByteUtils.intToF3b(header.decimals(), 2) |
-                    ByteUtils.intToF3b(header.volumeDecimals(), 5)
-                ));
-        } else {
-            dest.put((byte)(
-                    ByteUtils.boolToBit(true, 0) |
-                    ByteUtils.boolToBit(!header.canStoreSizesInHeader(), 1) |
-                    ByteUtils.sizeToF3b(ByteUtils.intSize(header.decimals()), 2) |
-                    ByteUtils.sizeToF3b(ByteUtils.intSize(header.volumeDecimals()), 5)
-                ));
-        }
-        
-    }
-    
     public void packTupleHeaderOpenAndHigh(IPk1TupleHeader header, ByteBuffer dest) {
         if ( header.canStoreOhlcSizesInHeader() ) {
             dest.put((byte)(
@@ -159,6 +141,49 @@ public class Pk1Utils {
     
     public IPk1TupleHeader unpackTupleHeader(Bytes bytes) {
         return new Pk1TupleHeaderWrp(bytes.getSource(), bytes.getOffset(), bytes.getLength() - bytes.getOffset());
+    }
+    
+    public void packItemHeaderByte1(IPk1ItemHeader header, ByteBuffer dest) {
+        if ( header.canStoreNumberOfDecimalsInHeader() ) {
+            dest.put((byte)(
+                    ByteUtils.boolToBit(!header.canStoreSizesInHeader(), 1) |
+                    ByteUtils.intToF3b(header.decimals(), 2) |
+                    ByteUtils.intToF3b(header.volumeDecimals(), 5)
+                ));
+        } else {
+            dest.put((byte)(
+                    ByteUtils.boolToBit(true, 0) |
+                    ByteUtils.boolToBit(!header.canStoreSizesInHeader(), 1) |
+                    ByteUtils.sizeToF3b(ByteUtils.intSize(header.decimals()), 2) |
+                    ByteUtils.sizeToF3b(ByteUtils.intSize(header.volumeDecimals()), 5)
+                ));
+        }
+    }
+    
+    public void packItemHeaderValVol(IPk1ItemHeader header, ByteBuffer dest) {
+        byte data = 0;
+        if ( header.canStoreSizesInHeader() ) {
+            if ( header.isVolumePresent() ) {
+                data |= (byte)(ByteUtils.boolToBit(true, 0) | ByteUtils.sizeToF3b(header.volumeSize(), 1));
+            }
+            if ( header.isValuePresent() ) {
+                data |= (byte)(ByteUtils.boolToBit(true, 4) | ByteUtils.sizeToF3b(header.valueSize(), 5));
+            }
+        } else {
+            if ( header.isVolumePresent() ) {
+                data |= (byte)(
+                        ByteUtils.boolToBit(true, 0) |
+                        ByteUtils.sizeToF3b(ByteUtils.intSize(header.volumeSize()), 1)
+                    );
+            }
+            if ( header.isValuePresent() ) {
+                data |= (byte)(
+                        ByteUtils.boolToBit(true, 4) |
+                        ByteUtils.sizeToF3b(ByteUtils.intSize(header.valueSize()), 5)
+                    );
+            }
+        }
+        dest.put(data);
     }
     
 }

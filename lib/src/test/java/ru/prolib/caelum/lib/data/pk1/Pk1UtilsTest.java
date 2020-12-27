@@ -455,7 +455,6 @@ public class Pk1UtilsTest {
                 .volumeDecimals(3)
                 .valueSize(1)
                 .volumeSize(1)
-                .customDataSize(0)
                 .build(), dest);
         
         //      hdr_dcm_value### #hdr_mp_dcm
@@ -474,7 +473,6 @@ public class Pk1UtilsTest {
                 .volumeDecimals(7)
                 .valueSize(12)
                 .volumeSize(446)
-                .customDataSize(100)
                 .build(), dest);
         
         //            hdr_dcm_value### #hdr_mp_dcm
@@ -493,7 +491,6 @@ public class Pk1UtilsTest {
                 .volumeDecimals(574100) // 3 bytes
                 .valueSize(2)
                 .volumeSize(5)
-                .customDataSize(100)
                 .build(), dest);
         
         //            hdr_dcm_value### #hdr_mp_dcm
@@ -512,12 +509,123 @@ public class Pk1UtilsTest {
                 .volumeDecimals(26091) // 2 bytes
                 .valueSize(900721) // 3 bytes
                 .volumeSize(0) // 0 bytes
-                .customDataSize(100)
                 .build(), dest);
         
         //            hdr_dcm_value### #hdr_mp_dcm
         byte expected = (byte)0b00101011;
         //        hdr_dcm_volume###   #hdr_mp_valvol
+        assertEquals(expected, dest.get(0));
+        assertEquals(1, dest.position());
+    }
+    
+    @Test
+    public void testPackItemHeaderValVol_SizesInHeader_ValueIsPresent_VolumeIsPresent() {
+        ByteBuffer dest = ByteBuffer.allocate(1);
+        
+        service.packItemHeaderValVol(Pk1TestUtils.itemHeaderBuilderRandom()
+                .valueSize(2)
+                .volumeSize(5)
+                .build(), dest);
+        
+        //           value present #   # volume present
+        byte expected = (byte)0b00111001;
+        //           value size ### ### volume size
+        assertEquals(expected, dest.get(0));
+        assertEquals(1, dest.position());
+    }
+    
+    @Test
+    public void testPackItemHeaderValVol_SizesInHeader_ValueIsNotPresent_VolumeIsPresent() {
+        ByteBuffer dest = ByteBuffer.allocate(1);
+        
+        service.packItemHeaderValVol(Pk1TestUtils.itemHeaderBuilderRandom()
+                .valueSize(0)
+                .volumeSize(8)
+                .build(), dest);
+        
+        //           value present #   # volume present
+        byte expected = (byte)0b00001111;
+        //           value size ### ### volume size
+        assertEquals(expected, dest.get(0));
+        assertEquals(1, dest.position());
+    }
+    
+    @Test
+    public void testPackItemHeaderValVol_SizesInHeader_ValueIsPresent_VolumeIsNotPresent() {
+        ByteBuffer dest = ByteBuffer.allocate(1);
+        
+        service.packItemHeaderValVol(Pk1TestUtils.itemHeaderBuilderRandom()
+                .valueSize(3)
+                .volumeSize(0)
+                .build(), dest);
+        
+        //           value present #   # volume present
+        byte expected = (byte)0b01010000;
+        //           value size ### ### volume size
+        assertEquals(expected, dest.get(0));
+        assertEquals(1, dest.position());
+    }
+    
+    @Test
+    public void testPackItemHeaderValVol_SizesInHeader_ValueIsNotPresent_VolumeIsNotPresent() {
+        ByteBuffer dest = ByteBuffer.allocate(1);
+        
+        service.packItemHeaderValVol(Pk1TestUtils.itemHeaderBuilderRandom()
+                .valueSize(0)
+                .volumeSize(0)
+                .build(), dest);
+        
+        //           value present #   # volume present
+        byte expected = (byte)0b00000000;
+        //           value size ### ### volume size
+        assertEquals(expected, dest.get(0));
+        assertEquals(1, dest.position());
+    }
+    
+    @Test
+    public void testPackItemHeaderValVol_SizesOutside_ValueIsPresent_VolumeIsPresent() {
+        ByteBuffer dest = ByteBuffer.allocate(1);
+        
+        service.packItemHeaderValVol(Pk1TestUtils.itemHeaderBuilderRandom()
+                .valueSize(514)
+                .volumeSize(2)
+                .build(), dest);
+        
+        //           value present #   # volume present
+        byte expected = (byte)0b00110001;
+        //           value size ### ### volume size
+        assertEquals(expected, dest.get(0));
+        assertEquals(1, dest.position());
+    }
+    
+    @Test
+    public void testPackItemHeaderValVol_SizesOutside_ValueIsNotPresent_VolumeIsPresent() {
+        ByteBuffer dest = ByteBuffer.allocate(1);
+        
+        service.packItemHeaderValVol(Pk1TestUtils.itemHeaderBuilderRandom()
+                .valueSize(0)
+                .volumeSize(4)
+                .build(), dest);
+        
+        //           value present #   # volume present
+        byte expected = (byte)0b00000111;
+        //           value size ### ### volume size
+        assertEquals(expected, dest.get(0));
+        assertEquals(1, dest.position());
+    }
+    
+    @Test
+    public void testPackItemHeaderValVol_SizesOutside_ValueIsPresent_VolumeIsNotPresent() {
+        ByteBuffer dest = ByteBuffer.allocate(1);
+        
+        service.packItemHeaderValVol(Pk1TestUtils.itemHeaderBuilderRandom()
+                .valueSize(78521)
+                .volumeSize(0)
+                .build(), dest);
+        
+        //           value present #   # volume present
+        byte expected = (byte)0b01010000;
+        //           value size ### ### volume size
         assertEquals(expected, dest.get(0));
         assertEquals(1, dest.position());
     }
