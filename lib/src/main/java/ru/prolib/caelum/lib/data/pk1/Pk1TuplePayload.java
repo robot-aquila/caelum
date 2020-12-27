@@ -2,7 +2,7 @@ package ru.prolib.caelum.lib.data.pk1;
 
 import ru.prolib.caelum.lib.Bytes;
 
-import static java.util.Objects.*;
+import java.util.Objects;
 
 record Pk1TuplePayload (
 		Bytes open,
@@ -13,11 +13,11 @@ record Pk1TuplePayload (
 	)
 {
 	public Pk1TuplePayload {
-		requireNonNull(open);
-		requireNonNull(high);
-		requireNonNull(low);
-		requireNonNull(close);
-		requireNonNull(volume);
+		Objects.requireNonNull(open, "Open bytes was not defined");
+		Objects.requireNonNull(high, "High bytes was not defined");
+		Objects.requireNonNull(low, "Low bytes was not defined");
+		Objects.requireNonNull(close, "Close bytes was not defined");
+		Objects.requireNonNull(volume, "Volume bytes was not defined");
 	}
 
 }
