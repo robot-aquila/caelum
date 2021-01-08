@@ -6,16 +6,29 @@ import static ru.prolib.caelum.lib.data.pk1.Pk1TestUtils.*;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.util.concurrent.ThreadLocalRandom;
+
 import org.easymock.IMocksControl;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
+import ru.prolib.caelum.lib.ByteUtils;
 import ru.prolib.caelum.lib.Bytes;
 import ru.prolib.caelum.lib.data.ItemData;
 import ru.prolib.caelum.lib.data.TupleData;
 
 public class Pk1PackerTest {
+    
+    static byte[] rndBytes(int numBytes) {
+        byte bytes[] = new byte[numBytes];
+        ThreadLocalRandom.current().nextBytes(bytes);
+        return bytes;
+    }
+    
+    static BigInteger rndBigInt(int numBytes) {
+        return new BigInteger(rndBytes(numBytes));
+    }
+    
     private IMocksControl control;
     private Pk1Utils utilsMock;
     private IPk1TupleHeader tupleHeaderMock;
@@ -124,21 +137,49 @@ public class Pk1PackerTest {
         assertSame(dest.array(), actual.getSource());
     }
     
-    @Ignore
     @Test
     public void testUnpackItem() {
-        fail();
+        byte[] bytes;
+        Bytes source = new Bytes(bytes = new byte[200], 45, 80);
+        expect(utilsMock.unpackItemHeader(source)).andReturn(itemHeaderMock);
+        control.replay();
+        
+        var actual = service.unpackItem(source);
+        
+        control.verify();
+        var expected = new Pk1ItemData(itemHeaderMock, new Bytes(bytes, 45, 80));
+        assertEquals(expected, actual);
     }
     
-    @Ignore
     @Test
     public void testPackItem_FullCycle_SmallValues() {
-        fail();
+        service = new Pk1Packer();
+        var source = new ItemData(
+                BigInteger.valueOf(670294L),
+                5,
+                BigInteger.valueOf(1000L),
+                3,
+                new Bytes(ByteUtils.hexStringToByteArr("AE0054FEFE"))
+            );
+        
+        var actual = service.unpackItem(service.packItem(source));
+        
+        assertEquals(source, actual);
     }
     
-    @Ignore
     @Test
     public void testPackItem_FullCycle_BigValues() {
-        fail();
+        service = new Pk1Packer();
+        var source = new ItemData(
+                rndBigInt(1024),
+                524,
+                rndBigInt(1024),
+                176992,
+                new Bytes(rndBytes(2048))
+            );
+        
+        var actual = service.unpackItem(service.packItem(source));
+        
+        assertEquals(source, actual);
     }
 }

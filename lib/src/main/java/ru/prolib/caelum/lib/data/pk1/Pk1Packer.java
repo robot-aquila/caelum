@@ -46,7 +46,8 @@ public class Pk1Packer {
     }
     
     public IItemData unpackItem(Bytes source) {
-        return null;
+        return new Pk1ItemData(utils.unpackItemHeader(source),
+            new Bytes(source.getSource(), source.getOffset(), source.getLength()));
     }
     
 }

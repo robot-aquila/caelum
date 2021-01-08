@@ -443,9 +443,21 @@ public class Pk1UtilsTest {
         Pk1TupleHeaderWrp actual = (Pk1TupleHeaderWrp) service.unpackTupleHeader(source);
         
         assertNotNull(actual);
-        assertSame(source.getSource(),actual.getBytes());
+        assertSame(source.getSource(), actual.getBytes());
         assertEquals(5, source.getOffset());
         assertEquals(95, source.getLength());
+    }
+    
+    @Test
+    public void testUnpackItemHeader() {
+        Bytes source = new Bytes(new byte[200], 10, 150);
+        
+        Pk1ItemHeaderWrp actual = (Pk1ItemHeaderWrp) service.unpackItemHeader(source);
+        
+        assertNotNull(actual);
+        assertSame(source.getSource(), actual.getBytes());
+        assertEquals(10, source.getOffset());
+        assertEquals(150, source.getLength());
     }
     
     @Test

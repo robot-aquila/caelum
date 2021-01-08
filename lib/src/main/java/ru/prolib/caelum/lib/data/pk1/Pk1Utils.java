@@ -144,6 +144,10 @@ public class Pk1Utils {
         return new Pk1TupleHeaderWrp(bytes.getSource(), bytes.getOffset(), bytes.getLength() - bytes.getOffset());
     }
     
+    public IPk1ItemHeader unpackItemHeader(Bytes bytes) {
+        return new Pk1ItemHeaderWrp(bytes.getSource(), bytes.getOffset(), bytes.getLength() - bytes.getOffset());
+    }
+    
     public void packItemHeaderByte1(IPk1ItemHeader header, ByteBuffer dest) {
         if ( header.canStoreNumberOfDecimalsInHeader() ) {
             dest.put((byte)(

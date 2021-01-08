@@ -9,7 +9,7 @@ public interface IItemData {
     /**
      * Get item value.
      * <p>
-     * @return value or null if value not defined
+     * @return value or null if value is not defined
      */
     BigInteger value();
     
@@ -36,7 +36,7 @@ public interface IItemData {
     /**
      * Get custom data.
      * <p>
-     * @return custom data or null if custom data not defined
+     * @return custom data or null if custom data is not defined
      */
     Bytes customData();
     
