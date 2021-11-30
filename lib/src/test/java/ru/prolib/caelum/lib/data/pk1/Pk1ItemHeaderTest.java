@@ -32,7 +32,7 @@ public class Pk1ItemHeaderTest {
     @Test
     public void testToString() {
         String expected = new StringBuilder()
-                .append("Pk1ItemHeader[decimals=3, volumeDecimals=5, valueSize=1, volumeSize=2, customDataSize=10]")
+                .append("Pk1ItemHeader[decimals=3,volumeDecimals=5,valueSize=1,volumeSize=2,customDataSize=10]")
                 .toString();
         
         assertEquals(expected, service.toString());

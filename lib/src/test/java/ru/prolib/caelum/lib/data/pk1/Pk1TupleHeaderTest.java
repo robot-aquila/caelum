@@ -37,9 +37,9 @@ public class Pk1TupleHeaderTest {
     @Test
     public void testToString() {
         String expected = new StringBuilder()
-                .append("Pk1TupleHeader[decimals=5, volumeDecimals=3, openSize=8, ")
-                .append("isHighRelative=true, highSize=7, isLowRelative=false, lowSize=3, ")
-                .append("isCloseRelative=true, closeSize=2, volumeSize=4]")
+                .append("Pk1TupleHeader[decimals=5,volumeDecimals=3,openSize=8,")
+                .append("isHighRelative=true,highSize=7,isLowRelative=false,lowSize=3,")
+                .append("isCloseRelative=true,closeSize=2,volumeSize=4]")
                 .toString();
         
         assertEquals(expected, service.toString());

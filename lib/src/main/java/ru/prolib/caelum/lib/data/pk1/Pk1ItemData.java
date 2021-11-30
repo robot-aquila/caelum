@@ -3,6 +3,9 @@ package ru.prolib.caelum.lib.data.pk1;
 import java.math.BigInteger;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 import ru.prolib.caelum.lib.Bytes;
 import ru.prolib.caelum.lib.data.IItemData;
@@ -70,6 +73,22 @@ public class Pk1ItemData implements IItemData {
         return new EqualsBuilder()
                 .append(o.header, header)
                 .append(o.bytes, bytes)
+                .build();
+    }
+    
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+                .append(header)
+                .append(bytes)
+                .build();
+    }
+    
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+                .append("header", header)
+                .append("bytes", bytes)
                 .build();
     }
 }
